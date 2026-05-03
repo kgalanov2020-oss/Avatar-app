@@ -124,12 +124,6 @@ def create_video():
     }
 @app.get("/talking-video/")
 def talking_video():
-    with open("uploads/latest_avatar.png", "rb") as f:
-        image_base64 = base64.b64encode(f.read()).decode()
-
-    with open("uploads/audio.mp3", "rb") as f:
-        audio_base64 = base64.b64encode(f.read()).decode()
-
     response = requests.post(
         "https://api.d-id.com/talks",
         headers={
@@ -137,10 +131,10 @@ def talking_video():
             "Content-Type": "application/json"
         },
         json={
-            "source_url": "https://example.com/avatar.png",
+            "source_url": "https://avatar-app-vcer.onrender.com/files/latest_avatar.png",
             "script": {
                 "type": "audio",
-                "audio_url": "https://example.com/audio.mp3"
+                "audio_url": "https://avatar-app-vcer.onrender.com/files/audio.mp3"
             }
         }
     )
