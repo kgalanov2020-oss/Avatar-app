@@ -120,7 +120,7 @@ def create_video():
     video.write_videofile(output_video, fps=24)
 
     return {
-        "video_url": "http://127.0.0.1:8000/files/result.mp4"
+        "video_url": "https://avatar-app-vcer.onrender.com/files/result.mp4"
     }
 @app.get("/talking-video/")
 def talking_video():
