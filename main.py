@@ -127,7 +127,7 @@ def talking_video_status(talk_id: str):
     response = requests.get(
         f"https://api.d-id.com/talks/{talk_id}",
         headers={
-            "Authorization": "Basic ТВОЙ_РЕАЛЬНЫЙ_DID_КЛЮЧ"
+            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:zWojEupYS9BIPJWs7Jv9U"
         }
     )
 
