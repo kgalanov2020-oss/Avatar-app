@@ -131,4 +131,9 @@ def talking_video_status(talk_id: str):
         }
     )
 
-    return response.json()
+    data = response.json()
+
+    return {
+        "status": data.get("status"),
+        "video_url": data.get("result_url")
+    }
