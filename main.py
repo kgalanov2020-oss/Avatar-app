@@ -128,7 +128,7 @@ def talking_video():
     response = requests.post(
         "https://api.d-id.com/talks",
         headers={
-            "Authorization": "Basic ТВОЙ_API_KEY",
+            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:zWojEupYS9BIPJWs7Jv9U",
             "Content-Type": "application/json"
         },
         json={
