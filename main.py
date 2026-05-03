@@ -122,20 +122,12 @@ def create_video():
     return {
         "video_url": "https://avatar-app-vcer.onrender.com/files/result.mp4"
     }
-@app.get("/talking-video/")
-def talking_video():
-    response = requests.post(
-        "https://api.d-id.com/talks",
+@app.get("/talking-video-status/{talk_id}")
+def talking_video_status(talk_id: str):
+    response = requests.get(
+        f"https://api.d-id.com/talks/{talk_id}",
         headers={
-            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:zWojEupYS9BIPJWs7Jv9U",
-            "Content-Type": "application/json"
-        },
-        json={
-            "source_url": "https://avatar-app-vcer.onrender.com/files/latest_avatar.png",
-            "script": {
-                "type": "audio",
-                "audio_url": "https://avatar-app-vcer.onrender.com/files/audio.mp3"
-            }
+            "Authorization": "Basic ТВОЙ_DID_API_KEY"
         }
     )
 
