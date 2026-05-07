@@ -138,6 +138,9 @@ def talking_video():
                 "type": "audio",
                 "audio_url": "https://avatar-app-vcer.onrender.com/files/audio.mp3"
             }
+            "config": {
+                "stitch": True,
+                "show_watermark": False
         }
     )
 
