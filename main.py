@@ -181,7 +181,7 @@ async def generate_final_video(
         response = requests.post(
             "https://api.d-id.com/talks",
             headers={
-                "Authorization": "Basic убрал",
+                "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:3DXWaFXSOEzNJpzNJibCP",
                 "Content-Type": "application/json"
             },
             json={
