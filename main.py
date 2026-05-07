@@ -274,7 +274,6 @@ let currentTalkId = null;
 
 async function generateVideo() {
     const fileInput = document.getElementById("photo");
-    const text = document.getElementById("text").value;
     const status = document.getElementById("status");
     const video = document.getElementById("video");
 
@@ -283,37 +282,50 @@ async function generateVideo() {
         return;
     }
 
-    status.innerText = "Генерируем аватар и запускаем видео... Это может занять 1-2 минуты.";
     video.style.display = "none";
 
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-    formData.append("text", text);
+    // 1. Создаём аватар
+    status.innerText = "Шаг 1/3: создаём 3D аватар...";
+    const avatarForm = new FormData();
+    avatarForm.append("file", fileInput.files[0]);
 
-    const response = await fetch("/generate-final-video/", {
+    const avatarResponse = await fetch("/create-3d-avatar/", {
         method: "POST",
-        body: formData
+        body: avatarForm
     });
 
-    const data = await response.json();
+    const avatarData = await avatarResponse.json();
 
-    if (data.error) {
-        status.innerText = "Ошибка: " + data.details;
+    if (avatarData.error) {
+        status.innerText = "Ошибка аватара: " + JSON.stringify(avatarData);
         return;
     }
 
-    currentTalkId = data.talk_id || data.id;
+    // 2. Создаём аудио/простое видео
+    status.innerText = "Шаг 2/3: создаём аудио...";
+    const videoResponse = await fetch("/create-video/");
+    const videoData = await videoResponse.json();
 
-if (!currentTalkId) {
-    status.innerText = "Ошибка: не получили talk_id. Ответ сервера: " + JSON.stringify(data);
-    return;
-}
+    if (videoData.error) {
+        status.innerText = "Ошибка видео: " + JSON.stringify(videoData);
+        return;
+    }
+
+    // 3. Запускаем D-ID
+    status.innerText = "Шаг 3/3: запускаем говорящую анимацию...";
+    const talkResponse = await fetch("/talking-video/");
+    const talkData = await talkResponse.json();
+
+    currentTalkId = talkData.id;
+
+    if (!currentTalkId) {
+        status.innerText = "Ошибка: не получили talk_id. Ответ сервера: " + JSON.stringify(talkData);
+        return;
+    }
 
     status.innerText = "Видео создаётся. ID: " + currentTalkId;
-
     checkStatus();
 }
-
 async function checkStatus() {
     const status = document.getElementById("status");
     const video = document.getElementById("video");
