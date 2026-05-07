@@ -102,11 +102,9 @@ async def create_3d_avatar(file: UploadFile = File(...)):
     }
 
 @app.get("/create-video/")
-def create_video():
+def create_video(text: str = Form("С днём рождения! Желаю счастья и здоровья!")):
     avatar_path = "uploads/latest_avatar.png"
     output_video = "uploads/result.mp4"
-
-    text = "С днём рождения! Желаю счастья и здоровья!"
 
     tts = gTTS(text=text, lang="ru")
     audio_path = "uploads/audio.mp3"
@@ -303,7 +301,15 @@ async function generateVideo() {
 
     // 2. Создаём аудио/простое видео
     status.innerText = "Шаг 2/3: создаём аудио...";
-    const videoResponse = await fetch("/create-video/");
+    const text = document.getElementById("text").value;
+
+const textForm = new FormData();
+textForm.append("text", text);
+
+const videoResponse = await fetch("/create-video/", {
+    method: "POST",
+    body: textForm
+});
     const videoData = await videoResponse.json();
 
     if (videoData.error) {
