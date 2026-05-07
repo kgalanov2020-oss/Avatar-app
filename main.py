@@ -304,10 +304,10 @@ async function generateVideo() {
 
     currentTalkId = data.talk_id || data.id;
 
-    if (!currentTalkId) {
-        status.innerText = "Ошибка: не получили talk_id. Ответ сервера: " + JSON.stringify(data);
-        return;
-    }
+if (!currentTalkId) {
+    status.innerText = "Ошибка: не получили talk_id. Ответ сервера: " + JSON.stringify(data);
+    return;
+}
 
     status.innerText = "Видео создаётся. ID: " + currentTalkId;
 
