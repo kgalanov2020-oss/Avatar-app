@@ -101,7 +101,7 @@ async def create_3d_avatar(file: UploadFile = File(...)):
         "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_avatar.png"
     }
 
-@app.get("/create-video/")
+@app.post("/create-video/")
 def create_video(text: str = Form("С днём рождения! Желаю счастья и здоровья!")):
     avatar_path = "uploads/latest_avatar.png"
     output_video = "uploads/result.mp4"
@@ -300,9 +300,9 @@ async function generateVideo() {
     }
 
     // 2. Создаём аудио/простое видео
-    status.innerText = "Шаг 2/3: создаём аудио...";
-    const text = document.getElementById("text").value;
+status.innerText = "Шаг 2/3: создаём аудио...";
 
+const text = document.getElementById("text").value;
 const textForm = new FormData();
 textForm.append("text", text);
 
@@ -310,7 +310,8 @@ const videoResponse = await fetch("/create-video/", {
     method: "POST",
     body: textForm
 });
-    const videoData = await videoResponse.json();
+
+const videoData = await videoResponse.json();
 
     if (videoData.error) {
         status.innerText = "Ошибка видео: " + JSON.stringify(videoData);
