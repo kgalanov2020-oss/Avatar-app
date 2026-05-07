@@ -53,9 +53,9 @@ async def create_3d_avatar(file: UploadFile = File(...)):
     img = img.convert("RGB")
 
     w, h = img.size
-    side = int(min(w, h) * 0.75)
+    side = int(min(w, h) * 0.9)
     left = (w - side) // 2
-    top = int((h - side) * 0.35)
+    top = int((h - side) * 0.2)
 
     img = img.crop((left, top, left + side, top + side))
     img = img.resize((640, 640))
@@ -70,13 +70,14 @@ async def create_3d_avatar(file: UploadFile = File(...)):
                 "accept": "image/*"
             },
             files={"image": image_file},
-            data={
+                        data={
                 "prompt": (
                     "one person only, single face only, front-facing portrait, "
-                    ""pixar style 3D avatar, centered face, symmetrical face, clean background, preserve identity, realistic mouth", preserve identity"
+                    "pixar style 3D avatar, centered face, symmetrical face, "
+                    "clean background, preserve identity, realistic mouth"
                 ),
                 "negative_prompt": (
-                    ""two heads, duplicate face, cropped face, zoomed face, deformed mouth""
+                    "two heads, duplicate face, cropped face, zoomed face, deformed mouth"
                 ),
                 "control_strength": 0.5,
                 "output_format": "png"
