@@ -141,3 +141,19 @@ def talking_video():
     )
 
     return response.json()
+
+@app.get("/talking-video-status/{talk_id}")
+def talking_video_status(talk_id: str):
+    response = requests.get(
+        f"https://api.d-id.com/talks/{talk_id}",
+        headers={
+            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:zWojEupYS9BIPJWs7Jv9U"
+        }
+    )
+
+    data = response.json()
+
+    return {
+        "status": data.get("status"),
+        "video_url": data.get("result_url")
+    }
