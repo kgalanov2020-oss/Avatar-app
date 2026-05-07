@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from moviepy import ImageClip, TextClip, CompositeVideoClip
@@ -162,3 +162,41 @@ def talking_video_status(talk_id: str):
         "status": data.get("status"),
         "video_url": data.get("result_url")
     }
+
+@app.post("/generate-final-video/")
+async def generate_final_video(
+    file: UploadFile = File(...),
+    text: str = Form("С днём рождения! Желаю счастья и здоровья!")
+):
+    # 1. создать 3D аватар
+    avatar_result = await create_3d_avatar(file)
+
+    if "error" in avatar_result:
+        return avatar_result
+
+    # 2. создать аудио из текста
+    audio_path = os.path.join(UPLOAD_DIR, "audio.mp3")
+    tts = gTTS(text=text, lang="ru")
+    tts.save(audio_path)
+
+    # 3. запустить D-ID talking video
+    response = requests.post(
+        "https://api.d-id.com/talks",
+        headers={
+            "Authorization": "Basic убрал",
+            "Content-Type": "application/json"
+        },
+        json={
+            "source_url": "https://avatar-app-vcer.onrender.com/files/latest_avatar.png",
+            "script": {
+                "type": "audio",
+                "audio_url": "https://avatar-app-vcer.onrender.com/files/audio.mp3"
+            },
+            "config": {
+                "stitch": True,
+                "show_watermark": False
+            }
+        }
+    )
+
+    return response.json()
