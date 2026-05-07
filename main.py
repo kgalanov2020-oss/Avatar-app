@@ -73,10 +73,10 @@ async def create_3d_avatar(file: UploadFile = File(...)):
             data={
                 "prompt": (
                     "one person only, single face only, front-facing portrait, "
-                    "3D cartoon avatar of the same person, preserve identity"
+                    ""pixar style 3D avatar, centered face, symmetrical face, clean background, preserve identity, realistic mouth", preserve identity"
                 ),
                 "negative_prompt": (
-                    "two heads, extra head, duplicate face, multiple people"
+                    ""two heads, duplicate face, cropped face, zoomed face, deformed mouth""
                 ),
                 "control_strength": 0.5,
                 "output_format": "png"
