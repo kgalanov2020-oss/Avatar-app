@@ -1,3 +1,4 @@
+from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -204,3 +205,133 @@ async def generate_final_video(
             "error": "generate-final-video failed",
             "details": str(e)
         }
+
+@app.get("/app", response_class=HTMLResponse)
+def app_page():
+    return """
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Avatar Video</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        input, textarea, button {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: black;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        video {
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 14px;
+        }
+        #status {
+            margin-top: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>AI Avatar Video</h1>
+        <p>Загрузи фото, напиши текст — получи говорящее видео.</p>
+
+        <input type="file" id="photo" accept="image/*">
+
+        <textarea id="text" rows="4">С днём рождения! Желаю счастья и здоровья!</textarea>
+
+        <button onclick="generateVideo()">Generate Video</button>
+
+        <div id="status"></div>
+
+        <video id="video" controls style="display:none;"></video>
+    </div>
+
+<script>
+let currentTalkId = null;
+
+async function generateVideo() {
+    const fileInput = document.getElementById("photo");
+    const text = document.getElementById("text").value;
+    const status = document.getElementById("status");
+    const video = document.getElementById("video");
+
+    if (!fileInput.files.length) {
+        alert("Выбери фото");
+        return;
+    }
+
+    status.innerText = "Генерируем аватар и запускаем видео... Это может занять 1-2 минуты.";
+    video.style.display = "none";
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    formData.append("text", text);
+
+    const response = await fetch("/generate-final-video/", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+        status.innerText = "Ошибка: " + data.details;
+        return;
+    }
+
+    currentTalkId = data.id;
+
+    if (!currentTalkId) {
+        status.innerText = "Ошибка: не получили talk_id";
+        return;
+    }
+
+    status.innerText = "Видео создаётся. ID: " + currentTalkId;
+
+    checkStatus();
+}
+
+async function checkStatus() {
+    const status = document.getElementById("status");
+    const video = document.getElementById("video");
+
+    const response = await fetch("/talking-video-status/" + currentTalkId);
+    const data = await response.json();
+
+    if (data.status === "done" && data.video_url) {
+        status.innerText = "Готово!";
+        video.src = data.video_url;
+        video.style.display = "block";
+        return;
+    }
+
+    status.innerText = "Статус: " + data.status + ". Ждём...";
+    setTimeout(checkStatus, 5000);
+}
+</script>
+</body>
+</html>
+"""
