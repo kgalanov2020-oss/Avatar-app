@@ -128,7 +128,7 @@ def talking_video():
     response = requests.post(
         "https://api.d-id.com/talks",
         headers={
-            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:zWojEupYS9BIPJWs7Jv9U",
+            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:3Vjb6fL2PhNnbQqyRHukc",
             "Content-Type": "application/json"
         },
         json={
@@ -147,7 +147,7 @@ def talking_video_status(talk_id: str):
     response = requests.get(
         f"https://api.d-id.com/talks/{talk_id}",
         headers={
-            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:zWojEupYS9BIPJWs7Jv9U"
+            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:3Vjb6fL2PhNnbQqyRHukc"
         }
     )
 
