@@ -91,12 +91,12 @@ async def create_3d_avatar(file: UploadFile = File(...)):
         f.write(response.content)
 
     # 5. сохранить как последний аватар
-    shutil.copy(output_path, "uploads/latest_avatar.png")
+    shutil.copy(output_path, os.path.join(UPLOAD_DIR, "latest_avatar.png"))
 
     # 6. вернуть результат
     return {
         "message": "3D avatar generated",
-        "avatar_url": f"http://127.0.0.1:8000/files/{file_id}_avatar.png"
+        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_avatar.png"
     }
 
 @app.get("/create-video/")
