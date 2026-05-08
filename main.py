@@ -139,8 +139,8 @@ async def create_3d_avatar(
 
 @app.post("/create-video/")
 async def create_video(
-    text: str = Form(...),
-    voice: str = Form(...),
+    text: str = Form("С днём рождения!"),
+    voice: str = Form("female"),
     format: str = Form("square")
 ):
     audio_path = "uploads/audio.mp3"
