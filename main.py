@@ -49,13 +49,32 @@ async def create_3d_avatar(
     output_path = os.path.join(UPLOAD_DIR, f"{file_id}_avatar.png")
     
     theme_prompts = {
-        "default": "3D cartoon avatar portrait, clean background",
-        "astronaut": "3D cartoon astronaut suit, cosmic background",
-        "cowboy": "3D cartoon cowboy outfit, western background",
-        "royal": "3D cartoon king or queen outfit, royal palace background",
-        "sport": "3D cartoon athlete uniform, stadium background",
-        "sailor": "3D cartoon sailor outfit, sea background"
-    }
+    "default": "3D cartoon avatar portrait, clean background",
+
+    "astronaut": "3D cartoon astronaut suit, cosmic background",
+    "cowboy": "3D cartoon cowboy outfit, western desert background",
+    "royal": "3D cartoon king or queen outfit, royal palace background",
+    "sport": "3D cartoon athlete uniform, stadium background",
+    "sailor": "3D cartoon sailor outfit, sea background",
+
+    "samurai": "3D cartoon samurai armor, japanese temple background",
+    "cyberpunk": "3D cartoon cyberpunk style, neon futuristic city background",
+    "superhero": "3D cartoon superhero costume, cinematic action background",
+    "rockstar": "3D cartoon rock star outfit, concert stage background",
+    "gangster": "3D cartoon mafia gangster suit, 1920s luxury background",
+
+    "pirate": "3D cartoon pirate captain outfit, pirate ship background",
+    "wizard": "3D cartoon wizard robe, magical fantasy background",
+    "viking": "3D cartoon viking warrior armor, nordic background",
+    "ninja": "3D cartoon ninja outfit, dark japanese background",
+    "luxury": "3D cartoon luxury billionaire outfit, private jet background",
+
+    "angel": "3D cartoon angel wings, heavenly clouds background",
+    "demon": "3D cartoon dark demon style, fire fantasy background",
+    "pharaoh": "3D cartoon egyptian pharaoh outfit, pyramid background",
+    "knight": "3D cartoon medieval knight armor, castle background",
+    "racer": "3D cartoon formula one racing suit, racetrack background"
+}
 
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
@@ -471,6 +490,21 @@ video {
     <option value="royal">Король / Королева</option>
     <option value="sport">Спортсмен</option>
     <option value="sailor">Моряк</option>
+    <option value="samurai">Самурай</option>
+    <option value="cyberpunk">Киберпанк</option>
+    <option value="superhero">Супергерой</option>
+    <option value="rockstar">Рок-звезда</option>
+    <option value="gangster">Гангстер 1920s</option>
+    <option value="pirate">Пират</option>
+    <option value="wizard">Маг / Волшебник</option>
+    <option value="viking">Викинг</option>
+    <option value="ninja">Ниндзя</option>
+    <option value="luxury">Luxury бизнесмен</option>
+    <option value="angel">Ангел</option>
+    <option value="demon">Демон</option>
+    <option value="pharaoh">Фараон</option>
+    <option value="knight">Рыцарь</option>
+    <option value="racer">Гонщик Formula 1</option>
 </select>
     <label>Голос</label>
     <select id="voice">
