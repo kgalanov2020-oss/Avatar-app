@@ -47,16 +47,17 @@ async def create_3d_avatar(
     file_id = str(uuid.uuid4())
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
     output_path = os.path.join(UPLOAD_DIR, f"{file_id}_avatar.png")
+    
     theme_prompts = {
-    "default": "3D cartoon avatar portrait, clean background",
-    "astronaut": "3D cartoon astronaut suit, cosmic background",
-    "cowboy": "3D cartoon cowboy outfit, western background",
-    "royal": "3D cartoon king or queen outfit, royal palace background",
-    "sport": "3D cartoon athlete uniform, stadium background",
-    "sailor": "3D cartoon sailor outfit, sea background"
-}
+        "default": "3D cartoon avatar portrait, clean background",
+        "astronaut": "3D cartoon astronaut suit, cosmic background",
+        "cowboy": "3D cartoon cowboy outfit, western background",
+        "royal": "3D cartoon king or queen outfit, royal palace background",
+        "sport": "3D cartoon athlete uniform, stadium background",
+        "sailor": "3D cartoon sailor outfit, sea background"
+    }
 
-theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
+    theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
     # 1. сохранить файл
     with open(input_path, "wb") as buffer:
