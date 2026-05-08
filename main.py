@@ -42,7 +42,8 @@ def root():
 @app.post("/create-3d-avatar/")
 async def create_3d_avatar(
     file: UploadFile = File(...),
-    theme: str = Form("default")
+    theme: str = Form("default"),
+    custom_theme: str = Form("")
 ):
     file_id = str(uuid.uuid4())
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
@@ -50,25 +51,23 @@ async def create_3d_avatar(
     
     theme_prompts = {
     "default": "3D cartoon avatar portrait, clean background",
-
+    if theme == "custom" and custom_theme.strip():
+    theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
     "astronaut": "3D cartoon astronaut suit, cosmic background",
     "cowboy": "3D cartoon cowboy outfit, western desert background",
     "royal": "3D cartoon king or queen outfit, royal palace background",
     "sport": "3D cartoon athlete uniform, stadium background",
     "sailor": "3D cartoon sailor outfit, sea background",
-
     "samurai": "3D cartoon samurai armor, japanese temple background",
     "cyberpunk": "3D cartoon cyberpunk style, neon futuristic city background",
     "superhero": "3D cartoon superhero costume, cinematic action background",
     "rockstar": "3D cartoon rock star outfit, concert stage background",
     "gangster": "3D cartoon mafia gangster suit, 1920s luxury background",
-
     "pirate": "3D cartoon pirate captain outfit, pirate ship background",
     "wizard": "3D cartoon wizard robe, magical fantasy background",
     "viking": "3D cartoon viking warrior armor, nordic background",
     "ninja": "3D cartoon ninja outfit, dark japanese background",
     "luxury": "3D cartoon luxury billionaire outfit, private jet background",
-
     "angel": "3D cartoon angel wings, heavenly clouds background",
     "demon": "3D cartoon dark demon style, fire fantasy background",
     "pharaoh": "3D cartoon egyptian pharaoh outfit, pyramid background",
@@ -483,7 +482,8 @@ video {
 
     <label>Тема</label>
 
-<select id="theme">
+<select id="theme" onchange="toggleCustomTheme()">
+    <option value="custom">Собственная тема</option>
     <option value="default">Обычный</option>
     <option value="astronaut">Космонавт</option>
     <option value="cowboy">Ковбой</option>
@@ -506,6 +506,14 @@ video {
     <option value="knight">Рыцарь</option>
     <option value="racer">Гонщик Formula 1</option>
 </select>
+
+<input 
+    type="text" 
+    id="customTheme" 
+    placeholder="Например: врач, футболист, принцесса, робот..." 
+    style="display:none;"
+>
+
     <label>Голос</label>
     <select id="voice">
         <option value="female">Женский голос</option>
@@ -585,7 +593,19 @@ function setStep(step) {
     }
 }
 
+function toggleCustomTheme() {
+    const theme = document.getElementById("theme").value;
+    const customTheme = document.getElementById("customTheme");
+
+    if (theme === "custom") {
+        customTheme.style.display = "block";
+    } else {
+        customTheme.style.display = "none";
+    }
+}
+
 async function generateVideo() {
+    const customTheme = document.getElementById("customTheme").value;
     const fileInput = document.getElementById("photo");
     const text = document.getElementById("text").value;
     const voice = document.getElementById("voice").value;
@@ -612,6 +632,7 @@ async function generateVideo() {
         const avatarForm = new FormData();
         avatarForm.append("file", fileInput.files[0]);
         avatarForm.append("theme", theme);
+        avatarForm.append("custom_theme", customTheme);
 
         const avatarResponse = await fetch("/create-3d-avatar/", {
             method: "POST",
