@@ -139,8 +139,9 @@ async def create_3d_avatar(
 
 @app.post("/create-video/")
 async def create_video(
-    text: str = Form("С днём рождения!"),
-    voice: str = Form("female")
+    text: str = Form(...),
+    voice: str = Form(...),
+    format: str = Form("square")
 ):
     avatar_path = "uploads/latest_avatar.png"
     output_video = "uploads/result.mp4"
@@ -155,13 +156,24 @@ async def create_video(
     communicate = edge_tts.Communicate(text, voice_name)
     await communicate.save(audio_path)
 
+    if format == "vertical":
+        video_size = (720, 1280)
+        avatar_size = (720, 720)
+    else:
+        video_size = (640, 640)
+        avatar_size = (640, 640)
+    
     clip = ImageClip(avatar_path).with_duration(3)
+    clip = clip.resized(avatar_size)
     clip = clip.resized(lambda t: 1 + 0.03 * t)
 
     audio = AudioFileClip(audio_path)
     clip = clip.with_audio(audio)
 
-    video = CompositeVideoClip([clip])
+    video = CompositeVideoClip(
+        [clip.with_position(("center", "center"))],
+        size=video_size
+    )
     video.write_videofile(output_video, fps=24)
 
     return {
