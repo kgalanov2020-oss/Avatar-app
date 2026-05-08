@@ -48,41 +48,39 @@ async def create_3d_avatar(
     file_id = str(uuid.uuid4())
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
     output_path = os.path.join(UPLOAD_DIR, f"{file_id}_avatar.png")
-    
+
     theme_prompts = {
-    "default": "3D cartoon avatar portrait, clean background",
-    "astronaut": "3D cartoon astronaut suit, cosmic background",
-    "cowboy": "3D cartoon cowboy outfit, western desert background",
-    "royal": "3D cartoon king or queen outfit, royal palace background",
-    "sport": "3D cartoon athlete uniform, stadium background",
-    "sailor": "3D cartoon sailor outfit, sea background",
-    "samurai": "3D cartoon samurai armor, japanese temple background",
-    "cyberpunk": "3D cartoon cyberpunk style, neon futuristic city background",
-    "superhero": "3D cartoon superhero costume, cinematic action background",
-    "rockstar": "3D cartoon rock star outfit, concert stage background",
-    "gangster": "3D cartoon mafia gangster suit, 1920s luxury background",
-    "pirate": "3D cartoon pirate captain outfit, pirate ship background",
-    "wizard": "3D cartoon wizard robe, magical fantasy background",
-    "viking": "3D cartoon viking warrior armor, nordic background",
-    "ninja": "3D cartoon ninja outfit, dark japanese background",
-    "luxury": "3D cartoon luxury billionaire outfit, private jet background",
-    "angel": "3D cartoon angel wings, heavenly clouds background",
-    "demon": "3D cartoon dark demon style, fire fantasy background",
-    "pharaoh": "3D cartoon egyptian pharaoh outfit, pyramid background",
-    "knight": "3D cartoon medieval knight armor, castle background",
-    "racer": "3D cartoon formula one racing suit, racetrack background"
+        "default": "3D cartoon avatar portrait, clean background",
+        "astronaut": "3D cartoon astronaut suit, cosmic background",
+        "cowboy": "3D cartoon cowboy outfit, western desert background",
+        "royal": "3D cartoon king or queen outfit, royal palace background",
+        "sport": "3D cartoon athlete uniform, stadium background",
+        "sailor": "3D cartoon sailor outfit, sea background",
+        "samurai": "3D cartoon samurai armor, japanese temple background",
+        "cyberpunk": "3D cartoon cyberpunk style, neon futuristic city background",
+        "superhero": "3D cartoon superhero costume, cinematic action background",
+        "rockstar": "3D cartoon rock star outfit, concert stage background",
+        "gangster": "3D cartoon mafia gangster suit, 1920s luxury background",
+        "pirate": "3D cartoon pirate captain outfit, pirate ship background",
+        "wizard": "3D cartoon wizard robe, magical fantasy background",
+        "viking": "3D cartoon viking warrior armor, nordic background",
+        "ninja": "3D cartoon ninja outfit, dark japanese background",
+        "luxury": "3D cartoon luxury billionaire outfit, private jet background",
+        "angel": "3D cartoon angel wings, heavenly clouds background",
+        "demon": "3D cartoon dark demon style, fire fantasy background",
+        "pharaoh": "3D cartoon egyptian pharaoh outfit, pyramid background",
+        "knight": "3D cartoon medieval knight armor, castle background",
+        "racer": "3D cartoon formula one racing suit, racetrack background"
     }
-    
+
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
-    
+
     if theme == "custom" and custom_theme.strip():
         theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
-    
-    # 1. сохранить файл
+
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 2. обработка изображения
     img = Image.open(input_path)
     img = ImageOps.exif_transpose(img)
     img = img.convert("RGB")
@@ -96,7 +94,6 @@ async def create_3d_avatar(
     img = img.resize((640, 640))
     img.save(input_path)
 
-    # 3. запрос к AI
     with open(input_path, "rb") as image_file:
         response = requests.post(
             "https://api.stability.ai/v2beta/stable-image/control/sketch",
@@ -105,13 +102,13 @@ async def create_3d_avatar(
                 "accept": "image/*"
             },
             files={"image": image_file},
-                        data={
+            data={
                 "prompt": (
-    "high quality 3D cartoon avatar of the same person, "
-    "preserve identity, same face shape, same eyes, same nose, "
-    "same lips, same hairstyle, same gender, same skin tone, "
-    "front-facing portrait, centered face, realistic mouth, "
-    + theme_prompt
+                    "high quality 3D cartoon avatar of the same person, "
+                    "preserve identity, same face shape, same eyes, same nose, "
+                    "same lips, same hairstyle, same gender, same skin tone, "
+                    "front-facing portrait, centered face, realistic mouth, "
+                    + theme_prompt
                 ),
                 "negative_prompt": (
                     "two heads, duplicate face, cropped face, zoomed face, deformed mouth"
@@ -124,14 +121,11 @@ async def create_3d_avatar(
     if response.status_code != 200:
         return {"error": response.text}
 
-    # 4. сохранить результат
     with open(output_path, "wb") as f:
         f.write(response.content)
 
-    # 5. сохранить как последний аватар
     shutil.copy(output_path, os.path.join(UPLOAD_DIR, "latest_avatar.png"))
 
-    # 6. вернуть результат
     return {
         "message": "3D avatar generated",
         "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_avatar.png"
@@ -168,6 +162,7 @@ async def create_video(
         "video_url": "https://avatar-app-vcer.onrender.com/files/result.mp4",
         "voice": voice
     }
+
 @app.get("/talking-video/")
 def talking_video():
     response = requests.post(
