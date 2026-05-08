@@ -102,15 +102,21 @@ async def create_3d_avatar(file: UploadFile = File(...)):
     }
 
 @app.post("/create-video/")
-def create_video(text: str = Form("С днём рождения! Желаю счастья и здоровья!")):
+def create_video(
+    text: str = Form("С днём рождения! Желаю счастья и здоровья!"),
+    voice: str = Form("female")
+):
     avatar_path = "uploads/latest_avatar.png"
     output_video = "uploads/result.mp4"
 
-    tts = gTTS(text=text, lang="ru")
     audio_path = "uploads/audio.mp3"
+
+    # пока gTTS не умеет настоящий male/female voice
+    # voice сохраняем для будущей замены на ElevenLabs/D-ID voices
+    tts = gTTS(text=text, lang="ru")
     tts.save(audio_path)
 
-    clip = ImageClip(avatar_path).with_duration(5)
+    clip = ImageClip(avatar_path).with_duration(3)
     clip = clip.resized(lambda t: 1 + 0.03 * t)
 
     audio = AudioFileClip(audio_path)
@@ -120,7 +126,8 @@ def create_video(text: str = Form("С днём рождения! Желаю сч
     video.write_videofile(output_video, fps=24)
 
     return {
-        "video_url": "https://avatar-app-vcer.onrender.com/files/result.mp4"
+        "video_url": "https://avatar-app-vcer.onrender.com/files/result.mp4",
+        "voice": voice
     }
 
 @app.get("/talking-video/")
@@ -165,7 +172,8 @@ def talking_video_status(talk_id: str):
 @app.post("/generate-final-video/")
 async def generate_final_video(
     file: UploadFile = File(...),
-    text: str = Form("С днём рождения! Желаю счастья и здоровья!")
+    text: str = Form("С днём рождения! Желаю счастья и здоровья!"),
+    voice: str = Form("female")
 ):
     try:
         avatar_result = await create_3d_avatar(file)
@@ -245,14 +253,14 @@ def app_page():
         color: #444;
     }
 
-    input, textarea, button {
-        width: 100%;
-        margin-top: 14px;
-        padding: 14px;
-        font-size: 17px;
-        border-radius: 14px;
-        border: 1px solid #d0d0d0;
-    }
+    input, textarea, select, button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    font-size: 17px;
+    border-radius: 14px;
+    border: 1px solid #d0d0d0;
+}
 
     textarea {
         min-height: 120px;
@@ -366,6 +374,11 @@ def app_page():
 
         <textarea id="text" rows="4">С днём рождения! Желаю счастья и здоровья!</textarea>
 
+<select id="voice">
+    <option value="female">Женский голос</option>
+    <option value="male">Мужской голос</option>
+</select>
+
         <button id="generateBtn" onclick="generateVideo()">Generate Video</button>
 
         <div class="steps">
@@ -424,6 +437,7 @@ function setStep(step) {
 async function generateVideo() {
     const fileInput = document.getElementById("photo");
     const text = document.getElementById("text").value;
+    const voice = document.getElementById("voice").value;
     const status = document.getElementById("status");
     const video = document.getElementById("video");
     const btn = document.getElementById("generateBtn");
@@ -462,6 +476,7 @@ async function generateVideo() {
 
         const textForm = new FormData();
         textForm.append("text", text);
+        textForm.append("voice", voice);
 
         const voiceResponse = await fetch("/create-video/", {
             method: "POST",
