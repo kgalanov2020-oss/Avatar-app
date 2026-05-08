@@ -217,194 +217,274 @@ async def generate_final_video(
 
 @app.get("/app", response_class=HTMLResponse)
 def app_page():
-    return """
+        return """
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>AI Avatar Video</title>
-    <style>
-    * {
-        box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Avatar Video</title>
 
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    background:
+        radial-gradient(circle at top left, #ffe8f0, transparent 35%),
+        radial-gradient(circle at bottom right, #dff3ff, transparent 35%),
+        #f5f6fa;
+    color: #111;
+    padding: 18px;
+}
+
+.card {
+    width: 100%;
+    max-width: 760px;
+    margin: 18px auto;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.10);
+}
+
+.badge {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #111;
+    color: white;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+h1 {
+    font-size: 44px;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #555;
+    line-height: 1.45;
+    margin-bottom: 24px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+input, textarea, select, button {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    border-radius: 16px;
+    border: 1px solid #d6d6d6;
+    background: white;
+}
+
+textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+button {
+    border: none;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #111, #444);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.secondary {
+    background: #f0f0f0;
+    color: #111;
+}
+
+.steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.step {
+    padding: 14px 10px;
+    border-radius: 16px;
+    background: #f1f1f1;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #777;
+}
+
+.step.active {
+    background: #111;
+    color: white;
+}
+
+.step.done {
+    background: #dff8e7;
+    color: #0f7a35;
+}
+
+.progress-wrap {
+    width: 100%;
+    height: 10px;
+    background: #ececec;
+    border-radius: 999px;
+    margin-top: 18px;
+    overflow: hidden;
+}
+
+#progressBar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #111, #777);
+    transition: width 0.4s ease;
+}
+
+#status {
+    margin-top: 18px;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.hint {
+    font-size: 14px;
+    color: #777;
+    margin-top: 8px;
+}
+
+video {
+    width: 100%;
+    margin-top: 22px;
+    border-radius: 20px;
+    background: #000;
+}
+
+.actions {
+    display: none;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.actions.show {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.footer-note {
+    margin-top: 18px;
+    font-size: 13px;
+    color: #777;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
     body {
-        font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-        margin: 0;
-        padding: 18px;
-        background: linear-gradient(135deg, #f2f4f8, #e9ecf3);
-        color: #111;
+        padding: 10px;
     }
 
     .card {
-        width: 100%;
-        max-width: 720px;
-        margin: 24px auto;
-        background: white;
-        padding: 28px;
+        padding: 22px;
         border-radius: 24px;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+        margin: 8px auto;
     }
 
     h1 {
-        font-size: 42px;
-        margin: 0 0 12px;
+        font-size: 34px;
     }
 
-    p {
-        font-size: 18px;
-        color: #444;
-    }
-
-    input, textarea, select, button {
-    width: 100%;
-    margin-top: 14px;
-    padding: 14px;
-    font-size: 17px;
-    border-radius: 14px;
-    border: 1px solid #d0d0d0;
-}
-
-    textarea {
-        min-height: 120px;
-        resize: vertical;
-    }
-
-    button {
-        border: none;
-        background: #000;
-        color: white;
-        cursor: pointer;
-        font-weight: 700;
-        transition: 0.2s;
-    }
-
-    button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .secondary {
-        background: #f1f1f1;
-        color: #111;
+    .subtitle {
+        font-size: 16px;
     }
 
     .steps {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .step {
-        padding: 14px 10px;
-        border-radius: 14px;
-        background: #f2f2f2;
-        text-align: center;
-        font-weight: 700;
-        font-size: 14px;
-    }
-
-    .step.active {
-        background: #111;
-        color: white;
-    }
-
-    .step.done {
-        background: #d9f7df;
-        color: #0b6b24;
-    }
-
-    #status {
-        margin-top: 18px;
-        font-weight: 700;
-        line-height: 1.4;
-    }
-
-    video {
-        width: 100%;
-        margin-top: 20px;
-        border-radius: 18px;
-        background: #000;
-    }
-
-    .actions {
-        display: none;
-        gap: 12px;
-        margin-top: 14px;
+        grid-template-columns: 1fr;
     }
 
     .actions.show {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
-
-    @media (max-width: 600px) {
-        body {
-            padding: 10px;
-        }
-
-        .card {
-            padding: 22px;
-            margin: 10px auto;
-            border-radius: 22px;
-        }
-
-        h1 {
-            font-size: 34px;
-        }
-
-        p {
-            font-size: 16px;
-        }
-
-        .steps {
-            grid-template-columns: 1fr;
-        }
-
-        .actions.show {
-            grid-template-columns: 1fr;
-        }
-    }
+}
 </style>
 </head>
+
 <body>
-    <div class="card">
-        <h1>AI Avatar Video</h1>
-        <p>Загрузи фото, напиши текст — получи говорящее видео.</p>
+<div class="card">
+    <div class="badge">AI Greeting Video</div>
 
-        <input type="file" id="photo" accept="image/*">
+    <h1>AI Avatar Video</h1>
+    <p class="subtitle">Загрузи фото, напиши поздравление — получи говорящее видео с AI-аватаром.</p>
 
-        <textarea id="text" rows="4">С днём рождения! Желаю счастья и здоровья!</textarea>
+    <label>Фото</label>
+    <input type="file" id="photo" accept="image/*">
 
-<select id="voice">
-    <option value="female">Женский голос</option>
-    <option value="male">Мужской голос</option>
-</select>
+    <label>Текст поздравления</label>
+    <textarea id="text">С днём рождения! Желаю счастья, здоровья и исполнения всех желаний!</textarea>
+    <div class="hint">Лучше писать 1–2 коротких предложения.</div>
 
-        <button id="generateBtn" onclick="generateVideo()">Generate Video</button>
+    <label>Голос</label>
+    <select id="voice">
+        <option value="female">Женский голос</option>
+        <option value="male">Мужской голос</option>
+    </select>
 
-        <div class="steps">
-            <div id="stepAvatar" class="step">1. Аватар</div>
-            <div id="stepVoice" class="step">2. Голос</div>
-            <div id="stepVideo" class="step">3. Видео</div>
-        </div>
+    <button id="generateBtn" onclick="generateVideo()">Создать видео</button>
 
-        <div id="status"></div>
-
-        <video id="video" controls style="display:none;"></video>
-
-        <div id="actions" class="actions">
-            <a id="downloadLink" href="#" download="avatar-video.mp4">
-                <button>Скачать видео</button>
-            </a>
-            <button class="secondary" onclick="resetApp()">Создать ещё</button>
-        </div>
+    <div class="steps">
+        <div id="stepAvatar" class="step">1. Аватар</div>
+        <div id="stepVoice" class="step">2. Голос</div>
+        <div id="stepVideo" class="step">3. Видео</div>
     </div>
+
+    <div class="progress-wrap">
+        <div id="progressBar"></div>
+    </div>
+
+    <div id="status"></div>
+
+    <video id="video" controls style="display:none;"></video>
+
+    <div id="actions" class="actions">
+        <a id="downloadLink" href="#" download="avatar-video.mp4">
+            <button>Скачать видео</button>
+        </a>
+        <button class="secondary" onclick="resetApp()">Создать ещё</button>
+    </div>
+
+    <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
+</div>
 
 <script>
 let currentTalkId = null;
 let finalVideoUrl = null;
+
+function setProgress(percent) {
+    document.getElementById("progressBar").style.width = percent + "%";
+}
 
 function setStep(step) {
     const avatar = document.getElementById("stepAvatar");
@@ -417,23 +497,31 @@ function setStep(step) {
 
     if (step === 1) {
         avatar.className = "step active";
+        setProgress(20);
     }
 
     if (step === 2) {
         avatar.className = "step done";
         voice.className = "step active";
+        setProgress(45);
     }
 
     if (step === 3) {
         avatar.className = "step done";
         voice.className = "step done";
         video.className = "step active";
+        setProgress(70);
     }
 
     if (step === 4) {
         avatar.className = "step done";
         voice.className = "step done";
         video.className = "step done";
+        setProgress(100);
+    }
+
+    if (step === 0) {
+        setProgress(0);
     }
 }
 
@@ -550,6 +638,7 @@ function resetApp() {
     document.getElementById("video").src = "";
     document.getElementById("status").innerText = "";
     document.getElementById("actions").className = "actions";
+    document.getElementById("generateBtn").disabled = false;
 
     setStep(0);
 }
