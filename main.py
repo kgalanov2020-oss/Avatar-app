@@ -6,6 +6,7 @@ from moviepy import ImageClip, TextClip, CompositeVideoClip
 import edge_tts
 import asyncio
 from moviepy import AudioFileClip
+from moviepy import VideoFileClip, CompositeVideoClip, ColorClip
 
 import shutil
 import uuid
@@ -195,6 +196,45 @@ def talking_video_status(talk_id: str):
     return {
         "status": data.get("status"),
         "video_url": data.get("result_url")
+    }
+
+@app.post("/make-vertical/")
+async def make_vertical(video_url: str = Form(...)):
+
+    input_path = "uploads/input.mp4"
+    output_path = "uploads/vertical.mp4"
+
+    video_response = requests.get(video_url)
+
+    with open(input_path, "wb") as f:
+        f.write(video_response.content)
+
+    clip = VideoFileClip(input_path)
+
+    background = (
+        clip.resized(height=1280)
+        .cropped(x_center=clip.w / 2, width=720, height=1280)
+        .with_opacity(0.35)
+    )
+
+    foreground = (
+        clip.resized(width=720)
+        .with_position(("center", "center"))
+    )
+
+    final = CompositeVideoClip(
+        [background, foreground],
+        size=(720, 1280)
+    )
+
+    final.write_videofile(
+        output_path,
+        codec="libx264",
+        audio_codec="aac"
+    )
+
+    return {
+        "vertical_video_url": "https://avatar-app-vcer.onrender.com/files/vertical.mp4"
     }
 
 @app.post("/generate-final-video/")
