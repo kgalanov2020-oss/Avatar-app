@@ -40,10 +40,23 @@ def root():
 
 
 @app.post("/create-3d-avatar/")
-async def create_3d_avatar(file: UploadFile = File(...)):
+async def create_3d_avatar(
+    file: UploadFile = File(...),
+    theme: str = Form("default")
+):
     file_id = str(uuid.uuid4())
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
     output_path = os.path.join(UPLOAD_DIR, f"{file_id}_avatar.png")
+    theme_prompts = {
+    "default": "3D cartoon avatar portrait, clean background",
+    "astronaut": "3D cartoon astronaut suit, cosmic background",
+    "cowboy": "3D cartoon cowboy outfit, western background",
+    "royal": "3D cartoon king or queen outfit, royal palace background",
+    "sport": "3D cartoon athlete uniform, stadium background",
+    "sailor": "3D cartoon sailor outfit, sea background"
+}
+
+theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
     # 1. сохранить файл
     with open(input_path, "wb") as buffer:
@@ -74,10 +87,12 @@ async def create_3d_avatar(file: UploadFile = File(...)):
             files={"image": image_file},
                         data={
                 "prompt": (
-                    "one person only, single face only, front-facing portrait, "
-                    "pixar style 3D avatar, centered face, symmetrical face, "
-                    "clean background, preserve identity, realistic mouth"
-                ),
+    "high quality 3D cartoon avatar of the same person, "
+    "preserve identity, same face shape, same eyes, same nose, "
+    "same lips, same hairstyle, same gender, same skin tone, "
+    "front-facing portrait, centered face, realistic mouth, "
+    + theme_prompt
+),
                 "negative_prompt": (
                     "two heads, duplicate face, cropped face, zoomed face, deformed mouth"
                 ),
@@ -446,6 +461,16 @@ video {
     <textarea id="text">С днём рождения! Желаю счастья, здоровья и исполнения всех желаний!</textarea>
     <div class="hint">Лучше писать 1–2 коротких предложения.</div>
 
+    <label>Тема</label>
+
+<select id="theme">
+    <option value="default">Обычный</option>
+    <option value="astronaut">Космонавт</option>
+    <option value="cowboy">Ковбой</option>
+    <option value="royal">Король / Королева</option>
+    <option value="sport">Спортсмен</option>
+    <option value="sailor">Моряк</option>
+</select>
     <label>Голос</label>
     <select id="voice">
         <option value="female">Женский голос</option>
@@ -529,6 +554,7 @@ async function generateVideo() {
     const fileInput = document.getElementById("photo");
     const text = document.getElementById("text").value;
     const voice = document.getElementById("voice").value;
+    const theme = document.getElementById("theme").value;
     const status = document.getElementById("status");
     const video = document.getElementById("video");
     const btn = document.getElementById("generateBtn");
@@ -550,6 +576,7 @@ async function generateVideo() {
 
         const avatarForm = new FormData();
         avatarForm.append("file", fileInput.files[0]);
+        avatarForm.append("theme", theme);
 
         const avatarResponse = await fetch("/create-3d-avatar/", {
             method: "POST",
