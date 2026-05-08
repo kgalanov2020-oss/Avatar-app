@@ -51,8 +51,6 @@ async def create_3d_avatar(
     
     theme_prompts = {
     "default": "3D cartoon avatar portrait, clean background",
-    if theme == "custom" and custom_theme.strip():
-    theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
     "astronaut": "3D cartoon astronaut suit, cosmic background",
     "cowboy": "3D cartoon cowboy outfit, western desert background",
     "royal": "3D cartoon king or queen outfit, royal palace background",
@@ -75,6 +73,9 @@ async def create_3d_avatar(
     "racer": "3D cartoon formula one racing suit, racetrack background"
 }
 
+if theme == "custom" and custom_theme.strip():
+    theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
+    
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
     # 1. сохранить файл
