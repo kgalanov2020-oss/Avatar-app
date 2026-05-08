@@ -523,6 +523,13 @@ video {
         <option value="male">Мужской голос</option>
     </select>
 
+    <label>Формат видео</label>
+
+    <select id="format">
+        <option value="square">Квадрат (1:1)</option>
+        <option value="vertical">TikTok / Reels (9:16)</option>
+    </select>
+
     <button id="generateBtn" onclick="generateVideo()">Создать видео</button>
 
     <div class="steps">
@@ -613,6 +620,7 @@ async function generateVideo() {
     const fileInput = document.getElementById("photo");
     const text = document.getElementById("text").value;
     const voice = document.getElementById("voice").value;
+    const format = document.getElementById("format").value;
     const theme = document.getElementById("theme").value;
     const status = document.getElementById("status");
     const video = document.getElementById("video");
@@ -659,6 +667,7 @@ async function generateVideo() {
         const textForm = new FormData();
         textForm.append("text", text);
         textForm.append("voice", voice);
+        textForm.append("format", format);
 
         const voiceResponse = await fetch("/create-video/", {
             method: "POST",
