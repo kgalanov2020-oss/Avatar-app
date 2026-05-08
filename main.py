@@ -3,7 +3,8 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from moviepy import ImageClip, TextClip, CompositeVideoClip
-from gtts import gTTS
+import edge_tts
+import asyncio
 from moviepy import AudioFileClip
 
 import shutil
@@ -11,7 +12,6 @@ import uuid
 import os
 import requests
 from PIL import Image, ImageOps
-import requests
 import base64
 
 print("SERVER VERSION UPDATED")
@@ -102,19 +102,22 @@ async def create_3d_avatar(file: UploadFile = File(...)):
     }
 
 @app.post("/create-video/")
-def create_video(
-    text: str = Form("С днём рождения! Желаю счастья и здоровья!"),
+async def create_video(
+    text: str = Form("С днём рождения!"),
     voice: str = Form("female")
 ):
     avatar_path = "uploads/latest_avatar.png"
     output_video = "uploads/result.mp4"
-
     audio_path = "uploads/audio.mp3"
 
-    # пока gTTS не умеет настоящий male/female voice
-    # voice сохраняем для будущей замены на ElevenLabs/D-ID voices
-    tts = gTTS(text=text, lang="ru")
-    tts.save(audio_path)
+    # мужской / женский голос
+    if voice == "male":
+        voice_name = "ru-RU-DmitryNeural"
+    else:
+        voice_name = "ru-RU-SvetlanaNeural"
+
+    communicate = edge_tts.Communicate(text, voice_name)
+    await communicate.save(audio_path)
 
     clip = ImageClip(avatar_path).with_duration(3)
     clip = clip.resized(lambda t: 1 + 0.03 * t)
@@ -129,7 +132,6 @@ def create_video(
         "video_url": "https://avatar-app-vcer.onrender.com/files/result.mp4",
         "voice": voice
     }
-
 @app.get("/talking-video/")
 def talking_video():
     response = requests.post(
