@@ -254,6 +254,7 @@ async def generate_final_video(
 @app.get("/app", response_class=HTMLResponse)
 def app_page():
         return """
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -537,6 +538,7 @@ video {
     <div id="status"></div>
 
     <video id="video" controls style="display:none;"></video>
+    <img id="avatarPreview" style="display:none; width:100%; border-radius:20px; margin-top:20px;">
 
     <div id="actions" class="actions">
         <a id="downloadLink" href="#" download="avatar-video.mp4">
@@ -614,6 +616,7 @@ async function generateVideo() {
     const theme = document.getElementById("theme").value;
     const status = document.getElementById("status");
     const video = document.getElementById("video");
+    const avatarPreview = document.getElementById("avatarPreview");
     const btn = document.getElementById("generateBtn");
     const actions = document.getElementById("actions");
 
@@ -625,11 +628,12 @@ async function generateVideo() {
     btn.disabled = true;
     actions.className = "actions";
     video.style.display = "none";
+    avatarPreview.style.display = "none";
     status.innerText = "";
 
     try {
         setStep(1);
-        status.innerText = "Создаём 3D аватар...";
+        status.innerText = "⏳ Создаём AI-аватар...";
 
         const avatarForm = new FormData();
         avatarForm.append("file", fileInput.files[0]);
@@ -642,14 +646,16 @@ async function generateVideo() {
         });
 
         const avatarData = await avatarResponse.json();
+        avatarPreview.src = avatarData.avatar_url;
+        avatarPreview.style.display = "block";
 
         if (avatarData.error) {
             throw new Error("Ошибка аватара: " + JSON.stringify(avatarData));
         }
 
         setStep(2);
-        status.innerText = "Создаём голос...";
-
+        status.innerText = "⏳ Создаём talking video...";
+        
         const textForm = new FormData();
         textForm.append("text", text);
         textForm.append("voice", voice);
@@ -703,6 +709,8 @@ async function checkStatus() {
         status.innerText = "Готово!";
         video.src = finalVideoUrl;
         video.style.display = "block";
+        document.getElementById("downloadLink").href = data.video_url;
+        actions.className = "actions show";
 
         downloadLink.href = finalVideoUrl;
         actions.className = "actions show";
@@ -729,6 +737,15 @@ function resetApp() {
 
     setStep(0);
 }
+
+function resetApp() {
+    document.getElementById("video").style.display = "none";
+    document.getElementById("avatarPreview").style.display = "none";
+    document.getElementById("status").innerText = "";
+    document.getElementById("actions").className = "actions";
+    document.getElementById("photo").value = "";
+}
+
 </script>
 </body>
 </html>
