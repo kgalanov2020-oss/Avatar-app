@@ -18,7 +18,8 @@ print("SERVER VERSION UPDATED")
 
 app = FastAPI()
 
-STABILITY_API_KEY = "sk-Ywdje9DGNRKwbjvgdP4v42AhL6KtCJT1GVOHcH784Vr1u2ma"
+STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
+DID_API_KEY = os.getenv("DID_API_KEY")
 
 app.add_middleware(
     CORSMiddleware,
@@ -137,7 +138,7 @@ def talking_video():
     response = requests.post(
         "https://api.d-id.com/talks",
         headers={
-            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:3DXWaFXSOEzNJpzNJibCP",
+            "Authorization": DID_API_KEY,
             "Content-Type": "application/json"
         },
         json={
@@ -160,7 +161,7 @@ def talking_video_status(talk_id: str):
     response = requests.get(
         f"https://api.d-id.com/talks/{talk_id}",
         headers={
-            "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:3DXWaFXSOEzNJpzNJibCP"
+        "Authorization": DID_API_KEY
         }
     )
 
@@ -190,7 +191,7 @@ async def generate_final_video(
         response = requests.post(
             "https://api.d-id.com/talks",
             headers={
-                "Authorization": "Basic ay5nYWxhbm92LjIwMjBAZ21haWwuY29t:3DXWaFXSOEzNJpzNJibCP",
+                "Authorization": DID_API_KEY,
                 "Content-Type": "application/json"
             },
             json={
