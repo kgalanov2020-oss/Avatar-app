@@ -76,7 +76,13 @@ async def create_3d_avatar(
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
     if theme == "custom" and custom_theme.strip():
-        theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
+        theme_prompt = (
+    f"highly detailed 3D cartoon avatar inspired by {custom_theme.strip()}, "
+    f"maintain same facial identity of uploaded person, "
+    f"cinematic lighting, matching outfit, themed environment, "
+    f"professional character design, stylized background, "
+    f"high quality animated movie style"
+)
 
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -707,6 +713,8 @@ async function checkStatus() {
     status.innerText = "Статус: " + data.status + ". Ждём...";
     setTimeout(checkStatus, 5000);
 }
+
+toggleCustomTheme();
 
 function resetApp() {
     currentTalkId = null;
