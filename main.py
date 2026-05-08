@@ -72,12 +72,11 @@ async def create_3d_avatar(
     "knight": "3D cartoon medieval knight armor, castle background",
     "racer": "3D cartoon formula one racing suit, racetrack background"
 }
-
+    
+    theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 if theme == "custom" and custom_theme.strip():
     theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
     
-    theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
-
     # 1. сохранить файл
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
