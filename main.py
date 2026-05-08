@@ -213,43 +213,149 @@ def app_page():
     <meta charset="UTF-8">
     <title>AI Avatar Video</title>
     <style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+        margin: 0;
+        padding: 18px;
+        background: linear-gradient(135deg, #f2f4f8, #e9ecf3);
+        color: #111;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 720px;
+        margin: 24px auto;
+        background: white;
+        padding: 28px;
+        border-radius: 24px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        font-size: 42px;
+        margin: 0 0 12px;
+    }
+
+    p {
+        font-size: 18px;
+        color: #444;
+    }
+
+    input, textarea, button {
+        width: 100%;
+        margin-top: 14px;
+        padding: 14px;
+        font-size: 17px;
+        border-radius: 14px;
+        border: 1px solid #d0d0d0;
+    }
+
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    button {
+        border: none;
+        background: #000;
+        color: white;
+        cursor: pointer;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+    button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .secondary {
+        background: #f1f1f1;
+        color: #111;
+    }
+
+    .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .step {
+        padding: 14px 10px;
+        border-radius: 14px;
+        background: #f2f2f2;
+        text-align: center;
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .step.active {
+        background: #111;
+        color: white;
+    }
+
+    .step.done {
+        background: #d9f7df;
+        color: #0b6b24;
+    }
+
+    #status {
+        margin-top: 18px;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    video {
+        width: 100%;
+        margin-top: 20px;
+        border-radius: 18px;
+        background: #000;
+    }
+
+    .actions {
+        display: none;
+        gap: 12px;
+        margin-top: 14px;
+    }
+
+    .actions.show {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: 600px) {
         body {
-            font-family: Arial, sans-serif;
-            max-width: 700px;
-            margin: 40px auto;
-            padding: 20px;
-            background: #f5f5f5;
+            padding: 10px;
         }
+
         .card {
-            background: white;
-            padding: 24px;
-            border-radius: 18px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 22px;
+            margin: 10px auto;
+            border-radius: 22px;
         }
-        input, textarea, button {
-            width: 100%;
-            margin-top: 12px;
-            padding: 12px;
+
+        h1 {
+            font-size: 34px;
+        }
+
+        p {
             font-size: 16px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
         }
-        button {
-            background: black;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
+
+        .steps {
+            grid-template-columns: 1fr;
         }
-        video {
-            width: 100%;
-            margin-top: 20px;
-            border-radius: 14px;
+
+        .actions.show {
+            grid-template-columns: 1fr;
         }
-        #status {
-            margin-top: 16px;
-            font-weight: bold;
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
     <div class="card">
@@ -260,97 +366,175 @@ def app_page():
 
         <textarea id="text" rows="4">С днём рождения! Желаю счастья и здоровья!</textarea>
 
-        <button onclick="generateVideo()">Generate Video</button>
+        <button id="generateBtn" onclick="generateVideo()">Generate Video</button>
+
+        <div class="steps">
+            <div id="stepAvatar" class="step">1. Аватар</div>
+            <div id="stepVoice" class="step">2. Голос</div>
+            <div id="stepVideo" class="step">3. Видео</div>
+        </div>
 
         <div id="status"></div>
 
         <video id="video" controls style="display:none;"></video>
+
+        <div id="actions" class="actions">
+            <a id="downloadLink" href="#" download="avatar-video.mp4">
+                <button>Скачать видео</button>
+            </a>
+            <button class="secondary" onclick="resetApp()">Создать ещё</button>
+        </div>
     </div>
 
 <script>
 let currentTalkId = null;
+let finalVideoUrl = null;
+
+function setStep(step) {
+    const avatar = document.getElementById("stepAvatar");
+    const voice = document.getElementById("stepVoice");
+    const video = document.getElementById("stepVideo");
+
+    avatar.className = "step";
+    voice.className = "step";
+    video.className = "step";
+
+    if (step === 1) {
+        avatar.className = "step active";
+    }
+
+    if (step === 2) {
+        avatar.className = "step done";
+        voice.className = "step active";
+    }
+
+    if (step === 3) {
+        avatar.className = "step done";
+        voice.className = "step done";
+        video.className = "step active";
+    }
+
+    if (step === 4) {
+        avatar.className = "step done";
+        voice.className = "step done";
+        video.className = "step done";
+    }
+}
 
 async function generateVideo() {
     const fileInput = document.getElementById("photo");
+    const text = document.getElementById("text").value;
     const status = document.getElementById("status");
     const video = document.getElementById("video");
+    const btn = document.getElementById("generateBtn");
+    const actions = document.getElementById("actions");
 
     if (!fileInput.files.length) {
         alert("Выбери фото");
         return;
     }
 
+    btn.disabled = true;
+    actions.className = "actions";
     video.style.display = "none";
+    status.innerText = "";
 
-    // 1. Создаём аватар
-    status.innerText = "Шаг 1/3: создаём 3D аватар...";
-    const avatarForm = new FormData();
-    avatarForm.append("file", fileInput.files[0]);
+    try {
+        setStep(1);
+        status.innerText = "Создаём 3D аватар...";
 
-    const avatarResponse = await fetch("/create-3d-avatar/", {
-        method: "POST",
-        body: avatarForm
-    });
+        const avatarForm = new FormData();
+        avatarForm.append("file", fileInput.files[0]);
 
-    const avatarData = await avatarResponse.json();
+        const avatarResponse = await fetch("/create-3d-avatar/", {
+            method: "POST",
+            body: avatarForm
+        });
 
-    if (avatarData.error) {
-        status.innerText = "Ошибка аватара: " + JSON.stringify(avatarData);
-        return;
+        const avatarData = await avatarResponse.json();
+
+        if (avatarData.error) {
+            throw new Error("Ошибка аватара: " + JSON.stringify(avatarData));
+        }
+
+        setStep(2);
+        status.innerText = "Создаём голос...";
+
+        const textForm = new FormData();
+        textForm.append("text", text);
+
+        const voiceResponse = await fetch("/create-video/", {
+            method: "POST",
+            body: textForm
+        });
+
+        const voiceData = await voiceResponse.json();
+
+        if (voiceData.error) {
+            throw new Error("Ошибка голоса: " + JSON.stringify(voiceData));
+        }
+
+        setStep(3);
+        status.innerText = "Запускаем говорящую анимацию...";
+
+        const talkResponse = await fetch("/talking-video/");
+        const talkData = await talkResponse.json();
+
+        currentTalkId = talkData.id;
+
+        if (!currentTalkId) {
+            throw new Error("Не получили talk_id. Ответ сервера: " + JSON.stringify(talkData));
+        }
+
+        status.innerText = "Видео создаётся. Это может занять 30–90 секунд.";
+        checkStatus();
+
+    } catch (error) {
+        status.innerText = error.message;
+        btn.disabled = false;
     }
-
-    // 2. Создаём аудио/простое видео
-status.innerText = "Шаг 2/3: создаём аудио...";
-
-const text = document.getElementById("text").value;
-const textForm = new FormData();
-textForm.append("text", text);
-
-const videoResponse = await fetch("/create-video/", {
-    method: "POST",
-    body: textForm
-});
-
-const videoData = await videoResponse.json();
-
-    if (videoData.error) {
-        status.innerText = "Ошибка видео: " + JSON.stringify(videoData);
-        return;
-    }
-
-    // 3. Запускаем D-ID
-    status.innerText = "Шаг 3/3: запускаем говорящую анимацию...";
-    const talkResponse = await fetch("/talking-video/");
-    const talkData = await talkResponse.json();
-
-    currentTalkId = talkData.id;
-
-    if (!currentTalkId) {
-        status.innerText = "Ошибка: не получили talk_id. Ответ сервера: " + JSON.stringify(talkData);
-        return;
-    }
-
-    status.innerText = "Видео создаётся. ID: " + currentTalkId;
-    checkStatus();
 }
+
 async function checkStatus() {
     const status = document.getElementById("status");
     const video = document.getElementById("video");
+    const btn = document.getElementById("generateBtn");
+    const actions = document.getElementById("actions");
+    const downloadLink = document.getElementById("downloadLink");
 
     const response = await fetch("/talking-video-status/" + currentTalkId);
     const data = await response.json();
 
     if (data.status === "done" && data.video_url) {
+        setStep(4);
+        finalVideoUrl = data.video_url;
+
         status.innerText = "Готово!";
-        video.src = data.video_url;
+        video.src = finalVideoUrl;
         video.style.display = "block";
+
+        downloadLink.href = finalVideoUrl;
+        actions.className = "actions show";
+        btn.disabled = false;
         return;
     }
 
     status.innerText = "Статус: " + data.status + ". Ждём...";
     setTimeout(checkStatus, 5000);
 }
+
+function resetApp() {
+    currentTalkId = null;
+    finalVideoUrl = null;
+
+    document.getElementById("photo").value = "";
+    document.getElementById("video").style.display = "none";
+    document.getElementById("video").src = "";
+    document.getElementById("status").innerText = "";
+    document.getElementById("actions").className = "actions";
+
+    setStep(0);
+}
 </script>
 </body>
 </html>
-"""
