@@ -71,11 +71,12 @@ async def create_3d_avatar(
     "pharaoh": "3D cartoon egyptian pharaoh outfit, pyramid background",
     "knight": "3D cartoon medieval knight armor, castle background",
     "racer": "3D cartoon formula one racing suit, racetrack background"
-}
+    }
     
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
+    
     if theme == "custom" and custom_theme.strip():
-    theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
+        theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
     
     # 1. сохранить файл
     with open(input_path, "wb") as buffer:
@@ -111,7 +112,7 @@ async def create_3d_avatar(
     "same lips, same hairstyle, same gender, same skin tone, "
     "front-facing portrait, centered face, realistic mouth, "
     + theme_prompt
-),
+                ),
                 "negative_prompt": (
                     "two heads, duplicate face, cropped face, zoomed face, deformed mouth"
                 ),
