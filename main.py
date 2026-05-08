@@ -74,7 +74,7 @@ async def create_3d_avatar(
 }
     
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
-if theme == "custom" and custom_theme.strip():
+    if theme == "custom" and custom_theme.strip():
     theme_prompt = f"3D cartoon avatar in the style/theme of {custom_theme.strip()}, detailed outfit, matching background"
     
     # 1. сохранить файл
