@@ -740,21 +740,42 @@ async function checkStatus() {
     const response = await fetch("/talking-video-status/" + currentTalkId);
     const data = await response.json();
 
-    if (data.status === "done" && data.video_url) {
-        setStep(4);
-        finalVideoUrl = data.video_url;
+if (data.status === "done" && data.video_url) {
 
-        status.innerText = "Готово!";
-        video.src = finalVideoUrl;
-        video.style.display = "block";
-        document.getElementById("downloadLink").href = data.video_url;
-        actions.className = "actions show";
+    setStep(4);
 
-        downloadLink.href = finalVideoUrl;
-        actions.className = "actions show";
-        btn.disabled = false;
-        return;
+    status.innerText = "⏳ Подготавливаем TikTok/Reels формат...";
+
+    let finalVideoUrl = data.video_url;
+
+    if (document.getElementById("format").value === "vertical") {
+
+        const verticalForm = new FormData();
+        verticalForm.append("video_url", data.video_url);
+
+        const verticalResponse = await fetch("/make-vertical/", {
+            method: "POST",
+            body: verticalForm
+        });
+
+        const verticalData = await verticalResponse.json();
+
+        finalVideoUrl = verticalData.vertical_video_url;
     }
+
+    status.innerText = "✅ Готово!";
+
+    video.src = finalVideoUrl;
+    video.style.display = "block";
+
+    document.getElementById("downloadLink").href = finalVideoUrl;
+
+    actions.className = "actions show";
+
+    btn.disabled = false;
+
+    return;
+}
 
     status.innerText = "Статус: " + data.status + ". Ждём...";
     setTimeout(checkStatus, 5000);
