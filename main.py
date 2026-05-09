@@ -164,7 +164,7 @@ async def create_realistic_avatar(
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
     output = replicate.run(
-        "fofr/instant-id:latest",
+        "zsxkib/instant-id",
         input={
             "image": open(input_path, "rb"),
             "prompt": (
