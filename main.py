@@ -749,6 +749,7 @@ async function generateVideo() {
             });
 
         const avatarData = await avatarResponse.json();
+        status.innerText = "Ответ аватара: " + JSON.stringify(avatarData);
         avatarPreview.src = avatarData.avatar_url;
         avatarPreview.style.display = "block";
 
