@@ -211,20 +211,19 @@ async def make_vertical(video_url: str = Form(...)):
 
     clip = VideoFileClip(input_path)
 
-    background = (
-        clip.resized(height=1280)
-        .cropped(x_center=clip.w / 2, width=540, height=960)
-        .with_opacity(0.35)
-    )
+    background = ColorClip(
+        size=(540, 960),
+        color=(15, 15, 15)
+    ).with_duration(clip.duration)
 
     foreground = (
-        clip.resized(width=720)
+        clip.resized(width=540)
         .with_position(("center", "center"))
     )
 
     final = CompositeVideoClip(
         [background, foreground],
-        size=(720, 1280)
+        size=(540, 960)
     )
 
     final.write_videofile(
