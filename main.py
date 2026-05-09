@@ -213,7 +213,7 @@ async def make_vertical(video_url: str = Form(...)):
 
     background = (
         clip.resized(height=1280)
-        .cropped(x_center=clip.w / 2, width=720, height=1280)
+        .cropped(x_center=clip.w / 2, width=540, height=960)
         .with_opacity(0.35)
     )
 
@@ -230,7 +230,10 @@ async def make_vertical(video_url: str = Form(...)):
     final.write_videofile(
         output_path,
         codec="libx264",
-        audio_codec="aac"
+        audio_codec="aac",
+        preset="ultrafast",
+        fps=24,
+        threads=2
     )
 
     return {
