@@ -139,6 +139,54 @@ async def create_3d_avatar(
         "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_avatar.png"
     }
 
+@app.post("/create-realistic-avatar/")
+async def create_realistic_avatar(
+    file: UploadFile = File(...),
+    theme: str = Form("default")
+):
+
+    file_id = str(uuid.uuid4())
+
+    input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
+    output_path = os.path.join(UPLOAD_DIR, f"{file_id}_realistic.png")
+
+    with open(input_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    theme_prompts = {
+        "default": "cinematic realistic portrait",
+        "astronaut": "realistic astronaut portrait, cinematic sci-fi lighting",
+        "cyberpunk": "realistic cyberpunk portrait, neon city background",
+        "luxury": "realistic billionaire portrait, luxury lifestyle",
+        "viking": "realistic viking warrior portrait",
+        "samurai": "realistic samurai portrait"
+    }
+
+    theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
+
+    output = replicate.run(
+        "fofr/instant-id:latest",
+        input={
+            "image": open(input_path, "rb"),
+            "prompt": (
+                f"highly detailed realistic portrait, "
+                f"preserve identity, same person, "
+                f"{theme_prompt}"
+            )
+        }
+    )
+
+    image_url = output[0]
+
+    image_response = requests.get(image_url)
+
+    with open(output_path, "wb") as f:
+        f.write(image_response.content)
+
+    return {
+        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_realistic.png"
+    }
+
 @app.post("/create-video/")
 async def create_video(
     text: str = Form("С днём рождения!"),
@@ -514,6 +562,13 @@ video {
     <label>Текст поздравления</label>
     <textarea id="text">С днём рождения! Желаю счастья, здоровья и исполнения всех желаний!</textarea>
     <div class="hint">Лучше писать 1–2 коротких предложения.</div>
+
+    <label>Стиль</label>
+
+    <select id="styleMode">
+        <option value="cartoon">Cartoon</option>
+        <option value="realistic">Realistic</option>
+    </select>
 
     <label>Тема</label>
 
