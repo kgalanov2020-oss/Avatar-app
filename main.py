@@ -708,6 +708,7 @@ async function generateVideo() {
     const text = document.getElementById("text").value;
     const voice = document.getElementById("voice").value;
     const format = document.getElementById("format").value;
+    const styleMode = document.getElementById("styleMode").value;
     const theme = document.getElementById("theme").value;
     const status = document.getElementById("status");
     const video = document.getElementById("video");
@@ -735,10 +736,16 @@ async function generateVideo() {
         avatarForm.append("theme", theme);
         avatarForm.append("custom_theme", customTheme);
 
-        const avatarResponse = await fetch("/create-3d-avatar/", {
+        let avatarEndpoint = "/create-3d-avatar/";
+
+        if (styleMode === "realistic") {
+            avatarEndpoint = "/create-realistic-avatar/";
+        }
+
+        const avatarResponse = await fetch(avatarEndpoint, {
             method: "POST",
             body: avatarForm
-        });
+            });
 
         const avatarData = await avatarResponse.json();
         avatarPreview.src = avatarData.avatar_url;
