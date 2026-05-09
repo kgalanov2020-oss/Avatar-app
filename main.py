@@ -130,13 +130,12 @@ async def create_3d_avatar(
         return {"error": response.text}
 
     with open(output_path, "wb") as f:
-        f.write(response.content)
+        f.write(image_response.content)
 
     shutil.copy(output_path, os.path.join(UPLOAD_DIR, "latest_avatar.png"))
 
     return {
-        "message": "3D avatar generated",
-        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_avatar.png"
+    "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_realistic.png"
     }
 
 @app.post("/create-realistic-avatar/")
@@ -182,6 +181,8 @@ async def create_realistic_avatar(
 
     with open(output_path, "wb") as f:
         f.write(image_response.content)
+
+    shutil.copy(output_path, os.path.join(UPLOAD_DIR, "latest_avatar.png"))
 
     return {
         "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_realistic.png"
