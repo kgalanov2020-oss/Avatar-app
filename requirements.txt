@@ -6,3 +6,4 @@ pillow
 moviepy
 gtts
 edge-tts
+replicate
