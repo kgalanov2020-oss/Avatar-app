@@ -164,19 +164,23 @@ async def create_realistic_avatar(
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
     output = replicate.run(
-        "grandlineai/instant-id-photorealistic",
+        "zsxkib/instant-id:f1ca369da43885a347690a98f6b710afbf5f167cb9bf13bd5af512ba4a9f7b63",
         input={
             "image": open(input_path, "rb"),
             "prompt": (
-                f"highly detailed realistic portrait, "
-                f"preserve identity, same person, "
+                f"ultra realistic cinematic portrait photo, "
+                f"same person, preserve identity, "
                 f"{theme_prompt}"
             )
         }
     )
-
-    image_url = output[0]
-
+    
+    print("REPLICATE OUTPUT:", output)
+    if isinstance(output, list):
+        image_url = output[0]
+    else:
+        image_url = output
+    
     image_response = requests.get(image_url)
 
     with open(output_path, "wb") as f:
