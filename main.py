@@ -14,6 +14,7 @@ import os
 import requests
 from PIL import Image, ImageOps
 import base64
+import replicate
 
 print("SERVER VERSION UPDATED")
 
