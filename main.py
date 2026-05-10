@@ -145,7 +145,6 @@ async def create_realistic_avatar(
     file: UploadFile = File(...),
     theme: str = Form("default")
 ):
-
     file_id = str(uuid.uuid4())
 
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
@@ -154,11 +153,11 @@ async def create_realistic_avatar(
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # upload image to ComfyUI
     with open(input_path, "rb") as f:
         upload_response = requests.post(
             f"{COMFY_URL}/upload/image",
-            files={"image": f}
+            files={"image": f},
+            data={"overwrite": "true"}
         )
 
     if upload_response.status_code != 200:
@@ -167,45 +166,143 @@ async def create_realistic_avatar(
     comfy_image = upload_response.json()["name"]
 
     theme_prompts = {
-        "default": "cinematic realistic portrait",
-        "astronaut": "realistic astronaut portrait, cinematic sci-fi lighting",
-        "cyberpunk": "realistic cyberpunk portrait, neon city background",
-        "luxury": "realistic billionaire portrait, luxury lifestyle",
-        "viking": "realistic viking warrior portrait",
-        "samurai": "realistic samurai portrait"
+        "default": "realistic cinematic portrait, natural background",
+
+        "astronaut": (
+            "realistic astronaut portrait, detailed space suit, "
+            "cinematic sci-fi lighting, space background"
+        ),
+
+        "cowboy": (
+            "realistic cowboy portrait, western outfit, "
+            "desert background, cinematic western atmosphere"
+        ),
+
+        "royal": (
+            "realistic king or queen portrait, royal luxury clothing, "
+            "palace interior, cinematic lighting"
+        ),
+
+        "sport": (
+            "realistic athlete portrait, professional sports uniform, "
+            "stadium background, cinematic sports photography"
+        ),
+
+        "sailor": (
+            "realistic sailor portrait, navy outfit, "
+            "ocean background, cinematic sea atmosphere"
+        ),
+
+        "samurai": (
+            "realistic samurai portrait, traditional japanese armor, "
+            "cinematic japanese temple background"
+        ),
+
+        "cyberpunk": (
+            "realistic cyberpunk portrait, futuristic neon city, "
+            "cinematic cyberpunk lighting"
+        ),
+
+        "superhero": (
+            "realistic superhero portrait, cinematic movie costume, "
+            "epic action background"
+        ),
+
+        "rockstar": (
+            "realistic rockstar portrait, concert stage lighting, "
+            "music performance atmosphere"
+        ),
+
+        "gangster": (
+            "realistic mafia gangster portrait, elegant 1920s suit, "
+            "luxury vintage atmosphere"
+        ),
+
+        "pirate": (
+            "realistic pirate captain portrait, pirate ship background, "
+            "cinematic ocean adventure"
+        ),
+
+        "wizard": (
+            "realistic fantasy wizard portrait, magical robe, "
+            "cinematic fantasy atmosphere"
+        ),
+
+        "viking": (
+            "realistic viking warrior portrait, nordic armor, "
+            "cinematic nordic landscape"
+        ),
+
+        "ninja": (
+            "realistic ninja portrait, dark stealth outfit, "
+            "cinematic japanese night atmosphere"
+        ),
+
+        "luxury": (
+            "realistic billionaire portrait, luxury suit, "
+            "private jet, premium lifestyle"
+        ),
+
+        "angel": (
+            "realistic angel portrait, white wings, "
+            "heavenly cinematic clouds"
+        ),
+
+        "demon": (
+            "realistic dark demon portrait, fantasy fire atmosphere, "
+            "cinematic dark lighting"
+        ),
+
+        "pharaoh": (
+            "realistic egyptian pharaoh portrait, golden royal outfit, "
+            "pyramid background"
+        ),
+
+        "knight": (
+            "realistic medieval knight portrait, detailed armor, "
+            "castle background, cinematic lighting"
+        ),
+
+        "racer": (
+        "realistic formula one racer portrait, racing suit, "
+        "professional racetrack atmosphere"
+        )
     }
 
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
-    # load workflow
     with open("instantid_workflow_api.json", "r", encoding="utf-8") as f:
         workflow = json.load(f)
 
-    # inject image
     workflow["13"]["inputs"]["image"] = comfy_image
 
-    # inject positive prompt
     workflow["2"]["inputs"]["text"] = (
-        f"ultra realistic cinematic portrait photo, "
-        f"same person, preserve identity, "
+        "realistic portrait photo of the exact same person from the uploaded image, "
+        "preserve facial identity, same gender, same age, same face shape, "
+        "same eyes, same nose, same lips, same skin tone, same hairstyle, "
+        "natural human face, front facing portrait, realistic skin texture, "
+        "high quality photo, sharp focus, cinematic lighting, "
         f"{theme_prompt}"
     )
 
-    # inject negative prompt
     workflow["3"]["inputs"]["text"] = (
-        "blurry, ugly, deformed, bad anatomy"
+        "wrong gender, different person, different face, different eyes, "
+        "different nose, different lips, different hairstyle, different skin tone, "
+        "child, old person, deformed face, asymmetrical face, bad anatomy, "
+        "ugly, blurry, cartoon, anime, 3d render, plastic skin, doll face"
     )
 
-    # random seed
-    workflow["5"]["inputs"]["seed"] = int(time.time())
+    workflow["20"]["inputs"]["weight"] = 0.65
+    workflow["20"]["inputs"]["start_at"] = 0
+    workflow["20"]["inputs"]["end_at"] = 1
 
-    client_id = str(uuid.uuid4())
+    workflow["5"]["inputs"]["seed"] = int(time.time())
 
     response = requests.post(
         f"{COMFY_URL}/prompt",
         json={
             "prompt": workflow,
-            "client_id": client_id
+            "client_id": str(uuid.uuid4())
         }
     )
 
@@ -214,28 +311,24 @@ async def create_realistic_avatar(
 
     prompt_id = response.json()["prompt_id"]
 
-    # wait for result
     while True:
+        history_response = requests.get(f"{COMFY_URL}/history/{prompt_id}")
 
-        history = requests.get(
-            f"{COMFY_URL}/history/{prompt_id}"
-        ).json()
+        if history_response.status_code != 200:
+            return {"error": history_response.text}
+
+        history = history_response.json()
 
         if prompt_id in history:
+            outputs = history[prompt_id].get("outputs", {})
 
-            outputs = history[prompt_id]["outputs"]
-
-            for node_id in outputs:
-
-                node_output = outputs[node_id]
-
+            for node_output in outputs.values():
                 if "images" in node_output:
-
                     image_data = node_output["images"][0]
 
                     filename = image_data["filename"]
-                    subfolder = image_data["subfolder"]
-                    image_type = image_data["type"]
+                    subfolder = image_data.get("subfolder", "")
+                    image_type = image_data.get("type", "output")
 
                     image_url = (
                         f"{COMFY_URL}/view?"
@@ -246,6 +339,9 @@ async def create_realistic_avatar(
 
                     img = requests.get(image_url)
 
+                    if img.status_code != 200:
+                        return {"error": img.text}
+
                     with open(output_path, "wb") as f:
                         f.write(img.content)
 
@@ -255,12 +351,12 @@ async def create_realistic_avatar(
                     )
 
                     return {
-                        "avatar_url":
-                        f"https://avatar-app-vcer.onrender.com/files/{file_id}_realistic.png"
+                        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_realistic.png"
                     }
 
-        time.sleep(1)
+            return {"error": "ComfyUI finished, but no image was found in outputs"}
 
+        time.sleep(1)
 @app.post("/create-video/")
 async def create_video(
     text: str = Form("С днём рождения!"),
