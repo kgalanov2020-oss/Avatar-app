@@ -286,17 +286,23 @@ async def create_realistic_avatar(
     )
 
     workflow["3"]["inputs"]["text"] = (
-        "wrong gender, different person, different face, different eyes, "
-        "different nose, different lips, different hairstyle, different skin tone, "
-        "child, old person, deformed face, asymmetrical face, bad anatomy, "
-        "ugly, blurry, cartoon, anime, 3d render, plastic skin, doll face"
+        "low quality, blurry, noisy image, artifacts, glitch, distorted body, "
+        "deformed anatomy, extra limbs, watermark, text, stripes, color artifacts, "
+        "bad skin, ugly face, cartoon, anime, overexposed, underexposed"
     )
 
     workflow["20"]["inputs"]["weight"] = 0.65
     workflow["20"]["inputs"]["start_at"] = 0
     workflow["20"]["inputs"]["end_at"] = 1
 
+    # random seed
     workflow["5"]["inputs"]["seed"] = int(time.time())
+
+    # quality settings
+    workflow["5"]["inputs"]["steps"] = 30
+    workflow["5"]["inputs"]["cfg"] = 4.5
+    workflow["5"]["inputs"]["sampler_name"] = "dpmpp_2m"
+    workflow["5"]["inputs"]["scheduler"] = "karras"
 
     response = requests.post(
         f"{COMFY_URL}/prompt",
