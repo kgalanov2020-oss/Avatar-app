@@ -16,9 +16,7 @@ from PIL import Image, ImageOps
 import base64
 import time
 import json
-import websocket
-COMFY_URL = "http://127.0.0.1:8188"
-COMFY_WS = "ws://127.0.0.1:8188/ws"
+COMFY_URL = "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net"
 
 print("SERVER VERSION UPDATED")
 
