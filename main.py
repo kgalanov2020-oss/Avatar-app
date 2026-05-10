@@ -14,7 +14,11 @@ import os
 import requests
 from PIL import Image, ImageOps
 import base64
-import replicate
+import time
+import json
+import websocket
+COMFY_URL = "http://127.0.0.1:8188"
+COMFY_WS = "ws://127.0.0.1:8188/ws"
 
 print("SERVER VERSION UPDATED")
 
@@ -152,6 +156,18 @@ async def create_realistic_avatar(
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    # upload image to ComfyUI
+    with open(input_path, "rb") as f:
+        upload_response = requests.post(
+            f"{COMFY_URL}/upload/image",
+            files={"image": f}
+        )
+
+    if upload_response.status_code != 200:
+        return {"error": upload_response.text}
+
+    comfy_image = upload_response.json()["name"]
+
     theme_prompts = {
         "default": "cinematic realistic portrait",
         "astronaut": "realistic astronaut portrait, cinematic sci-fi lighting",
@@ -163,34 +179,89 @@ async def create_realistic_avatar(
 
     theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
-    output = replicate.run(
-        "zsxkib/instant-id:f1ca369da43885a347690a98f6b710afbf5f167cb9bf13bd5af512ba4a9f7b63",
-        input={
-            "image": open(input_path, "rb"),
-            "prompt": (
-                f"ultra realistic cinematic portrait photo, "
-                f"same person, preserve identity, "
-                f"{theme_prompt}"
-            )
+    # load workflow
+    with open("instantid_workflow_api.json", "r", encoding="utf-8") as f:
+        workflow = json.load(f)
+
+    # inject image
+    workflow["13"]["inputs"]["image"] = comfy_image
+
+    # inject positive prompt
+    workflow["2"]["inputs"]["text"] = (
+        f"ultra realistic cinematic portrait photo, "
+        f"same person, preserve identity, "
+        f"{theme_prompt}"
+    )
+
+    # inject negative prompt
+    workflow["3"]["inputs"]["text"] = (
+        "blurry, ugly, deformed, bad anatomy"
+    )
+
+    # random seed
+    workflow["5"]["inputs"]["seed"] = int(time.time())
+
+    client_id = str(uuid.uuid4())
+
+    response = requests.post(
+        f"{COMFY_URL}/prompt",
+        json={
+            "prompt": workflow,
+            "client_id": client_id
         }
     )
-    
-    print("REPLICATE OUTPUT:", output)
-    if isinstance(output, list):
-        image_url = output[0]
-    else:
-        image_url = output
-    
-    image_response = requests.get(image_url)
 
-    with open(output_path, "wb") as f:
-        f.write(image_response.content)
+    if response.status_code != 200:
+        return {"error": response.text}
 
-    shutil.copy(output_path, os.path.join(UPLOAD_DIR, "latest_avatar.png"))
+    prompt_id = response.json()["prompt_id"]
 
-    return {
-        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_realistic.png"
-    }
+    # wait for result
+    while True:
+
+        history = requests.get(
+            f"{COMFY_URL}/history/{prompt_id}"
+        ).json()
+
+        if prompt_id in history:
+
+            outputs = history[prompt_id]["outputs"]
+
+            for node_id in outputs:
+
+                node_output = outputs[node_id]
+
+                if "images" in node_output:
+
+                    image_data = node_output["images"][0]
+
+                    filename = image_data["filename"]
+                    subfolder = image_data["subfolder"]
+                    image_type = image_data["type"]
+
+                    image_url = (
+                        f"{COMFY_URL}/view?"
+                        f"filename={filename}"
+                        f"&subfolder={subfolder}"
+                        f"&type={image_type}"
+                    )
+
+                    img = requests.get(image_url)
+
+                    with open(output_path, "wb") as f:
+                        f.write(img.content)
+
+                    shutil.copy(
+                        output_path,
+                        os.path.join(UPLOAD_DIR, "latest_avatar.png")
+                    )
+
+                    return {
+                        "avatar_url":
+                        f"https://avatar-app-vcer.onrender.com/files/{file_id}_realistic.png"
+                    }
+
+        time.sleep(1)
 
 @app.post("/create-video/")
 async def create_video(
