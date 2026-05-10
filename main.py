@@ -22,6 +22,38 @@ print("SERVER VERSION UPDATED")
 
 app = FastAPI()
 
+BANNED_WORDS = [
+    # nsfw
+    "nude", "naked", "porn", "sex", "xxx", "nsfw",
+    "boobs", "breasts", "nipples", "lingerie",
+    "erotic", "fetish", "bdsm", "onlyfans",
+
+    # minors / incest
+    "child", "kid", "teen sex", "incest",
+
+    # religion
+    "allah", "jesus", "muhammad", "prophet",
+    "christ", "quran", "bible", "church",
+    "mosque", "satanic",
+
+    # terrorism/extremism
+    "isis", "terrorist", "terrorism",
+    "nazi", "hitler", "extremist",
+    "execution", "beheading",
+
+    # violence
+    "gore", "blood", "murder", "dead body"
+]
+
+def is_prompt_safe(text: str):
+    text = text.lower()
+
+    for word in BANNED_WORDS:
+        if word in text:
+            return False
+
+    return True
+
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 DID_API_KEY = os.getenv("DID_API_KEY")
 
@@ -49,7 +81,14 @@ async def create_3d_avatar(
     theme: str = Form("default"),
     custom_theme: str = Form("")
 ):
+
+    if custom_theme and not is_prompt_safe(custom_theme):
+        return {
+            "error": "Unsafe content is not allowed"
+        }
+
     file_id = str(uuid.uuid4())
+    
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
     output_path = os.path.join(UPLOAD_DIR, f"{file_id}_avatar.png")
 
@@ -145,6 +184,12 @@ async def create_realistic_avatar(
     file: UploadFile = File(...),
     theme: str = Form("default")
 ):
+    
+    if custom_theme and not is_prompt_safe(custom_theme):
+        return {
+            "error": "Unsafe content is not allowed"
+        }
+
     file_id = str(uuid.uuid4())
 
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
