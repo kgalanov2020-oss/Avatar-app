@@ -182,13 +182,24 @@ async def create_3d_avatar(
 @app.post("/create-realistic-avatar/")
 async def create_realistic_avatar(
     file: UploadFile = File(...),
-    theme: str = Form("default")
+    theme: str = Form("default"),
+    custom_theme: str = Form("")
 ):
-    
+
     if custom_theme and not is_prompt_safe(custom_theme):
-        return {
-            "error": "Unsafe content is not allowed"
-        }
+        return {"error": "Запрещённая тема"}
+
+    if theme == "custom" and custom_theme.strip():
+        theme_prompt = (
+            f"ultra realistic portrait of {custom_theme}, "
+            f"preserve exact facial identity, "
+            f"same gender, same age, same facial structure"
+        )
+    else:
+        theme_prompt = theme_prompts.get(
+            theme,
+            theme_prompts["default"]
+        )
 
     file_id = str(uuid.uuid4())
 
