@@ -7,3 +7,4 @@ moviepy
 gtts
 edge-tts
 replicate
+deep-translator
