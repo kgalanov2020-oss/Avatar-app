@@ -713,7 +713,7 @@ def talking_video():
     response = requests.post(
         "https://api.d-id.com/talks",
         headers={
-            "Authorization": DID_API_KEY,
+            "Authorization": f"Basic {DID_API_KEY}",
             "Content-Type": "application/json"
         },
         json={
@@ -736,7 +736,7 @@ def talking_video_status(talk_id: str):
     response = requests.get(
         f"https://api.d-id.com/talks/{talk_id}",
         headers={
-        "Authorization": DID_API_KEY
+        "Authorization": f"Basic {DID_API_KEY}"
         }
     )
 
