@@ -454,79 +454,66 @@ async def create_video(
 
     voice_profiles = {
 
-        "ru_female_1": {
-            "voice": "ru-RU-SvetlanaNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
+    "ru_female_1": {
+        "voice": "ru-RU-SvetlanaNeural",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+    },
 
-        "ru_female_2": {
-            "voice": "ru-RU-DariyaNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
+    "ru_female_2": {
+        "voice": "ru-RU-SvetlanaNeural",
+        "rate": "-5%",
+        "pitch": "+2Hz"
+    },
 
-        "ru_male_1": {
-            "voice": "ru-RU-DmitryNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
+    "ru_male_1": {
+        "voice": "ru-RU-DmitryNeural",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+    },
 
-        "ru_male_2": {
-            "voice": "ru-RU-DmitryNeural",
-            "rate": "-5%",
-            "pitch": "-2Hz"
-        },
+    "ru_male_2": {
+        "voice": "ru-RU-DmitryNeural",
+        "rate": "-8%",
+        "pitch": "-2Hz"
+    },
 
-        "girl": {
-            "voice": "ru-RU-SvetlanaNeural",
-            "rate": "+8%",
-            "pitch": "+6Hz"
-        },
+    "girl": {
+        "voice": "ru-RU-SvetlanaNeural",
+        "rate": "+15%",
+        "pitch": "+8Hz"
+    },
 
-        "boy": {
-            "voice": "ru-RU-DmitryNeural",
-            "rate": "+8%",
-            "pitch": "+5Hz"
-        },
+    "boy": {
+        "voice": "ru-RU-DmitryNeural",
+        "rate": "+12%",
+        "pitch": "+6Hz"
+    },
 
-        "grandma": {
-            "voice": "ru-RU-SvetlanaNeural",
-            "rate": "-15%",
-            "pitch": "-4Hz"
-        },
+    "grandma": {
+        "voice": "ru-RU-SvetlanaNeural",
+        "rate": "-18%",
+        "pitch": "-6Hz"
+    },
 
-        "grandpa": {
-            "voice": "ru-RU-DmitryNeural",
-            "rate": "-18%",
-            "pitch": "-5Hz"
-        },
+    "grandpa": {
+        "voice": "ru-RU-DmitryNeural",
+        "rate": "-20%",
+        "pitch": "-8Hz"
+    },
 
-        "en_female": {
-            "voice": "en-US-JennyNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
+    "en_female": {
+        "voice": "en-US-JennyNeural",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+    },
 
-        "en_male": {
-            "voice": "en-US-GuyNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
-
-        "es_female": {
-            "voice": "es-ES-ElviraNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
-
-        "pt_female": {
-            "voice": "pt-BR-FranciscaNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        }
+    "en_male": {
+        "voice": "en-US-GuyNeural",
+        "rate": "+0%",
+        "pitch": "+0Hz"
     }
-
+}
     profile = voice_profiles.get(
         voice,
         voice_profiles["ru_female_1"]
@@ -539,6 +526,17 @@ async def create_video(
         pitch=profile["pitch"]
     )
 
+try:
+    await communicate.save(audio_path)
+
+except Exception as e:
+
+    communicate = edge_tts.Communicate(
+        text=text,
+        voice="ru-RU-SvetlanaNeural"
+    )
+
+    await communicate.save(audio_path)
     await communicate.save(audio_path)
 
     return {
