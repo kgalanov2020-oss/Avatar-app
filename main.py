@@ -7,6 +7,7 @@ import edge_tts
 import asyncio
 from moviepy import AudioFileClip
 from moviepy import VideoFileClip, CompositeVideoClip, ColorClip
+from deep_translator import GoogleTranslator
 
 import shutil
 import uuid
@@ -512,6 +513,18 @@ async def create_video(
             "voice": "en-US-GuyNeural",
             "rate": "+0%",
             "pitch": "+0Hz"
+        },
+
+        "es_female": {
+            "voice": "es-ES-ElviraNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
+        },
+
+        "pt_female": {
+            "voice": "pt-BR-FranciscaNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
         }
     }
 
@@ -519,6 +532,31 @@ async def create_video(
         voice,
         voice_profiles["ru_female_1"]
     )
+
+    # AUTO TRANSLATION
+
+    if voice in ["en_female", "en_male"]:
+
+        text = GoogleTranslator(
+            source='auto',
+            target='en'
+        ).translate(text)
+
+    elif voice == "es_female":
+
+        text = GoogleTranslator(
+            source='auto',
+            target='es'
+        ).translate(text)
+
+    elif voice == "pt_female":
+
+        text = GoogleTranslator(
+            source='auto',
+            target='pt'
+        ).translate(text)
+
+    # TTS
 
     communicate = edge_tts.Communicate(
         text=text,
@@ -546,6 +584,7 @@ async def create_video(
 
         "format": format
     }
+
 @app.get("/talking-video/")
 def talking_video():
     response = requests.post(
