@@ -84,102 +84,225 @@ async def create_3d_avatar(
 ):
 
     if custom_theme and not is_prompt_safe(custom_theme):
-        return {
-            "error": "Unsafe content is not allowed"
-        }
+        return {"error": "Unsafe content is not allowed"}
 
     file_id = str(uuid.uuid4())
-    
-    input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
-    output_path = os.path.join(UPLOAD_DIR, f"{file_id}_avatar.png")
 
-    theme_prompts = {
-        "default": "3D cartoon avatar portrait, clean background",
-        "astronaut": "3D cartoon astronaut suit, cosmic background",
-        "cowboy": "3D cartoon cowboy outfit, western desert background",
-        "royal": "3D cartoon king or queen outfit, royal palace background",
-        "sport": "3D cartoon athlete uniform, stadium background",
-        "sailor": "3D cartoon sailor outfit, sea background",
-        "samurai": "3D cartoon samurai armor, japanese temple background",
-        "cyberpunk": "3D cartoon cyberpunk style, neon futuristic city background",
-        "superhero": "3D cartoon superhero costume, cinematic action background",
-        "rockstar": "3D cartoon rock star outfit, concert stage background",
-        "gangster": "3D cartoon mafia gangster suit, 1920s luxury background",
-        "pirate": "3D cartoon pirate captain outfit, pirate ship background",
-        "wizard": "3D cartoon wizard robe, magical fantasy background",
-        "viking": "3D cartoon viking warrior armor, nordic background",
-        "ninja": "3D cartoon ninja outfit, dark japanese background",
-        "luxury": "3D cartoon luxury billionaire outfit, private jet background",
-        "angel": "3D cartoon angel wings, heavenly clouds background",
-        "demon": "3D cartoon dark demon style, fire fantasy background",
-        "pharaoh": "3D cartoon egyptian pharaoh outfit, pyramid background",
-        "knight": "3D cartoon medieval knight armor, castle background",
-        "racer": "3D cartoon formula one racing suit, racetrack background"
-    }
+    input_path = os.path.join(
+        UPLOAD_DIR,
+        f"{file_id}.jpg"
+    )
 
-    theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
-
-    if theme == "custom" and custom_theme.strip():
-        theme_prompt = (
-    f"highly detailed 3D cartoon avatar inspired by {custom_theme.strip()}, "
-    f"maintain same facial identity of uploaded person, "
-    f"cinematic lighting, matching outfit, themed environment, "
-    f"professional character design, stylized background, "
-    f"high quality animated movie style"
-)
+    output_path = os.path.join(
+        UPLOAD_DIR,
+        f"{file_id}_avatar.png"
+    )
 
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    img = Image.open(input_path)
-    img = ImageOps.exif_transpose(img)
-    img = img.convert("RGB")
+    # upload image to ComfyUI
 
-    w, h = img.size
-    side = int(min(w, h) * 0.9)
-    left = (w - side) // 2
-    top = int((h - side) * 0.2)
+    with open(input_path, "rb") as f:
 
-    img = img.crop((left, top, left + side, top + side))
-    img = img.resize((640, 640))
-    img.save(input_path)
-
-    with open(input_path, "rb") as image_file:
-        response = requests.post(
-            "https://api.stability.ai/v2beta/stable-image/control/sketch",
-            headers={
-                "authorization": f"Bearer {STABILITY_API_KEY}",
-                "accept": "image/*"
-            },
-            files={"image": image_file},
-            data={
-                "prompt": (
-                    "high quality 3D cartoon avatar of the same person, "
-                    "preserve identity, same face shape, same eyes, same nose, "
-                    "same lips, same hairstyle, same gender, same skin tone, "
-                    "front-facing portrait, centered face, realistic mouth, "
-                    + theme_prompt
-                ),
-                "negative_prompt": (
-                    "two heads, duplicate face, cropped face, zoomed face, deformed mouth"
-                ),
-                "control_strength": 0.5,
-                "output_format": "png"
-            }
+        upload_response = requests.post(
+            f"{COMFY_URL}/upload/image",
+            files={"image": f}
         )
+
+    if upload_response.status_code != 200:
+        return {"error": upload_response.text}
+
+    comfy_image = upload_response.json()["name"]
+
+    # themes
+
+    theme_prompts = {
+
+        "default":
+        "3D cartoon avatar portrait",
+
+        "astronaut":
+        "3D cartoon astronaut suit, cosmic background",
+
+        "cowboy":
+        "3D cartoon cowboy outfit, western desert background",
+
+        "royal":
+        "3D cartoon king or queen outfit, royal palace background",
+
+        "sport":
+        "3D cartoon athlete uniform, stadium background",
+
+        "sailor":
+        "3D cartoon sailor outfit, sea background",
+
+        "samurai":
+        "3D cartoon samurai armor, japanese temple background",
+
+        "cyberpunk":
+        "3D cartoon cyberpunk style, neon futuristic city background",
+
+        "superhero":
+        "3D cartoon superhero costume, cinematic action background",
+
+        "rockstar":
+        "3D cartoon rock star outfit, concert stage background",
+
+        "gangster":
+        "3D cartoon mafia gangster suit, luxury background",
+
+        "pirate":
+        "3D cartoon pirate captain outfit, pirate ship background",
+
+        "wizard":
+        "3D cartoon wizard robe, magical fantasy background",
+
+        "viking":
+        "3D cartoon viking warrior armor, nordic background",
+
+        "ninja":
+        "3D cartoon ninja outfit, dark japanese background",
+
+        "luxury":
+        "3D cartoon billionaire outfit, private jet background",
+
+        "angel":
+        "3D cartoon angel wings, heavenly clouds background",
+
+        "demon":
+        "3D cartoon dark demon style, fantasy fire background",
+
+        "pharaoh":
+        "3D cartoon egyptian pharaoh outfit, pyramid background",
+
+        "knight":
+        "3D cartoon medieval knight armor, castle background",
+
+        "racer":
+        "3D cartoon formula one racing suit, racetrack background"
+    }
+
+    if theme == "custom" and custom_theme.strip():
+
+        theme_prompt = (
+            f"high quality 3D cartoon avatar of "
+            f"{custom_theme}, preserve exact facial identity, "
+            f"same gender, same age, same face structure"
+        )
+
+    else:
+
+        theme_prompt = theme_prompts.get(
+            theme,
+            theme_prompts["default"]
+        )
+
+    # load workflow
+
+    with open(
+        "instantid_cartoon_workflow_api.json",
+        "r",
+        encoding="utf-8"
+    ) as f:
+
+        workflow = json.load(f)
+
+    # inject image
+
+    workflow["13"]["inputs"]["image"] = comfy_image
+
+    # inject positive prompt
+
+    workflow["2"]["inputs"]["text"] = (
+        "high quality 3D cartoon avatar of the exact same person, "
+        "preserve facial identity, same gender, same age, "
+        "same face shape, same eyes, same nose, "
+        "same lips, same hairstyle, "
+        "animated movie character, stylized 3D portrait, "
+        "cinematic lighting, "
+        + theme_prompt
+    )
+
+    # inject negative prompt
+
+    workflow["3"]["inputs"]["text"] = (
+        "nsfw, nude, naked, breasts, nipples, porn, erotic, "
+        "wrong gender, different person, "
+        "deformed face, bad anatomy, ugly, blurry, "
+        "realistic photo, horror, creepy, "
+        "artifacts, glitch, text, watermark"
+    )
+
+    # random seed
+
+    workflow["5"]["inputs"]["seed"] = int(time.time())
+
+    client_id = str(uuid.uuid4())
+
+    response = requests.post(
+        f"{COMFY_URL}/prompt",
+        json={
+            "prompt": workflow,
+            "client_id": client_id
+        }
+    )
 
     if response.status_code != 200:
         return {"error": response.text}
 
-    with open(output_path, "wb") as f:
-        f.write(response.content)
+    prompt_id = response.json()["prompt_id"]
 
-    shutil.copy(output_path, os.path.join(UPLOAD_DIR, "latest_avatar.png"))
+    # wait for result
 
-    return {
-        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_avatar.png"
-    }
+    while True:
 
+        history = requests.get(
+            f"{COMFY_URL}/history/{prompt_id}"
+        ).json()
+
+        if prompt_id in history:
+
+            outputs = history[prompt_id]["outputs"]
+
+            for node_id in outputs:
+
+                node_output = outputs[node_id]
+
+                if "images" in node_output:
+
+                    image_data = node_output["images"][0]
+
+                    filename = image_data["filename"]
+                    subfolder = image_data["subfolder"]
+                    image_type = image_data["type"]
+
+                    image_url = (
+                        f"{COMFY_URL}/view?"
+                        f"filename={filename}"
+                        f"&subfolder={subfolder}"
+                        f"&type={image_type}"
+                    )
+
+                    img = requests.get(image_url)
+
+                    with open(output_path, "wb") as f:
+                        f.write(img.content)
+
+                    shutil.copy(
+                        output_path,
+                        os.path.join(
+                            UPLOAD_DIR,
+                            "latest_avatar.png"
+                        )
+                    )
+
+                    return {
+                        "avatar_url":
+                        f"https://avatar-app-vcer.onrender.com/files/{file_id}_avatar.png"
+                    }
+
+        time.sleep(1)
 @app.post("/create-realistic-avatar/")
 async def create_realistic_avatar(
     file: UploadFile = File(...),
