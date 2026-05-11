@@ -442,24 +442,84 @@ async def create_realistic_avatar(
             return {"error": "ComfyUI finished, but no image was found in outputs"}
 
         time.sleep(1)
+
 @app.post("/create-video/")
 async def create_video(
     text: str = Form("С днём рождения!"),
-    voice: str = Form("female"),
+    voice: str = Form("female_1"),
     format: str = Form("square")
 ):
+
     audio_path = "uploads/audio.mp3"
 
-    if voice == "male":
-        voice_name = "ru-RU-DmitryNeural"
-    else:
-        voice_name = "ru-RU-SvetlanaNeural"
+    voice_profiles = {
+        "female_1": {
+            "voice": "ru-RU-SvetlanaNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
+        },
 
-    communicate = edge_tts.Communicate(text, voice_name)
+        "female_2": {
+            "voice": "ru-RU-DariyaNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
+        },
+
+        "male_1": {
+            "voice": "ru-RU-DmitryNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
+        },
+
+        "male_2": {
+            "voice": "ru-RU-DmitryNeural",
+            "rate": "-5%",
+            "pitch": "-2Hz"
+        },
+
+        "girl": {
+            "voice": "ru-RU-SvetlanaNeural",
+            "rate": "+8%",
+            "pitch": "+6Hz"
+        },
+
+        "boy": {
+            "voice": "ru-RU-DmitryNeural",
+            "rate": "+8%",
+            "pitch": "+5Hz"
+        },
+
+        "grandma": {
+            "voice": "ru-RU-SvetlanaNeural",
+            "rate": "-15%",
+            "pitch": "-4Hz"
+        },
+
+        "grandpa": {
+            "voice": "ru-RU-DmitryNeural",
+            "rate": "-18%",
+            "pitch": "-5Hz"
+        },
+    }
+
+    profile = voice_profiles.get(
+        voice,
+        voice_profiles["female_1"]
+    )
+
+    communicate = edge_tts.Communicate(
+        text=text,
+        voice=profile["voice"],
+        rate=profile["rate"],
+        pitch=profile["pitch"]
+    )
+
     await communicate.save(audio_path)
 
     return {
-        "audio_url": "https://avatar-app-vcer.onrender.com/files/audio.mp3",
+        "audio_url":
+        "https://avatar-app-vcer.onrender.com/files/audio.mp3",
+
         "format": format
     }
 
@@ -861,9 +921,40 @@ video {
 
     <label>Голос</label>
     <select id="voice">
-        <option value="female">Женский голос</option>
-        <option value="male">Мужской голос</option>
-    </select>
+
+    <option value="female_1">
+        Женский голос 1
+    </option>
+
+    <option value="female_2">
+        Женский голос 2
+    </option>
+
+    <option value="male_1">
+        Мужской голос 1
+    </option>
+
+    <option value="male_2">
+        Мужской голос 2
+    </option>
+
+    <option value="girl">
+        Девочка
+    </option>
+
+    <option value="boy">
+        Мальчик
+    </option>
+
+    <option value="grandma">
+        Бабушка
+    </option>
+
+    <option value="grandpa">
+        Дедушка
+    </option>
+
+</select>
 
     <label>Формат видео</label>
 
