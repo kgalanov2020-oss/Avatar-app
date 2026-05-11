@@ -186,6 +186,30 @@ async def create_realistic_avatar(
     custom_theme: str = Form("")
 ):
 
+    theme_prompts = {
+        "default": "ultra realistic cinematic portrait",
+        "astronaut": "ultra realistic astronaut portrait, cinematic sci-fi lighting",
+        "cowboy": "ultra realistic cowboy portrait, western desert",
+        "royal": "ultra realistic king or queen portrait, royal palace",
+        "sport": "ultra realistic athlete portrait, stadium background",
+        "sailor": "ultra realistic sailor portrait, ocean background",
+        "samurai": "ultra realistic samurai portrait",
+        "cyberpunk": "ultra realistic cyberpunk portrait, neon city",
+        "superhero": "ultra realistic superhero portrait",
+        "rockstar": "ultra realistic rockstar portrait",
+        "gangster": "ultra realistic mafia portrait",
+        "pirate": "ultra realistic pirate captain portrait",
+        "wizard": "ultra realistic wizard portrait",
+        "viking": "ultra realistic viking warrior portrait",
+        "ninja": "ultra realistic ninja portrait",
+        "luxury": "ultra realistic billionaire portrait",
+        "angel": "ultra realistic angel portrait",
+        "demon": "ultra realistic dark demon portrait",
+        "pharaoh": "ultra realistic egyptian pharaoh portrait",
+        "knight": "ultra realistic medieval knight portrait",
+        "racer": "ultra realistic formula 1 racer portrait"
+    }
+
     if custom_theme and not is_prompt_safe(custom_theme):
         return {"error": "Запрещённая тема"}
 
@@ -202,7 +226,6 @@ async def create_realistic_avatar(
         )
 
     file_id = str(uuid.uuid4())
-
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
     output_path = os.path.join(UPLOAD_DIR, f"{file_id}_realistic.png")
 
