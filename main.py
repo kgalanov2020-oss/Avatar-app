@@ -446,32 +446,33 @@ async def create_realistic_avatar(
 @app.post("/create-video/")
 async def create_video(
     text: str = Form("С днём рождения!"),
-    voice: str = Form("female_1"),
+    voice: str = Form("ru_female_1"),
     format: str = Form("square")
 ):
 
     audio_path = "uploads/audio.mp3"
 
     voice_profiles = {
-        "female_1": {
+
+        "ru_female_1": {
             "voice": "ru-RU-SvetlanaNeural",
             "rate": "+0%",
             "pitch": "+0Hz"
         },
 
-        "female_2": {
+        "ru_female_2": {
             "voice": "ru-RU-DariyaNeural",
             "rate": "+0%",
             "pitch": "+0Hz"
         },
 
-        "male_1": {
+        "ru_male_1": {
             "voice": "ru-RU-DmitryNeural",
             "rate": "+0%",
             "pitch": "+0Hz"
         },
 
-        "male_2": {
+        "ru_male_2": {
             "voice": "ru-RU-DmitryNeural",
             "rate": "-5%",
             "pitch": "-2Hz"
@@ -500,11 +501,35 @@ async def create_video(
             "rate": "-18%",
             "pitch": "-5Hz"
         },
+
+        "en_female": {
+            "voice": "en-US-JennyNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
+        },
+
+        "en_male": {
+            "voice": "en-US-GuyNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
+        },
+
+        "es_female": {
+            "voice": "es-ES-ElviraNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
+        },
+
+        "pt_female": {
+            "voice": "pt-BR-FranciscaNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz"
+        }
     }
 
     profile = voice_profiles.get(
         voice,
-        voice_profiles["female_1"]
+        voice_profiles["ru_female_1"]
     )
 
     communicate = edge_tts.Communicate(
@@ -920,38 +945,54 @@ video {
 >
 
     <label>Голос</label>
-    <select id="voice">
+<select id="voice">
 
-    <option value="female_1">
-        Женский голос 1
+    <option value="ru_female_1">
+        🇷🇺 Женский 1
     </option>
 
-    <option value="female_2">
-        Женский голос 2
+    <option value="ru_female_2">
+        🇷🇺 Женский 2
     </option>
 
-    <option value="male_1">
-        Мужской голос 1
+    <option value="ru_male_1">
+        🇷🇺 Мужской 1
     </option>
 
-    <option value="male_2">
-        Мужской голос 2
+    <option value="ru_male_2">
+        🇷🇺 Мужской 2
     </option>
 
     <option value="girl">
-        Девочка
+        👧 Девочка
     </option>
 
     <option value="boy">
-        Мальчик
+        👦 Мальчик
     </option>
 
     <option value="grandma">
-        Бабушка
+        👵 Бабушка
     </option>
 
     <option value="grandpa">
-        Дедушка
+        👴 Дедушка
+    </option>
+
+    <option value="en_female">
+        🇺🇸 English Female
+    </option>
+
+    <option value="en_male">
+        🇺🇸 English Male
+    </option>
+
+    <option value="es_female">
+        🇪🇸 Español Female
+    </option>
+
+    <option value="pt_female">
+        🇧🇷 Português Female
     </option>
 
 </select>
