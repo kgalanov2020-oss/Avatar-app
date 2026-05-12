@@ -86,25 +86,17 @@ async def create_3d_avatar(
     if custom_theme and not is_prompt_safe(custom_theme):
         return {"error": "Unsafe content is not allowed"}
 
-    file_id = str(uuid.uuid4())
+    job_id = str(uuid.uuid4())
+    job_dir = os.path.join(UPLOAD_DIR, job_id)
+    os.makedirs(job_dir, exist_ok=True)
 
-    input_path = os.path.join(
-        UPLOAD_DIR,
-        f"{file_id}.jpg"
-    )
-
-    output_path = os.path.join(
-        UPLOAD_DIR,
-        f"{file_id}_avatar.png"
-    )
+    input_path = os.path.join(job_dir, "input.jpg")
+    output_path = os.path.join(job_dir, "avatar.png")
 
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # upload image to ComfyUI
-
     with open(input_path, "rb") as f:
-
         upload_response = requests.post(
             f"{COMFY_URL}/upload/image",
             files={"image": f}
@@ -115,136 +107,64 @@ async def create_3d_avatar(
 
     comfy_image = upload_response.json()["name"]
 
-    # themes
-
     theme_prompts = {
-
-        "default":
-        "3D cartoon avatar portrait",
-
-        "astronaut":
-        "3D cartoon astronaut suit, cosmic background",
-
-        "cowboy":
-        "3D cartoon cowboy outfit, western desert background",
-
-        "royal":
-        "3D cartoon king or queen outfit, royal palace background",
-
-        "sport":
-        "3D cartoon athlete uniform, stadium background",
-
-        "sailor":
-        "3D cartoon sailor outfit, sea background",
-
-        "samurai":
-        "3D cartoon samurai armor, japanese temple background",
-
-        "cyberpunk":
-        "3D cartoon cyberpunk style, neon futuristic city background",
-
-        "superhero":
-        "3D cartoon superhero costume, cinematic action background",
-
-        "rockstar":
-        "3D cartoon rock star outfit, concert stage background",
-
-        "gangster":
-        "3D cartoon mafia gangster suit, luxury background",
-
-        "pirate":
-        "3D cartoon pirate captain outfit, pirate ship background",
-
-        "wizard":
-        "3D cartoon wizard robe, magical fantasy background",
-
-        "viking":
-        "3D cartoon viking warrior armor, nordic background",
-
-        "ninja":
-        "3D cartoon ninja outfit, dark japanese background",
-
-        "luxury":
-        "3D cartoon billionaire outfit, private jet background",
-
-        "angel":
-        "3D cartoon angel wings, heavenly clouds background",
-
-        "demon":
-        "3D cartoon dark demon style, fantasy fire background",
-
-        "pharaoh":
-        "3D cartoon egyptian pharaoh outfit, pyramid background",
-
-        "knight":
-        "3D cartoon medieval knight armor, castle background",
-
-        "racer":
-        "3D cartoon formula one racing suit, racetrack background"
+        "default": "3D cartoon avatar portrait",
+        "astronaut": "3D cartoon astronaut suit, cosmic background",
+        "cowboy": "3D cartoon cowboy outfit, western desert background",
+        "royal": "3D cartoon king or queen outfit, royal palace background",
+        "sport": "3D cartoon athlete uniform, stadium background",
+        "sailor": "3D cartoon sailor outfit, sea background",
+        "samurai": "3D cartoon samurai armor, japanese temple background",
+        "cyberpunk": "3D cartoon cyberpunk style, neon futuristic city background",
+        "superhero": "3D cartoon superhero costume, cinematic action background",
+        "rockstar": "3D cartoon rock star outfit, concert stage background",
+        "gangster": "3D cartoon mafia gangster suit, luxury background",
+        "pirate": "3D cartoon pirate captain outfit, pirate ship background",
+        "wizard": "3D cartoon wizard robe, magical fantasy background",
+        "viking": "3D cartoon viking warrior armor, nordic background",
+        "ninja": "3D cartoon ninja outfit, dark japanese background",
+        "luxury": "3D cartoon billionaire outfit, private jet background",
+        "angel": "3D cartoon angel wings, heavenly clouds background",
+        "demon": "3D cartoon dark demon style, fantasy fire background",
+        "pharaoh": "3D cartoon egyptian pharaoh outfit, pyramid background",
+        "knight": "3D cartoon medieval knight armor, castle background",
+        "racer": "3D cartoon formula one racing suit, racetrack background"
     }
 
     if theme == "custom" and custom_theme.strip():
-
         theme_prompt = (
-            f"high quality 3D cartoon avatar of "
-            f"{custom_theme}, preserve exact facial identity, "
-            f"same gender, same age, same face structure"
+            f"high quality 3D cartoon avatar inspired by {custom_theme.strip()}, "
+            f"preserve exact facial identity, same gender, same age, same face structure"
         )
-
     else:
+        theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
-        theme_prompt = theme_prompts.get(
-            theme,
-            theme_prompts["default"]
-        )
-
-    # load workflow
-
-    with open(
-        "instantid_cartoon_workflow_api.json",
-        "r",
-        encoding="utf-8"
-    ) as f:
-
+    with open("instantid_cartoon_workflow_api.json", "r", encoding="utf-8") as f:
         workflow = json.load(f)
-
-    # inject image
 
     workflow["13"]["inputs"]["image"] = comfy_image
 
-    # inject positive prompt
-
     workflow["2"]["inputs"]["text"] = (
         "high quality 3D cartoon avatar of the exact same person, "
-        "preserve facial identity, same gender, same age, "
-        "same face shape, same eyes, same nose, "
-        "same lips, same hairstyle, "
-        "animated movie character, stylized 3D portrait, "
-        "cinematic lighting, "
+        "preserve facial identity, same gender, same age, same face shape, "
+        "same eyes, same nose, same lips, same hairstyle, "
+        "animated movie character, stylized 3D portrait, cinematic lighting, "
         + theme_prompt
     )
 
-    # inject negative prompt
-
     workflow["3"]["inputs"]["text"] = (
         "nsfw, nude, naked, breasts, nipples, porn, erotic, "
-        "wrong gender, different person, "
-        "deformed face, bad anatomy, ugly, blurry, "
-        "realistic photo, horror, creepy, "
-        "artifacts, glitch, text, watermark"
+        "wrong gender, different person, deformed face, bad anatomy, ugly, blurry, "
+        "realistic photo, horror, creepy, artifacts, glitch, text, watermark"
     )
 
-    # random seed
-
     workflow["5"]["inputs"]["seed"] = int(time.time())
-
-    client_id = str(uuid.uuid4())
 
     response = requests.post(
         f"{COMFY_URL}/prompt",
         json={
             "prompt": workflow,
-            "client_id": client_id
+            "client_id": str(uuid.uuid4())
         }
     )
 
@@ -253,35 +173,21 @@ async def create_3d_avatar(
 
     prompt_id = response.json()["prompt_id"]
 
-    # wait for result
-
     while True:
-
-        history = requests.get(
-            f"{COMFY_URL}/history/{prompt_id}"
-        ).json()
+        history = requests.get(f"{COMFY_URL}/history/{prompt_id}").json()
 
         if prompt_id in history:
-
             outputs = history[prompt_id]["outputs"]
 
-            for node_id in outputs:
-
-                node_output = outputs[node_id]
-
+            for node_output in outputs.values():
                 if "images" in node_output:
-
                     image_data = node_output["images"][0]
-
-                    filename = image_data["filename"]
-                    subfolder = image_data["subfolder"]
-                    image_type = image_data["type"]
 
                     image_url = (
                         f"{COMFY_URL}/view?"
-                        f"filename={filename}"
-                        f"&subfolder={subfolder}"
-                        f"&type={image_type}"
+                        f"filename={image_data['filename']}"
+                        f"&subfolder={image_data.get('subfolder', '')}"
+                        f"&type={image_data.get('type', 'output')}"
                     )
 
                     img = requests.get(image_url)
@@ -289,20 +195,13 @@ async def create_3d_avatar(
                     with open(output_path, "wb") as f:
                         f.write(img.content)
 
-                    shutil.copy(
-                        output_path,
-                        os.path.join(
-                            UPLOAD_DIR,
-                            "latest_avatar.png"
-                        )
-                    )
-
                     return {
-                        "avatar_url":
-                        f"https://avatar-app-vcer.onrender.com/files/{file_id}_avatar.png"
+                        "job_id": job_id,
+                        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/avatar.png"
                     }
 
         time.sleep(1)
+
 @app.post("/create-realistic-avatar/")
 async def create_realistic_avatar(
     file: UploadFile = File(...),
@@ -310,15 +209,39 @@ async def create_realistic_avatar(
     custom_theme: str = Form("")
 ):
 
+    if custom_theme and not is_prompt_safe(custom_theme):
+        return {"error": "Unsafe content is not allowed"}
+
+    job_id = str(uuid.uuid4())
+    job_dir = os.path.join(UPLOAD_DIR, job_id)
+    os.makedirs(job_dir, exist_ok=True)
+
+    input_path = os.path.join(job_dir, "input.jpg")
+    output_path = os.path.join(job_dir, "avatar.png")
+
+    with open(input_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    with open(input_path, "rb") as f:
+        upload_response = requests.post(
+            f"{COMFY_URL}/upload/image",
+            files={"image": f}
+        )
+
+    if upload_response.status_code != 200:
+        return {"error": upload_response.text}
+
+    comfy_image = upload_response.json()["name"]
+
     theme_prompts = {
         "default": "ultra realistic cinematic portrait",
         "astronaut": "ultra realistic astronaut portrait, cinematic sci-fi lighting",
-        "cowboy": "ultra realistic cowboy portrait, western desert",
-        "royal": "ultra realistic king or queen portrait, royal palace",
+        "cowboy": "ultra realistic cowboy portrait, western desert background",
+        "royal": "ultra realistic king or queen portrait, royal palace background",
         "sport": "ultra realistic athlete portrait, stadium background",
         "sailor": "ultra realistic sailor portrait, ocean background",
         "samurai": "ultra realistic samurai portrait",
-        "cyberpunk": "ultra realistic cyberpunk portrait, neon city",
+        "cyberpunk": "ultra realistic cyberpunk portrait, neon city background",
         "superhero": "ultra realistic superhero portrait",
         "rockstar": "ultra realistic rockstar portrait",
         "gangster": "ultra realistic mafia portrait",
@@ -334,145 +257,13 @@ async def create_realistic_avatar(
         "racer": "ultra realistic formula 1 racer portrait"
     }
 
-    if custom_theme and not is_prompt_safe(custom_theme):
-        return {"error": "Запрещённая тема"}
-
     if theme == "custom" and custom_theme.strip():
         theme_prompt = (
-            f"ultra realistic portrait of {custom_theme}, "
-            f"preserve exact facial identity, "
-            f"same gender, same age, same facial structure"
+            f"ultra realistic portrait inspired by {custom_theme.strip()}, "
+            f"preserve exact facial identity, same gender, same age, same facial structure"
         )
     else:
-        theme_prompt = theme_prompts.get(
-            theme,
-            theme_prompts["default"]
-        )
-
-    file_id = str(uuid.uuid4())
-    input_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
-    output_path = os.path.join(UPLOAD_DIR, f"{file_id}_realistic.png")
-
-    with open(input_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    with open(input_path, "rb") as f:
-        upload_response = requests.post(
-            f"{COMFY_URL}/upload/image",
-            files={"image": f},
-            data={"overwrite": "true"}
-        )
-
-    if upload_response.status_code != 200:
-        return {"error": upload_response.text}
-
-    comfy_image = upload_response.json()["name"]
-
-    theme_prompts = {
-        "default": "realistic cinematic portrait, natural background",
-
-        "astronaut": (
-            "realistic astronaut portrait, detailed space suit, "
-            "cinematic sci-fi lighting, space background"
-        ),
-
-        "cowboy": (
-            "realistic cowboy portrait, western outfit, "
-            "desert background, cinematic western atmosphere"
-        ),
-
-        "royal": (
-            "realistic king or queen portrait, royal luxury clothing, "
-            "palace interior, cinematic lighting"
-        ),
-
-        "sport": (
-            "realistic athlete portrait, professional sports uniform, "
-            "stadium background, cinematic sports photography"
-        ),
-
-        "sailor": (
-            "realistic sailor portrait, navy outfit, "
-            "ocean background, cinematic sea atmosphere"
-        ),
-
-        "samurai": (
-            "realistic samurai portrait, traditional japanese armor, "
-            "cinematic japanese temple background"
-        ),
-
-        "cyberpunk": (
-            "realistic cyberpunk portrait, futuristic neon city, "
-            "cinematic cyberpunk lighting"
-        ),
-
-        "superhero": (
-            "realistic superhero portrait, cinematic movie costume, "
-            "epic action background"
-        ),
-
-        "rockstar": (
-            "realistic rockstar portrait, concert stage lighting, "
-            "music performance atmosphere"
-        ),
-
-        "gangster": (
-            "realistic mafia gangster portrait, elegant 1920s suit, "
-            "luxury vintage atmosphere"
-        ),
-
-        "pirate": (
-            "realistic pirate captain portrait, pirate ship background, "
-            "cinematic ocean adventure"
-        ),
-
-        "wizard": (
-            "realistic fantasy wizard portrait, magical robe, "
-            "cinematic fantasy atmosphere"
-        ),
-
-        "viking": (
-            "realistic viking warrior portrait, nordic armor, "
-            "cinematic nordic landscape"
-        ),
-
-        "ninja": (
-            "realistic ninja portrait, dark stealth outfit, "
-            "cinematic japanese night atmosphere"
-        ),
-
-        "luxury": (
-            "realistic billionaire portrait, luxury suit, "
-            "private jet, premium lifestyle"
-        ),
-
-        "angel": (
-            "realistic angel portrait, white wings, "
-            "heavenly cinematic clouds"
-        ),
-
-        "demon": (
-            "realistic dark demon portrait, fantasy fire atmosphere, "
-            "cinematic dark lighting"
-        ),
-
-        "pharaoh": (
-            "realistic egyptian pharaoh portrait, golden royal outfit, "
-            "pyramid background"
-        ),
-
-        "knight": (
-            "realistic medieval knight portrait, detailed armor, "
-            "castle background, cinematic lighting"
-        ),
-
-        "racer": (
-        "realistic formula one racer portrait, racing suit, "
-        "professional racetrack atmosphere"
-        )
-    }
-
-    theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
+        theme_prompt = theme_prompts.get(theme, theme_prompts["default"])
 
     with open("instantid_workflow_api.json", "r", encoding="utf-8") as f:
         workflow = json.load(f)
@@ -483,27 +274,23 @@ async def create_realistic_avatar(
         "realistic portrait photo of the exact same person from the uploaded image, "
         "preserve facial identity, same gender, same age, same face shape, "
         "same eyes, same nose, same lips, same skin tone, same hairstyle, "
-        "natural human face, front facing portrait, realistic skin texture, "
-        "high quality photo, sharp focus, cinematic lighting, "
-        f"{theme_prompt}"
+        "natural human face, realistic skin texture, sharp focus, cinematic lighting, "
+        + theme_prompt
     )
 
     workflow["3"]["inputs"]["text"] = (
-        "low quality, blurry, noisy image, artifacts, glitch, distorted body, "
-        "deformed anatomy, extra limbs, watermark, text, stripes, color artifacts, "
-        "bad skin, ugly face, cartoon, anime, overexposed, underexposed"
+        "nsfw, nude, naked, breasts, nipples, porn, erotic, wrong gender, "
+        "different person, different face, deformed face, bad anatomy, ugly, blurry, "
+        "artifacts, glitch, pixel noise, scanlines, dots, watermark, text"
     )
 
-    workflow["20"]["inputs"]["weight"] = 0.65
+    workflow["20"]["inputs"]["weight"] = 0.85
     workflow["20"]["inputs"]["start_at"] = 0
     workflow["20"]["inputs"]["end_at"] = 1
 
-    # random seed
     workflow["5"]["inputs"]["seed"] = int(time.time())
-
-    # quality settings
     workflow["5"]["inputs"]["steps"] = 30
-    workflow["5"]["inputs"]["cfg"] = 4.5
+    workflow["5"]["inputs"]["cfg"] = 3.5
     workflow["5"]["inputs"]["sampler_name"] = "dpmpp_2m"
     workflow["5"]["inputs"]["scheduler"] = "karras"
 
@@ -521,49 +308,31 @@ async def create_realistic_avatar(
     prompt_id = response.json()["prompt_id"]
 
     while True:
-        history_response = requests.get(f"{COMFY_URL}/history/{prompt_id}")
-
-        if history_response.status_code != 200:
-            return {"error": history_response.text}
-
-        history = history_response.json()
+        history = requests.get(f"{COMFY_URL}/history/{prompt_id}").json()
 
         if prompt_id in history:
-            outputs = history[prompt_id].get("outputs", {})
+            outputs = history[prompt_id]["outputs"]
 
             for node_output in outputs.values():
                 if "images" in node_output:
                     image_data = node_output["images"][0]
 
-                    filename = image_data["filename"]
-                    subfolder = image_data.get("subfolder", "")
-                    image_type = image_data.get("type", "output")
-
                     image_url = (
                         f"{COMFY_URL}/view?"
-                        f"filename={filename}"
-                        f"&subfolder={subfolder}"
-                        f"&type={image_type}"
+                        f"filename={image_data['filename']}"
+                        f"&subfolder={image_data.get('subfolder', '')}"
+                        f"&type={image_data.get('type', 'output')}"
                     )
 
                     img = requests.get(image_url)
 
-                    if img.status_code != 200:
-                        return {"error": img.text}
-
                     with open(output_path, "wb") as f:
                         f.write(img.content)
 
-                    shutil.copy(
-                        output_path,
-                        os.path.join(UPLOAD_DIR, "latest_avatar.png")
-                    )
-
                     return {
-                        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{file_id}_realistic.png"
+                        "job_id": job_id,
+                        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/avatar.png"
                     }
-
-            return {"error": "ComfyUI finished, but no image was found in outputs"}
 
         time.sleep(1)
 
@@ -571,115 +340,42 @@ async def create_realistic_avatar(
 async def create_video(
     text: str = Form("С днём рождения!"),
     voice: str = Form("ru_female_1"),
-    format: str = Form("square")
+    format: str = Form("square"),
+    job_id: str = Form("")
 ):
 
-    audio_path = "uploads/audio.mp3"
+    if not job_id:
+        job_id = str(uuid.uuid4())
+
+    job_dir = os.path.join(UPLOAD_DIR, job_id)
+    os.makedirs(job_dir, exist_ok=True)
+
+    audio_path = os.path.join(job_dir, "audio.mp3")
+    audio_url = f"https://avatar-app-vcer.onrender.com/files/{job_id}/audio.mp3"
 
     voice_profiles = {
-
-        "ru_female_1": {
-            "voice": "ru-RU-SvetlanaNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
-
-        "ru_female_2": {
-            "voice": "ru-RU-SvetlanaNeural",
-            "rate": "-5%",
-            "pitch": "+2Hz"
-        },
-
-        "ru_male_1": {
-            "voice": "ru-RU-DmitryNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
-
-        "ru_male_2": {
-            "voice": "ru-RU-DmitryNeural",
-            "rate": "-8%",
-            "pitch": "-2Hz"
-        },
-
-        "girl": {
-            "voice": "ru-RU-SvetlanaNeural",
-            "rate": "+15%",
-            "pitch": "+8Hz"
-        },
-
-        "boy": {
-            "voice": "ru-RU-DmitryNeural",
-            "rate": "+12%",
-            "pitch": "+6Hz"
-        },
-
-        "grandma": {
-            "voice": "ru-RU-SvetlanaNeural",
-            "rate": "-18%",
-            "pitch": "-6Hz"
-        },
-
-        "grandpa": {
-            "voice": "ru-RU-DmitryNeural",
-            "rate": "-20%",
-            "pitch": "-8Hz"
-        },
-
-        "en_female": {
-            "voice": "en-US-JennyNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
-
-        "en_male": {
-            "voice": "en-US-GuyNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
-
-        "es_female": {
-            "voice": "es-ES-ElviraNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        },
-
-        "pt_female": {
-            "voice": "pt-BR-FranciscaNeural",
-            "rate": "+0%",
-            "pitch": "+0Hz"
-        }
+        "ru_female_1": {"voice": "ru-RU-SvetlanaNeural", "rate": "+0%", "pitch": "+0Hz"},
+        "ru_female_2": {"voice": "ru-RU-SvetlanaNeural", "rate": "-5%", "pitch": "+2Hz"},
+        "ru_male_1": {"voice": "ru-RU-DmitryNeural", "rate": "+0%", "pitch": "+0Hz"},
+        "ru_male_2": {"voice": "ru-RU-DmitryNeural", "rate": "-8%", "pitch": "-2Hz"},
+        "girl": {"voice": "ru-RU-SvetlanaNeural", "rate": "+15%", "pitch": "+8Hz"},
+        "boy": {"voice": "ru-RU-DmitryNeural", "rate": "+12%", "pitch": "+6Hz"},
+        "grandma": {"voice": "ru-RU-SvetlanaNeural", "rate": "-18%", "pitch": "-6Hz"},
+        "grandpa": {"voice": "ru-RU-DmitryNeural", "rate": "-20%", "pitch": "-8Hz"},
+        "en_female": {"voice": "en-US-JennyNeural", "rate": "+0%", "pitch": "+0Hz"},
+        "en_male": {"voice": "en-US-GuyNeural", "rate": "+0%", "pitch": "+0Hz"},
+        "es_female": {"voice": "es-ES-ElviraNeural", "rate": "+0%", "pitch": "+0Hz"},
+        "pt_female": {"voice": "pt-BR-FranciscaNeural", "rate": "+0%", "pitch": "+0Hz"}
     }
 
-    profile = voice_profiles.get(
-        voice,
-        voice_profiles["ru_female_1"]
-    )
-
-    # AUTO TRANSLATION
+    profile = voice_profiles.get(voice, voice_profiles["ru_female_1"])
 
     if voice in ["en_female", "en_male"]:
-
-        text = GoogleTranslator(
-            source='auto',
-            target='en'
-        ).translate(text)
-
+        text = GoogleTranslator(source="auto", target="en").translate(text)
     elif voice == "es_female":
-
-        text = GoogleTranslator(
-            source='auto',
-            target='es'
-        ).translate(text)
-
+        text = GoogleTranslator(source="auto", target="es").translate(text)
     elif voice == "pt_female":
-
-        text = GoogleTranslator(
-            source='auto',
-            target='pt'
-        ).translate(text)
-
-    # TTS
+        text = GoogleTranslator(source="auto", target="pt").translate(text)
 
     communicate = edge_tts.Communicate(
         text=text,
@@ -689,27 +385,26 @@ async def create_video(
     )
 
     try:
-
         await communicate.save(audio_path)
-
     except Exception:
-
         communicate = edge_tts.Communicate(
             text=text,
             voice="ru-RU-SvetlanaNeural"
         )
-
         await communicate.save(audio_path)
 
     return {
-        "audio_url":
-        "https://avatar-app-vcer.onrender.com/files/audio.mp3",
-
+        "job_id": job_id,
+        "audio_url": audio_url,
         "format": format
     }
 
-@app.get("/talking-video/")
-def talking_video():
+@app.post("/talking-video/")
+def talking_video(
+    avatar_url: str = Form(...),
+    audio_url: str = Form(...)
+):
+
     response = requests.post(
         "https://api.d-id.com/talks",
         headers={
@@ -717,10 +412,10 @@ def talking_video():
             "Content-Type": "application/json"
         },
         json={
-            "source_url": "https://avatar-app-vcer.onrender.com/files/latest_avatar.png",
+            "source_url": avatar_url,
             "script": {
                 "type": "audio",
-                "audio_url": "https://avatar-app-vcer.onrender.com/files/audio.mp3"
+                "audio_url": audio_url
             },
             "config": {
                 "stitch": True,
@@ -736,7 +431,7 @@ def talking_video_status(talk_id: str):
     response = requests.get(
         f"https://api.d-id.com/talks/{talk_id}",
         headers={
-        "Authorization": f"Basic {DID_API_KEY}"
+            "Authorization": f"Basic {DID_API_KEY}"
         }
     )
 
@@ -748,10 +443,19 @@ def talking_video_status(talk_id: str):
     }
 
 @app.post("/make-vertical/")
-async def make_vertical(video_url: str = Form(...)):
+async def make_vertical(
+    video_url: str = Form(...),
+    job_id: str = Form("")
+):
 
-    input_path = "uploads/input.mp4"
-    output_path = "uploads/vertical.mp4"
+    if not job_id:
+        job_id = str(uuid.uuid4())
+
+    job_dir = os.path.join(UPLOAD_DIR, job_id)
+    os.makedirs(job_dir, exist_ok=True)
+
+    input_path = os.path.join(job_dir, "input_video.mp4")
+    output_path = os.path.join(job_dir, "vertical.mp4")
 
     video_response = requests.get(video_url)
 
@@ -784,52 +488,13 @@ async def make_vertical(video_url: str = Form(...)):
         threads=2
     )
 
+    clip.close()
+    final.close()
+
     return {
-        "vertical_video_url": "https://avatar-app-vcer.onrender.com/files/vertical.mp4"
+        "job_id": job_id,
+        "vertical_video_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/vertical.mp4"
     }
-
-@app.post("/generate-final-video/")
-async def generate_final_video(
-    file: UploadFile = File(...),
-    text: str = Form("С днём рождения! Желаю счастья и здоровья!"),
-    voice: str = Form("female")
-):
-    try:
-        avatar_result = await create_3d_avatar(file)
-
-        if "error" in avatar_result:
-            return avatar_result
-
-        audio_path = os.path.join(UPLOAD_DIR, "audio.mp3")
-        tts = gTTS(text=text, lang="ru")
-        tts.save(audio_path)
-
-        response = requests.post(
-            "https://api.d-id.com/talks",
-            headers={
-                "Authorization": DID_API_KEY,
-                "Content-Type": "application/json"
-            },
-            json={
-                "source_url": "https://avatar-app-vcer.onrender.com/files/latest_avatar.png",
-                "script": {
-                    "type": "audio",
-                    "audio_url": "https://avatar-app-vcer.onrender.com/files/audio.mp3"
-                },
-                "config": {
-                    "stitch": True,
-                    "show_watermark": False
-                }
-            }
-        )
-
-        return response.json()
-
-    except Exception as e:
-        return {
-            "error": "generate-final-video failed",
-            "details": str(e)
-        }
 
 @app.get("/app", response_class=HTMLResponse)
 def app_page():
