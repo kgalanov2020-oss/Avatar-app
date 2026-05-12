@@ -988,6 +988,15 @@ async function generateVideo() {
         });
 
         const talkData = await talkResponse.json();
+        if (!talkData.job_id) {
+    throw new Error("Не получили job_id. Ответ сервера: " + JSON.stringify(talkData));
+}
+
+window.currentTalkingJobId = talkData.job_id;
+
+status.innerText = "⏳ Видео создаётся...";
+checkStatus(jobId, format);
+return;
 
 if (!talkData.video_url) {
     throw new Error("Не получили video_url. Ответ сервера: " + JSON.stringify(talkData));
@@ -1021,6 +1030,50 @@ btn.disabled = false;
         status.innerText = error.message;
         btn.disabled = false;
     }
+}
+
+async function checkStatus(jobId, format) {
+    const status = document.getElementById("status");
+    const video = document.getElementById("video");
+    const btn = document.getElementById("generateBtn");
+    const actions = document.getElementById("actions");
+
+    const response = await fetch("/talking-video-status/" + window.currentTalkingJobId);
+    const data = await response.json();
+
+    if (data.status === "done" && data.video_url) {
+        let finalVideoUrl = data.video_url;
+
+        if (format === "vertical") {
+            const verticalForm = new FormData();
+            verticalForm.append("video_url", finalVideoUrl);
+            verticalForm.append("job_id", jobId);
+
+            const verticalResponse = await fetch("/make-vertical/", {
+                method: "POST",
+                body: verticalForm
+            });
+
+            const verticalData = await verticalResponse.json();
+            finalVideoUrl = verticalData.vertical_video_url;
+        }
+
+        setStep(4);
+        status.innerText = "✅ Готово!";
+        video.src = finalVideoUrl;
+        video.style.display = "block";
+        document.getElementById("downloadLink").href = finalVideoUrl;
+        actions.className = "actions show";
+        btn.disabled = false;
+        return;
+    }
+
+    if (data.status === "error") {
+        throw new Error("Ошибка видео: " + data.error);
+    }
+
+    status.innerText = "⏳ Видео создаётся... Статус: " + data.status;
+    setTimeout(() => checkStatus(jobId, format), 5000);
 }
 
 toggleCustomTheme();
