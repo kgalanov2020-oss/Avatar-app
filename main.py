@@ -399,48 +399,23 @@ async def create_video(
         "format": format
     }
 
+TALKING_API_URL = "https://9rwq73ke4rr9fe-8000.proxy.runpod.net/generate-video"
+
 @app.post("/talking-video/")
 def talking_video(
     avatar_url: str = Form(...),
     audio_url: str = Form(...)
 ):
-
     response = requests.post(
-        "https://api.d-id.com/talks",
-        headers={
-            "Authorization": f"Basic {DID_API_KEY}",
-            "Content-Type": "application/json"
-        },
+        TALKING_API_URL,
         json={
-            "source_url": avatar_url,
-            "script": {
-                "type": "audio",
-                "audio_url": audio_url
-            },
-            "config": {
-                "stitch": True,
-                "show_watermark": False
-            }
-        }
+            "avatar_url": avatar_url,
+            "audio_url": audio_url
+        },
+        timeout=600
     )
 
     return response.json()
-
-@app.get("/talking-video-status/{talk_id}")
-def talking_video_status(talk_id: str):
-    response = requests.get(
-        f"https://api.d-id.com/talks/{talk_id}",
-        headers={
-            "Authorization": f"Basic {DID_API_KEY}"
-        }
-    )
-
-    data = response.json()
-
-    return {
-        "status": data.get("status"),
-        "video_url": data.get("result_url")
-    }
 
 @app.post("/make-vertical/")
 async def make_vertical(
@@ -857,7 +832,6 @@ video {
 </div>
 
 <script>
-let currentTalkId = null;
 let finalVideoUrl = null;
 
 function setProgress(percent) {
@@ -1005,16 +979,33 @@ async function generateVideo() {
 
         const talkData = await talkResponse.json();
 
-        currentTalkId = talkData.id;
+if (!talkData.video_url) {
+    throw new Error("Не получили video_url. Ответ сервера: " + JSON.stringify(talkData));
+}
 
-        if (!currentTalkId) {
-            throw new Error("Не получили talk_id. Ответ сервера: " + JSON.stringify(talkData));
-        }
+finalVideoUrl = talkData.video_url;
 
-        window.currentJobId = jobId;
+if (format === "vertical") {
+    const verticalForm = new FormData();
+    verticalForm.append("video_url", finalVideoUrl);
+    verticalForm.append("job_id", jobId);
 
-        status.innerText = "Видео создаётся. Это может занять 30–90 секунд.";
-        checkStatus();
+    const verticalResponse = await fetch("/make-vertical/", {
+        method: "POST",
+        body: verticalForm
+    });
+
+    const verticalData = await verticalResponse.json();
+    finalVideoUrl = verticalData.vertical_video_url;
+}
+
+setStep(4);
+status.innerText = "✅ Готово!";
+video.src = finalVideoUrl;
+video.style.display = "block";
+document.getElementById("downloadLink").href = finalVideoUrl;
+actions.className = "actions show";
+btn.disabled = false;
 
     } catch (error) {
         status.innerText = error.message;
@@ -1022,80 +1013,21 @@ async function generateVideo() {
     }
 }
 
-async function checkStatus() {
-    const status = document.getElementById("status");
-    const video = document.getElementById("video");
-    const btn = document.getElementById("generateBtn");
-    const actions = document.getElementById("actions");
-    const downloadLink = document.getElementById("downloadLink");
-
-    const response = await fetch("/talking-video-status/" + currentTalkId);
-    const data = await response.json();
-
-if (data.status === "done" && data.video_url) {
-
-    setStep(4);
-
-    status.innerText = "⏳ Подготавливаем TikTok/Reels формат...";
-
-    let finalVideoUrl = data.video_url;
-
-    if (document.getElementById("format").value === "vertical") {
-
-        const verticalForm = new FormData();
-        verticalForm.append("video_url", data.video_url);
-        verticalForm.append("job_id", window.currentJobId);
-
-        const verticalResponse = await fetch("/make-vertical/", {
-            method: "POST",
-            body: verticalForm
-        });
-
-        const verticalData = await verticalResponse.json();
-
-        finalVideoUrl = verticalData.vertical_video_url;
-    }
-
-    status.innerText = "✅ Готово!";
-
-    video.src = finalVideoUrl;
-    video.style.display = "block";
-
-    document.getElementById("downloadLink").href = finalVideoUrl;
-
-    actions.className = "actions show";
-
-    btn.disabled = false;
-
-    return;
-}
-
-    status.innerText = "Статус: " + data.status + ". Ждём...";
-    setTimeout(checkStatus, 5000);
-}
-
 toggleCustomTheme();
 
 function resetApp() {
-    currentTalkId = null;
+
     finalVideoUrl = null;
 
     document.getElementById("photo").value = "";
     document.getElementById("video").style.display = "none";
     document.getElementById("video").src = "";
+    document.getElementById("avatarPreview").style.display = "none";
     document.getElementById("status").innerText = "";
     document.getElementById("actions").className = "actions";
     document.getElementById("generateBtn").disabled = false;
 
     setStep(0);
-}
-
-function resetApp() {
-    document.getElementById("video").style.display = "none";
-    document.getElementById("avatarPreview").style.display = "none";
-    document.getElementById("status").innerText = "";
-    document.getElementById("actions").className = "actions";
-    document.getElementById("photo").value = "";
 }
 
 </script>
