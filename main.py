@@ -406,16 +406,30 @@ def talking_video(
     avatar_url: str = Form(...),
     audio_url: str = Form(...)
 ):
-    response = requests.post(
-        TALKING_API_URL,
-        json={
-            "avatar_url": avatar_url,
-            "audio_url": audio_url
-        },
-        timeout=600
-    )
+    try:
+        response = requests.post(
+            TALKING_API_URL,
+            json={
+                "avatar_url": avatar_url,
+                "audio_url": audio_url
+            },
+            timeout=900
+        )
 
-    return response.json()
+        try:
+            return response.json()
+        except Exception:
+            return {
+                "error": "RunPod вернул не JSON",
+                "status_code": response.status_code,
+                "text": response.text[:1000]
+            }
+
+    except Exception as e:
+        return {
+            "error": "Ошибка запроса к RunPod",
+            "details": str(e)
+        }
 
 @app.post("/make-vertical/")
 async def make_vertical(
