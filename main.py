@@ -399,37 +399,33 @@ async def create_video(
         "format": format
     }
 
-TALKING_API_URL = "https://9rwq73ke4rr9fe-8000.proxy.runpod.net/generate-video"
+TALKING_API_URL = "https://9rwq73ke4rr9fe-8000.proxy.runpod.net"
 
 @app.post("/talking-video/")
 def talking_video(
     avatar_url: str = Form(...),
     audio_url: str = Form(...)
 ):
-    try:
-        response = requests.post(
-            TALKING_API_URL,
-            json={
-                "avatar_url": avatar_url,
-                "audio_url": audio_url
-            },
-            timeout=900
-        )
+    response = requests.post(
+        f"{TALKING_API_URL}/start-video",
+        json={
+            "avatar_url": avatar_url,
+            "audio_url": audio_url
+        },
+        timeout=60
+    )
 
-        try:
-            return response.json()
-        except Exception:
-            return {
-                "error": "RunPod вернул не JSON",
-                "status_code": response.status_code,
-                "text": response.text[:1000]
-            }
+    return response.json()
 
-    except Exception as e:
-        return {
-            "error": "Ошибка запроса к RunPod",
-            "details": str(e)
-        }
+
+@app.get("/talking-video-status/{job_id}")
+def talking_video_status(job_id: str):
+    response = requests.get(
+        f"{TALKING_API_URL}/status/{job_id}",
+        timeout=60
+    )
+
+    return response.json()
 
 @app.post("/make-vertical/")
 async def make_vertical(
