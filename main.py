@@ -957,24 +957,28 @@ async function generateVideo() {
         const avatarResponse = await fetch(avatarEndpoint, {
             method: "POST",
             body: avatarForm
-            });
+        });
 
         const avatarData = await avatarResponse.json();
-        status.innerText = "Ответ аватара: " + JSON.stringify(avatarData);
-        avatarPreview.src = avatarData.avatar_url;
-        avatarPreview.style.display = "block";
 
-        if (avatarData.error) {
+        if (avatarData.error || !avatarData.avatar_url) {
             throw new Error("Ошибка аватара: " + JSON.stringify(avatarData));
         }
 
+        const jobId = avatarData.job_id;
+
+        status.innerText = "✅ Аватар готов";
+        avatarPreview.src = avatarData.avatar_url;
+        avatarPreview.style.display = "block";
+
         setStep(2);
-        status.innerText = "⏳ Создаём talking video...";
-        
+        status.innerText = "⏳ Создаём голос...";
+
         const textForm = new FormData();
         textForm.append("text", text);
         textForm.append("voice", voice);
         textForm.append("format", format);
+        textForm.append("job_id", jobId);
 
         const voiceResponse = await fetch("/create-video/", {
             method: "POST",
@@ -983,14 +987,22 @@ async function generateVideo() {
 
         const voiceData = await voiceResponse.json();
 
-        if (voiceData.error) {
+        if (voiceData.error || !voiceData.audio_url) {
             throw new Error("Ошибка голоса: " + JSON.stringify(voiceData));
         }
 
         setStep(3);
-        status.innerText = "Запускаем говорящую анимацию...";
+        status.innerText = "⏳ Запускаем говорящую анимацию...";
 
-        const talkResponse = await fetch("/talking-video/");
+        const talkForm = new FormData();
+        talkForm.append("avatar_url", avatarData.avatar_url);
+        talkForm.append("audio_url", voiceData.audio_url);
+
+        const talkResponse = await fetch("/talking-video/", {
+            method: "POST",
+            body: talkForm
+        });
+
         const talkData = await talkResponse.json();
 
         currentTalkId = talkData.id;
@@ -998,6 +1010,8 @@ async function generateVideo() {
         if (!currentTalkId) {
             throw new Error("Не получили talk_id. Ответ сервера: " + JSON.stringify(talkData));
         }
+
+        window.currentJobId = jobId;
 
         status.innerText = "Видео создаётся. Это может занять 30–90 секунд.";
         checkStatus();
@@ -1030,6 +1044,7 @@ if (data.status === "done" && data.video_url) {
 
         const verticalForm = new FormData();
         verticalForm.append("video_url", data.video_url);
+        verticalForm.append("job_id", window.currentJobId);
 
         const verticalResponse = await fetch("/make-vertical/", {
             method: "POST",
