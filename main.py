@@ -195,6 +195,14 @@ async def create_3d_avatar(
     output_path = os.path.join(job_dir, "avatar.png")
     did_output_path = os.path.join(job_dir, "did_avatar.jpg")
 
+    optimize_image_for_did(output_path, did_output_path)
+
+    return {
+        "job_id": job_id,
+        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/avatar.png",
+        "did_avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/did_avatar.jpg"
+    }
+
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
