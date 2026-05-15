@@ -19,9 +19,33 @@ import time
 import json
 COMFY_URL = "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net"
 
+def optimize_image_for_did(input_path: str, output_path: str):
+    img = Image.open(input_path).convert("RGB")
+    img.thumbnail((768, 768))
+
+    img.save(
+        output_path,
+        format="JPEG",
+        quality=85,
+        optimize=True
+    )
+
 print("SERVER VERSION UPDATED")
 
 app = FastAPI()
+
+app = FastAPI()
+
+def optimize_image_for_did(input_path: str, output_path: str):
+    img = Image.open(input_path).convert("RGB")
+    img.thumbnail((768, 768))
+
+    img.save(
+        output_path,
+        format="JPEG",
+        quality=85,
+        optimize=True
+    )
 
 BANNED_WORDS = [
     # nsfw
@@ -169,6 +193,7 @@ async def create_3d_avatar(
 
     input_path = os.path.join(job_dir, "input.jpg")
     output_path = os.path.join(job_dir, "avatar.png")
+    did_output_path = os.path.join(job_dir, "did_avatar.jpg")
 
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -267,16 +292,18 @@ async def create_3d_avatar(
                         f"&type={image_data.get('type', 'output')}"
                     )
 
-                    img = requests.get(image_url)
+                img = requests.get(image_url)
 
-                    with open(output_path, "wb") as f:
-                        f.write(img.content)
+                with open(output_path, "wb") as f:
+                    f.write(img.content)
 
-                    return {
-                        "job_id": job_id,
-                        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/avatar.png"
-                    }
+                optimize_image_for_did(output_path, did_output_path)
 
+                return {
+                    "job_id": job_id,
+                    "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/avatar.png",
+                    "did_avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/did_avatar.jpg"
+                }
         time.sleep(1)
 
 @app.post("/create-realistic-avatar/")
@@ -408,7 +435,8 @@ async def create_realistic_avatar(
 
                     return {
                         "job_id": job_id,
-                        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/avatar.png"
+                        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/avatar.png",
+                        "did_avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/did_avatar.jpg"
                     }
 
         time.sleep(1)
@@ -1057,7 +1085,10 @@ async function generateVideo() {
         status.innerText = "⏳ Запускаем говорящую анимацию...";
 
         const talkForm = new FormData();
-        talkForm.append("avatar_url", avatarData.avatar_url);
+        talkForm.append(
+            "avatar_url",
+            avatarData.did_avatar_url || avatarData.avatar_url
+        );
         talkForm.append("audio_url", voiceData.audio_url);
 
         const talkResponse = await fetch("/did-video/", {
