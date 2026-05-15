@@ -195,14 +195,6 @@ async def create_3d_avatar(
     output_path = os.path.join(job_dir, "avatar.png")
     did_output_path = os.path.join(job_dir, "did_avatar.jpg")
 
-    optimize_image_for_did(output_path, did_output_path)
-
-    return {
-        "job_id": job_id,
-        "avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/avatar.png",
-        "did_avatar_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/did_avatar.jpg"
-    }
-
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
@@ -300,10 +292,19 @@ async def create_3d_avatar(
                         f"&type={image_data.get('type', 'output')}"
                     )
 
-                img = requests.get(image_url)
+                img = requests.get(image_url, timeout=120)
+
+                if img.status_code != 200:
+                    return {
+                        "error": "Failed to download avatar from ComfyUI",
+                        "details": img.text
+                    }
 
                 with open(output_path, "wb") as f:
                     f.write(img.content)
+
+                if not os.path.exists(output_path):
+                    return {"error": "avatar.png was not saved"}
 
                 optimize_image_for_did(output_path, did_output_path)
 
@@ -427,6 +428,7 @@ async def create_realistic_avatar(
 
             for node_output in outputs.values():
                 if "images" in node_output:
+
                     image_data = node_output["images"][0]
 
                     image_url = (
@@ -436,10 +438,20 @@ async def create_realistic_avatar(
                         f"&type={image_data.get('type', 'output')}"
                     )
 
-                    img = requests.get(image_url)
+                    img = requests.get(image_url, timeout=120)
+
+                    if img.status_code != 200:
+                        return {
+                            "error": "Failed to download avatar from ComfyUI",
+                            "details": img.text
+                        }
+
+                    did_output_path = os.path.join(job_dir, "did_avatar.jpg")
 
                     with open(output_path, "wb") as f:
                         f.write(img.content)
+
+                    optimize_image_for_did(output_path, did_output_path)
 
                     return {
                         "job_id": job_id,
