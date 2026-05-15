@@ -103,7 +103,8 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/files", StaticFiles(directory=UPLOAD_DIR), name="files")
 
 @app.post("/did-video/")
-async def did_video(
+@app.post("/did-video/")
+def did_video(
     avatar_url: str = Form(...),
     audio_url: str = Form(...)
 ):
