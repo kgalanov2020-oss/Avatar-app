@@ -70,6 +70,83 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app.mount("/files", StaticFiles(directory=UPLOAD_DIR), name="files")
 
+@app.post("/did-video/")
+async def did_video(
+    avatar_url: str = Form(...),
+    audio_url: str = Form(...)
+):
+    if not DID_API_KEY:
+        return {"error": "DID_API_KEY is not set"}
+
+    headers = {
+        "Authorization": f"Basic {DID_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "source_url": avatar_url,
+        "script": {
+            "type": "audio",
+            "audio_url": audio_url
+        },
+        "config": {
+            "fluent": True,
+            "pad_audio": 0.0
+        }
+    }
+
+    create_response = requests.post(
+        "https://api.d-id.com/talks",
+        headers=headers,
+        json=payload,
+        timeout=60
+    )
+
+    if create_response.status_code not in [200, 201]:
+        return {
+            "error": "D-ID create failed",
+            "details": create_response.text
+        }
+
+    talk_id = create_response.json().get("id")
+
+    if not talk_id:
+        return {
+            "error": "No talk_id from D-ID",
+            "details": create_response.json()
+        }
+
+    for _ in range(120):
+
+        status_response = requests.get(
+            f"https://api.d-id.com/talks/{talk_id}",
+            headers=headers,
+            timeout=60
+        )
+
+        data = status_response.json()
+
+        if data.get("status") == "done":
+
+            video_url = data.get("result_url")
+
+            return {
+                "video_url": video_url,
+                "talk_id": talk_id
+            }
+
+        if data.get("status") == "error":
+            return {
+                "error": "D-ID generation error",
+                "details": data
+            }
+
+        time.sleep(2)
+
+    return {
+        "error": "D-ID timeout",
+        "talk_id": talk_id
+    }
 
 @app.get("/")
 def root():
@@ -401,6 +478,7 @@ async def create_video(
 
 TALKING_API_URL = "https://9rwq73ke4rr9fe-8000.proxy.runpod.net"
 
+"""
 @app.post("/talking-video/")
 def talking_video(
     avatar_url: str = Form(...),
@@ -416,7 +494,6 @@ def talking_video(
     )
 
     return response.json()
-
 
 @app.get("/talking-video-status/{job_id}")
 def talking_video_status(job_id: str):
@@ -480,6 +557,7 @@ async def make_vertical(
         "job_id": job_id,
         "vertical_video_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/vertical.mp4"
     }
+"""
 
 @app.get("/app", response_class=HTMLResponse)
 def app_page():
@@ -982,21 +1060,28 @@ async function generateVideo() {
         talkForm.append("avatar_url", avatarData.avatar_url);
         talkForm.append("audio_url", voiceData.audio_url);
 
-        const talkResponse = await fetch("/talking-video/", {
+        const talkResponse = await fetch("/did-video/", {
             method: "POST",
             body: talkForm
         });
 
         const talkData = await talkResponse.json();
-        if (!talkData.job_id) {
-    throw new Error("Не получили job_id. Ответ сервера: " + JSON.stringify(talkData));
+if (!talkData.video_url) {
+    throw new Error("Ошибка D-ID: " + JSON.stringify(talkData));
 }
 
-window.currentTalkingJobId = talkData.job_id;
+finalVideoUrl = talkData.video_url;
 
-status.innerText = "⏳ Видео создаётся...";
-checkStatus(jobId, format);
-return;
+setStep(4);
+status.innerText = "✅ Готово!";
+
+video.src = finalVideoUrl;
+video.style.display = "block";
+
+document.getElementById("downloadLink").href = finalVideoUrl;
+
+actions.className = "actions show";
+btn.disabled = false;
 
 if (!talkData.video_url) {
     throw new Error("Не получили video_url. Ответ сервера: " + JSON.stringify(talkData));
