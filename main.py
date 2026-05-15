@@ -21,14 +21,13 @@ COMFY_URL = "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net"
 
 def optimize_image_for_did(input_path: str, output_path: str):
     img = Image.open(input_path).convert("RGB")
-    img.thumbnail((384, 384))
+    img.thumbnail((768, 768))
 
     img.save(
         output_path,
         format="JPEG",
-        quality=70,
-        optimize=True,
-        progressive=True
+        quality=90,
+        optimize=True
     )
 
     img.save(
