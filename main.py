@@ -914,6 +914,52 @@ video {
     This video will cost: <b id="generationCost">1</b> credit
 </div>
 
+<div id="authBox" style="margin-bottom:20px;">
+
+    <input
+        type="email"
+        id="email"
+        placeholder="Email"
+        style="margin-bottom:10px;"
+    >
+
+    <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        style="margin-bottom:10px;"
+    >
+
+    <button onclick="signUp()">
+        Sign Up
+    </button>
+
+    <button
+        class="secondary"
+        onclick="login()"
+        style="margin-top:10px;"
+    >
+        Login
+    </button>
+
+    <button
+        class="secondary"
+        onclick="logout()"
+        style="margin-top:10px;"
+    >
+        Logout
+    </button>
+
+    <div
+        id="currentUser"
+        class="hint"
+        style="margin-top:10px;"
+    >
+        Not logged in
+    </div>
+
+</div>
+
 <label>Фото</label>
 
     <input type="file" id="photo" accept="image/*">
@@ -1057,13 +1103,15 @@ video {
 <script>
 
 const supabase = window.supabase.createClient(
-    "https://yvynivfphhyqriqwpiic.supabase.co/rest/v1/",
+    "https://yvynivfphhyqriqwpiic.supabase.co",
     "sb_publishable_MSlFLoKbU-DJhWcP5d3wbw_YZQbc-jb"
 );
 
 let finalVideoUrl = null;
 
 let creditsLeft = 3;
+
+let currentUser = null;
 
 function setProgress(percent) {
     document.getElementById("progressBar").style.width = percent + "%";
@@ -1146,6 +1194,63 @@ function toggleCustomTheme() {
     } else {
         customTheme.style.display = "none";
     }
+}
+
+async function signUp() {
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    const { data, error } =
+        await supabase.auth.signUp({
+            email,
+            password
+        });
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    alert("Check your email for confirmation.");
+}
+
+async function login() {
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    const { data, error } =
+        await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    currentUser = data.user;
+
+    document.getElementById("currentUser").innerText =
+        currentUser.email;
+}
+
+async function logout() {
+
+    await supabase.auth.signOut();
+
+    currentUser = null;
+
+    document.getElementById("currentUser").innerText =
+        "Not logged in";
 }
 
 async function generateVideo() {
