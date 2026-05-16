@@ -24,9 +24,20 @@ app = FastAPI()
 def optimize_image_for_did(input_path: str, output_path: str):
     img = Image.open(input_path).convert("RGB")
 
-    img.thumbnail((1024, 1024))
+    # уменьшаем сам аватар, чтобы вокруг было больше пространства
+    img.thumbnail((720, 720))
 
-    img.save(
+    # создаём большой белый квадратный холст
+    canvas_size = 1024
+    canvas = Image.new("RGB", (canvas_size, canvas_size), (255, 255, 255))
+
+    # ставим аватар чуть ниже центра
+    x = (canvas_size - img.width) // 2
+    y = 220
+
+    canvas.paste(img, (x, y))
+
+    canvas.save(
         output_path,
         format="JPEG",
         quality=92,
