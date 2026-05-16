@@ -19,6 +19,11 @@ import time
 import json
 COMFY_URL = "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net"
 
+MAX_TEXT_LENGTH = 250
+MAX_AUDIO_DURATION = 15
+
+FREE_CREDITS = 3
+
 app = FastAPI()
 
 def optimize_image_for_did(input_path: str, output_path: str):
@@ -515,8 +520,10 @@ async def create_video(
     job_id: str = Form("")
 ):
 
-    if len(text) > 300:
-        return {"error": "Text is too long. Maximum 300 characters."}
+if len(text) > MAX_TEXT_LENGTH:
+    return {
+        "error": f"Text is too long. Maximum {MAX_TEXT_LENGTH} characters."
+    }
 
     if len(text.strip()) < 3:
         return {"error": "Text is too short."}
@@ -561,20 +568,33 @@ async def create_video(
         pitch=profile["pitch"]
     )
 
-    try:
-        await communicate.save(audio_path)
-    except Exception:
-        communicate = edge_tts.Communicate(
-            text=text,
-            voice="ru-RU-SvetlanaNeural"
-        )
-        await communicate.save(audio_path)
+try:
+    await communicate.save(audio_path)
+
+except Exception:
+    communicate = edge_tts.Communicate(
+        text=text,
+        voice="ru-RU-SvetlanaNeural"
+    )
+
+    await communicate.save(audio_path)
+
+audio_clip = AudioFileClip(audio_path)
+
+if audio_clip.duration > MAX_AUDIO_DURATION:
+    audio_clip.close()
 
     return {
-        "job_id": job_id,
-        "audio_url": audio_url,
-        "format": format
+        "error": f"Audio is too long. Maximum {MAX_AUDIO_DURATION} seconds."
     }
+
+audio_clip.close()
+
+return {
+    "job_id": job_id,
+    "audio_url": audio_url,
+    "format": format
+}
 
 TALKING_API_URL = "https://9rwq73ke4rr9fe-8000.proxy.runpod.net"
 
@@ -888,11 +908,11 @@ video {
     <input type="file" id="photo" accept="image/*">
 
     <label>Текст поздравления</label>
-    <textarea id="text" maxlength="300">С днём рождения! Желаю счастья, здоровья и исполнения всех желаний!</textarea>
+    <textarea id="text" maxlength="250">С днём рождения! Желаю счастья, здоровья и исполнения всех желаний!</textarea>
 <div class="hint">
-    Максимум 300 символов. Лучше 1–2 коротких предложения.
+    Максимум 250 символов. Лучше 1–2 коротких предложения.
 </div>
-<div id="charCount">0 / 300</div>
+<div id="charCount">0 / 250</div>
     <label>Стиль</label>
 
     <select id="styleMode">
@@ -1092,8 +1112,8 @@ async function generateVideo() {
     const btn = document.getElementById("generateBtn");
     const actions = document.getElementById("actions");
 
-if (text.length > 300) {
-    alert("Текст слишком длинный. Максимум 300 символов.");
+if (text.length > 250) {
+    alert("Текст слишком длинный. Максимум 250 символов.");
     return;
 }
 
@@ -1299,14 +1319,14 @@ const charCount = document.getElementById("charCount");
 if (textArea && charCount) {
 
     charCount.innerText =
-        `${textArea.value.length} / 300`;
+        `${textArea.value.length} / 250`;
 
     textArea.addEventListener("input", () => {
 
         charCount.innerText =
-            `${textArea.value.length} / 300`;
+            `${textArea.value.length} / 250`;
 
-        if (textArea.value.length > 260) {
+        if (textArea.value.length > 220) {
             charCount.style.color = "orange";
         } else {
             charCount.style.color = "#999";
