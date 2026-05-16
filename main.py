@@ -930,23 +930,17 @@ video {
         style="margin-bottom:10px;"
     >
 
-    <button onclick="signUp()">
+    <button id="signUpBtn">
         Sign Up
     </button>
 
-    <button
-        class="secondary"
-        onclick="login()"
-        style="margin-top:10px;"
-    >
-        Login
+    <button id="loginBtn" class="secondary" style="margin-top:10px;">
+    
+    Login
     </button>
 
-    <button
-        class="secondary"
-        onclick="logout()"
-        style="margin-top:10px;"
-    >
+    <button id="logoutBtn" class="secondary" style="margin-top:10px;">
+    
         Logout
     </button>
 
@@ -1416,10 +1410,17 @@ async function generateVideo() {
     }
 }
 
-window.signUp = signUp;
-window.login = login;
-window.logout = logout;
-window.generateVideo = generateVideo;
+document
+    .getElementById("signUpBtn")
+    .addEventListener("click", signUp);
+
+document
+    .getElementById("loginBtn")
+    .addEventListener("click", login);
+
+document
+    .getElementById("logoutBtn")
+    .addEventListener("click", logout);
 
 document
     .getElementById("styleMode")
