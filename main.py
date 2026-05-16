@@ -1416,6 +1416,11 @@ async function generateVideo() {
     }
 }
 
+window.signUp = signUp;
+window.login = login;
+window.logout = logout;
+window.generateVideo = generateVideo;
+
 document
     .getElementById("styleMode")
     .addEventListener("change", updateGenerationCost);
