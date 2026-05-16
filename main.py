@@ -520,10 +520,10 @@ async def create_video(
     job_id: str = Form("")
 ):
 
-if len(text) > MAX_TEXT_LENGTH:
-    return {
-        "error": f"Text is too long. Maximum {MAX_TEXT_LENGTH} characters."
-    }
+    if len(text) > MAX_TEXT_LENGTH:
+        return {
+            "error": f"Text is too long. Maximum {MAX_TEXT_LENGTH} characters."
+        }
 
     if len(text.strip()) < 3:
         return {"error": "Text is too short."}
@@ -568,34 +568,33 @@ if len(text) > MAX_TEXT_LENGTH:
         pitch=profile["pitch"]
     )
 
-try:
-    await communicate.save(audio_path)
+    try:
+        await communicate.save(audio_path)
 
-except Exception:
-    communicate = edge_tts.Communicate(
-        text=text,
-        voice="ru-RU-SvetlanaNeural"
-    )
+    except Exception:
+        communicate = edge_tts.Communicate(
+            text=text,
+            voice="ru-RU-SvetlanaNeural"
+        )
 
-    await communicate.save(audio_path)
+        await communicate.save(audio_path)
 
-audio_clip = AudioFileClip(audio_path)
+    audio_clip = AudioFileClip(audio_path)
 
-if audio_clip.duration > MAX_AUDIO_DURATION:
+    if audio_clip.duration > MAX_AUDIO_DURATION:
+        audio_clip.close()
+
+        return {
+            "error": f"Audio is too long. Maximum {MAX_AUDIO_DURATION} seconds."
+        }
+
     audio_clip.close()
 
     return {
-        "error": f"Audio is too long. Maximum {MAX_AUDIO_DURATION} seconds."
+        "job_id": job_id,
+        "audio_url": audio_url,
+        "format": format
     }
-
-audio_clip.close()
-
-return {
-    "job_id": job_id,
-    "audio_url": audio_url,
-    "format": format
-}
-
 TALKING_API_URL = "https://9rwq73ke4rr9fe-8000.proxy.runpod.net"
 
 """
