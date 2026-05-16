@@ -180,6 +180,65 @@ def did_video(
         "talk_id": talk_id
     }
 
+@app.post("/make-vertical/")
+async def make_vertical(
+    video_url: str = Form(...),
+    job_id: str = Form("")
+):
+    if not job_id:
+        job_id = str(uuid.uuid4())
+
+    job_dir = os.path.join(UPLOAD_DIR, job_id)
+    os.makedirs(job_dir, exist_ok=True)
+
+    input_path = os.path.join(job_dir, "input_video.mp4")
+    output_path = os.path.join(job_dir, "vertical.mp4")
+
+    video_response = requests.get(video_url, timeout=180)
+
+    if video_response.status_code != 200:
+        return {
+            "error": "Failed to download D-ID video",
+            "details": video_response.text
+        }
+
+    with open(input_path, "wb") as f:
+        f.write(video_response.content)
+
+    clip = VideoFileClip(input_path)
+
+    background = ColorClip(
+        size=(540, 960),
+        color=(15, 15, 15)
+    ).with_duration(clip.duration)
+
+    foreground = (
+        clip.resized(width=540)
+        .with_position(("center", "center"))
+    )
+
+    final = CompositeVideoClip(
+        [background, foreground],
+        size=(540, 960)
+    )
+
+    final.write_videofile(
+        output_path,
+        codec="libx264",
+        audio_codec="aac",
+        preset="ultrafast",
+        fps=24,
+        threads=2
+    )
+
+    clip.close()
+    final.close()
+
+    return {
+        "job_id": job_id,
+        "vertical_video_url": f"https://avatar-app-vcer.onrender.com/files/{job_id}/vertical.mp4"
+    }
+
 @app.get("/")
 def root():
     return {"status": "Server is running 🚀"}
