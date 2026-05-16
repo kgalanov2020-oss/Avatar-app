@@ -102,7 +102,6 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/files", StaticFiles(directory=UPLOAD_DIR), name="files")
 
 @app.post("/did-video/")
-@app.post("/did-video/")
 def did_video(
     avatar_url: str = Form(...),
     audio_url: str = Form(...)
@@ -212,8 +211,10 @@ async def make_vertical(
         color=(15, 15, 15)
     ).with_duration(clip.duration)
 
+    scale = min(540 / clip.w, 960 / clip.h)
+
     foreground = (
-        clip.resized(width=540)
+        clip.resized(scale)
         .with_position(("center", "center"))
     )
 
