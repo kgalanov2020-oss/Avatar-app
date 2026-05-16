@@ -19,38 +19,17 @@ import time
 import json
 COMFY_URL = "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net"
 
-def optimize_image_for_did(input_path: str, output_path: str):
-    img = Image.open(input_path).convert("RGB")
-    img.thumbnail((768, 768))
-
-    img.save(
-        output_path,
-        format="JPEG",
-        quality=90,
-        optimize=True
-    )
-
-    img.save(
-        output_path,
-        format="JPEG",
-        quality=85,
-        optimize=True
-    )
-
-print("SERVER VERSION UPDATED")
-
-app = FastAPI()
-
 app = FastAPI()
 
 def optimize_image_for_did(input_path: str, output_path: str):
     img = Image.open(input_path).convert("RGB")
-    img.thumbnail((768, 768))
+
+    img.thumbnail((1024, 1024))
 
     img.save(
         output_path,
         format="JPEG",
-        quality=85,
+        quality=92,
         optimize=True
     )
 
