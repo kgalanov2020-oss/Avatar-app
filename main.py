@@ -1057,8 +1057,8 @@ video {
 <script>
 
 const supabase = window.supabase.createClient(
-    "SUPABASE_URL",
-    "SUPABASE_ANON_KEY"
+    "https://yvynivfphhyqriqwpiic.supabase.co/rest/v1/",
+    "sb_publishable_MSlFLoKbU-DJhWcP5d3wbw_YZQbc-jb"
 );
 
 let finalVideoUrl = null;
