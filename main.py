@@ -1052,7 +1052,15 @@ video {
     <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
+
+const supabase = window.supabase.createClient(
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY"
+);
+
 let finalVideoUrl = null;
 
 let creditsLeft = 3;
