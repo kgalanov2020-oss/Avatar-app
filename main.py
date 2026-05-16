@@ -892,6 +892,7 @@ video {
 <div class="hint">
     Максимум 300 символов. Лучше 1–2 коротких предложения.
 </div>
+<div id="charCount">0 / 300</div>
     <label>Стиль</label>
 
     <select id="styleMode">
@@ -1290,6 +1291,27 @@ function resetApp() {
     document.getElementById("generateBtn").disabled = false;
 
     setStep(0);
+}
+
+const textArea = document.getElementById("text");
+const charCount = document.getElementById("charCount");
+
+if (textArea && charCount) {
+
+    charCount.innerText =
+        `${textArea.value.length} / 300`;
+
+    textArea.addEventListener("input", () => {
+
+        charCount.innerText =
+            `${textArea.value.length} / 300`;
+
+        if (textArea.value.length > 260) {
+            charCount.style.color = "orange";
+        } else {
+            charCount.style.color = "#999";
+        }
+    });
 }
 
 </script>
