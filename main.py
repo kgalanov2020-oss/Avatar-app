@@ -1096,7 +1096,7 @@ video {
 
 <script>
 
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
     "https://yvynivfphhyqriqwpiic.supabase.co",
     "sb_publishable_MSlFLoKbU-DJhWcP5d3wbw_YZQbc-jb"
 );
@@ -1199,7 +1199,7 @@ async function signUp() {
         document.getElementById("password").value;
 
     const { data, error } =
-        await supabase.auth.signUp({
+        await supabaseClient.auth.signUp({
             email,
             password
         });
@@ -1223,7 +1223,7 @@ async function login() {
         document.getElementById("password").value;
 
     const { data, error } =
-        await supabase.auth.signInWithPassword({
+        await supabaseClient.auth.signInWithPassword({
             email,
             password
         });
@@ -1241,7 +1241,7 @@ async function login() {
 
 async function logout() {
 
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
 
     currentUser = null;
 
