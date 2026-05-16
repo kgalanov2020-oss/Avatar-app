@@ -515,6 +515,12 @@ async def create_video(
     job_id: str = Form("")
 ):
 
+    if len(text) > 300:
+        return {"error": "Text is too long. Maximum 300 characters."}
+
+    if len(text.strip()) < 3:
+        return {"error": "Text is too short."}
+    
     if not job_id:
         job_id = str(uuid.uuid4())
 
@@ -882,9 +888,10 @@ video {
     <input type="file" id="photo" accept="image/*">
 
     <label>Текст поздравления</label>
-    <textarea id="text">С днём рождения! Желаю счастья, здоровья и исполнения всех желаний!</textarea>
-    <div class="hint">Лучше писать 1–2 коротких предложения.</div>
-
+    <textarea id="text" maxlength="300">С днём рождения! Желаю счастья, здоровья и исполнения всех желаний!</textarea>
+<div class="hint">
+    Максимум 300 символов. Лучше 1–2 коротких предложения.
+</div>
     <label>Стиль</label>
 
     <select id="styleMode">
@@ -1083,6 +1090,16 @@ async function generateVideo() {
     const avatarPreview = document.getElementById("avatarPreview");
     const btn = document.getElementById("generateBtn");
     const actions = document.getElementById("actions");
+
+if (text.length > 300) {
+    alert("Текст слишком длинный. Максимум 300 символов.");
+    return;
+}
+
+if (text.trim().length < 3) {
+    alert("Введите текст поздравления.");
+    return;
+}
 
     if (!fileInput.files.length) {
         alert("Выбери фото");
