@@ -910,6 +910,10 @@ video {
     Credits: <b id="creditsCount">3</b>
 </div>
 
+<div class="hint" id="generationCostBox">
+    This video will cost: <b id="generationCost">1</b> credit
+</div>
+
 <label>Фото</label>
 
     <input type="file" id="photo" accept="image/*">
@@ -1110,6 +1114,21 @@ function calculateGenerationCost(styleMode, format) {
     return cost;
 }
 
+function updateGenerationCost() {
+
+    const styleMode =
+        document.getElementById("styleMode").value;
+
+    const format =
+        document.getElementById("format").value;
+
+    const cost =
+        calculateGenerationCost(styleMode, format);
+
+    document.getElementById("generationCost").innerText =
+        cost;
+}
+
 function toggleCustomTheme() {
     const theme = document.getElementById("theme").value;
     const customTheme = document.getElementById("customTheme");
@@ -1281,6 +1300,18 @@ async function generateVideo() {
         btn.disabled = false;
     }
 }
+
+document
+    .getElementById("styleMode")
+    .addEventListener("change", updateGenerationCost);
+
+document
+    .getElementById("format")
+    .addEventListener("change", updateGenerationCost);
+
+toggleCustomTheme();
+
+updateGenerationCost();
 
 </script>
 </body>
