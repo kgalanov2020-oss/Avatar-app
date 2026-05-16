@@ -1210,12 +1210,14 @@ async function signUp() {
             password
         });
 
-    if (error) {
-        alert(error.message);
-        return;
-    }
+if (error) {
+    console.error("Sign up error:", error);
+    alert("Sign up error: " + error.message);
+    return;
+}
 
-    alert("Check your email for confirmation.");
+console.log("Sign up data:", data);
+alert("Check your email for confirmation.");
 }
 
 async function login() {
