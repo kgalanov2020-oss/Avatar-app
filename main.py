@@ -902,9 +902,17 @@ video {
     <div class="badge">AI Greeting Video</div>
 
     <h1>AI Avatar Video</h1>
-    <p class="subtitle">Загрузи фото, напиши поздравление — получи говорящее видео с AI-аватаром.</p>
 
-    <label>Фото</label>
+<p class="subtitle">
+    Загрузи фото, напиши поздравление — получи говорящее видео с AI-аватаром.
+</p>
+
+<div id="creditsBox" class="hint" style="margin-bottom:16px;">
+    Credits: <b id="creditsCount">3</b>
+</div>
+
+<label>Фото</label>
+
     <input type="file" id="photo" accept="image/*">
 
     <label>Текст поздравления</label>
@@ -1044,10 +1052,11 @@ video {
 <script>
 let finalVideoUrl = null;
 
+let creditsLeft = 3;
+
 function setProgress(percent) {
     document.getElementById("progressBar").style.width = percent + "%";
 }
-
 function setStep(step) {
     const avatar = document.getElementById("stepAvatar");
     const voice = document.getElementById("stepVoice");
@@ -1087,6 +1096,21 @@ function setStep(step) {
     }
 }
 
+function calculateGenerationCost(styleMode, format) {
+
+    let cost = 1;
+
+    if (styleMode === "realistic") {
+        cost += 1;
+    }
+
+    if (format === "vertical") {
+        cost += 1;
+    }
+
+    return cost;
+}
+
 function toggleCustomTheme() {
     const theme = document.getElementById("theme").value;
     const customTheme = document.getElementById("customTheme");
@@ -1112,18 +1136,26 @@ async function generateVideo() {
     const btn = document.getElementById("generateBtn");
     const actions = document.getElementById("actions");
 
-if (text.length > 250) {
-    alert("Текст слишком длинный. Максимум 250 символов.");
-    return;
-}
+    const generationCost =
+        calculateGenerationCost(styleMode, format);
 
-if (text.trim().length < 3) {
-    alert("Введите текст поздравления.");
-    return;
-}
+    if (text.length > 250) {
+        alert("Текст слишком длинный. Максимум 250 символов.");
+        return;
+    }
+
+    if (text.trim().length < 3) {
+        alert("Введите текст поздравления.");
+        return;
+    }
 
     if (!fileInput.files.length) {
         alert("Выбери фото");
+        return;
+    }
+
+    if (creditsLeft < generationCost) {
+        alert("Недостаточно credits");
         return;
     }
 
@@ -1201,70 +1233,16 @@ if (text.trim().length < 3) {
         });
 
         const talkData = await talkResponse.json();
-if (!talkData.video_url) {
-    throw new Error("Ошибка D-ID: " + JSON.stringify(talkData));
-}
 
-finalVideoUrl = talkData.video_url;
+        if (!talkData.video_url) {
+            throw new Error("Ошибка D-ID: " + JSON.stringify(talkData));
+        }
 
-setStep(4);
-status.innerText = "✅ Готово!";
-
-video.src = finalVideoUrl;
-video.style.display = "block";
-
-document.getElementById("downloadLink").href = finalVideoUrl;
-
-actions.className = "actions show";
-btn.disabled = false;
-
-if (!talkData.video_url) {
-    throw new Error("Не получили video_url. Ответ сервера: " + JSON.stringify(talkData));
-}
-
-finalVideoUrl = talkData.video_url;
-
-if (format === "vertical") {
-    const verticalForm = new FormData();
-    verticalForm.append("video_url", finalVideoUrl);
-    verticalForm.append("job_id", jobId);
-
-    const verticalResponse = await fetch("/make-vertical/", {
-        method: "POST",
-        body: verticalForm
-    });
-
-    const verticalData = await verticalResponse.json();
-    finalVideoUrl = verticalData.vertical_video_url;
-}
-
-setStep(4);
-status.innerText = "✅ Готово!";
-video.src = finalVideoUrl;
-video.style.display = "block";
-document.getElementById("downloadLink").href = finalVideoUrl;
-actions.className = "actions show";
-btn.disabled = false;
-
-    } catch (error) {
-        status.innerText = error.message;
-        btn.disabled = false;
-    }
-}
-
-async function checkStatus(jobId, format) {
-    const status = document.getElementById("status");
-    const video = document.getElementById("video");
-    const btn = document.getElementById("generateBtn");
-    const actions = document.getElementById("actions");
-
-    const response = await fetch("/talking-video-status/" + window.currentTalkingJobId);
-    const data = await response.json();
-
-    if (data.status === "done" && data.video_url) {
-        let finalVideoUrl = data.video_url;
+        finalVideoUrl = talkData.video_url;
 
         if (format === "vertical") {
+            status.innerText = "⏳ Создаём vertical video...";
+
             const verticalForm = new FormData();
             verticalForm.append("video_url", finalVideoUrl);
             verticalForm.append("job_id", jobId);
@@ -1275,63 +1253,34 @@ async function checkStatus(jobId, format) {
             });
 
             const verticalData = await verticalResponse.json();
+
+            if (verticalData.error || !verticalData.vertical_video_url) {
+                throw new Error("Ошибка vertical video: " + JSON.stringify(verticalData));
+            }
+
             finalVideoUrl = verticalData.vertical_video_url;
         }
 
         setStep(4);
         status.innerText = "✅ Готово!";
+
+        creditsLeft -= generationCost;
+
+        document.getElementById("creditsCount").innerText =
+            creditsLeft;
+
         video.src = finalVideoUrl;
         video.style.display = "block";
+
         document.getElementById("downloadLink").href = finalVideoUrl;
+
         actions.className = "actions show";
         btn.disabled = false;
-        return;
+
+    } catch (error) {
+        status.innerText = error.message;
+        btn.disabled = false;
     }
-
-    if (data.status === "error") {
-        throw new Error("Ошибка видео: " + data.error);
-    }
-
-    status.innerText = "⏳ Видео создаётся... Статус: " + data.status;
-    setTimeout(() => checkStatus(jobId, format), 5000);
-}
-
-toggleCustomTheme();
-
-function resetApp() {
-
-    finalVideoUrl = null;
-
-    document.getElementById("photo").value = "";
-    document.getElementById("video").style.display = "none";
-    document.getElementById("video").src = "";
-    document.getElementById("avatarPreview").style.display = "none";
-    document.getElementById("status").innerText = "";
-    document.getElementById("actions").className = "actions";
-    document.getElementById("generateBtn").disabled = false;
-
-    setStep(0);
-}
-
-const textArea = document.getElementById("text");
-const charCount = document.getElementById("charCount");
-
-if (textArea && charCount) {
-
-    charCount.innerText =
-        `${textArea.value.length} / 250`;
-
-    textArea.addEventListener("input", () => {
-
-        charCount.innerText =
-            `${textArea.value.length} / 250`;
-
-        if (textArea.value.length > 220) {
-            charCount.style.color = "orange";
-        } else {
-            charCount.style.color = "#999";
-        }
-    });
 }
 
 </script>
