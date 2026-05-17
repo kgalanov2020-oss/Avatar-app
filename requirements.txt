@@ -4,7 +4,9 @@ python-multipart
 requests
 pillow
 moviepy
-gtts
 edge-tts
 replicate
 deep-translator
+imageio
+imageio-ffmpeg
+numpy
