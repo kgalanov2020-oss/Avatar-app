@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import FileResponse, Response
 
 from moviepy import AudioFileClip, VideoFileClip, CompositeVideoClip, ColorClip
 from PIL import Image, ImageOps
@@ -50,6 +51,15 @@ def get_file(job_id: str, filename: str):
         return {"error": "file not found", "path": file_path}
 
     return FileResponse(file_path)
+
+@app.head("/files/{job_id}/{filename}")
+def head_file(job_id: str, filename: str):
+    file_path = os.path.join(UPLOAD_DIR, job_id, filename)
+
+    if not os.path.exists(file_path):
+        return Response(status_code=404)
+
+    return Response(status_code=200)
 
 # =============================
 # SAFETY
