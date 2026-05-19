@@ -1200,11 +1200,12 @@ async function generateVideo() {
     const generationCost =
         calculateGenerationCost(styleMode, format);
 
+    currentUser = { email: "test@test.com" };
+
     if (text.length > 250) {
         alert("Текст слишком длинный. Максимум 250 символов.");
         return;
     }
-
     if (text.trim().length < 3) {
         alert("Введите текст поздравления.");
         return;
