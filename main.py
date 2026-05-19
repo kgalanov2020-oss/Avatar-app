@@ -997,25 +997,126 @@ video {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-
 const supabaseClient = window.supabase.createClient(
     "https://yvynivfphhyqriqwpiic.supabase.co",
     "sb_publishable_MSlFLoKbU-DJhWcP5d3wbw_YZQbc-jb"
 );
 
 let finalVideoUrl = null;
-
 let creditsLeft = 3;
-
 let currentUser = null;
 
-function setProgress(percent) {
-    document.getElementById("progressBar").style.width = percent + "%";
+function $(id) {
+    return document.getElementById(id);
 }
+
+function setStatus(message) {
+    $("status").innerText = message;
+}
+
+function updateAuthUI() {
+    if (currentUser) {
+        $("loggedOutBox").style.display = "none";
+        $("loggedInBox").style.display = "block";
+        $("currentUser").innerText = "Logged in as: " + currentUser.email;
+    } else {
+        $("loggedOutBox").style.display = "block";
+        $("loggedInBox").style.display = "none";
+        $("currentUser").innerText = "Not logged in";
+    }
+}
+
+async function signUp() {
+    const email = $("email").value.trim();
+    const password = $("password").value.trim();
+
+    if (!email || !password) {
+        alert("Введите email и password");
+        return;
+    }
+
+    if (password.length < 6) {
+        alert("Password должен быть минимум 6 символов");
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password
+    });
+
+    if (error) {
+        alert("Sign up error: " + error.message);
+        console.error(error);
+        return;
+    }
+
+    if (data.session) {
+        currentUser = data.user;
+        updateAuthUI();
+        alert("Account created and logged in");
+    } else {
+        alert("Account created. Если включено подтверждение email — проверь почту. Потом нажми Login.");
+    }
+}
+
+async function login() {
+    const email = $("email").value.trim();
+    const password = $("password").value.trim();
+
+    if (!email || !password) {
+        alert("Введите email и password");
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+        alert("Login error: " + error.message);
+        console.error(error);
+        return;
+    }
+
+    currentUser = data.user;
+    updateAuthUI();
+    alert("Logged in");
+}
+
+async function logout() {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    updateAuthUI();
+}
+
+async function loadUser() {
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error("Session error:", error);
+        currentUser = null;
+    } else {
+        currentUser = data.session?.user || null;
+    }
+
+    updateAuthUI();
+}
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    currentUser = session?.user || null;
+    updateAuthUI();
+});
+
+function setProgress(percent) {
+    $("progressBar").style.width = percent + "%";
+}
+
 function setStep(step) {
-    const avatar = document.getElementById("stepAvatar");
-    const voice = document.getElementById("stepVoice");
-    const video = document.getElementById("stepVideo");
+    const avatar = $("stepAvatar");
+    const voice = $("stepVoice");
+    const video = $("stepVideo");
 
     avatar.className = "step";
     voice.className = "step";
@@ -1052,155 +1153,61 @@ function setStep(step) {
 }
 
 function calculateGenerationCost(styleMode, format) {
-
     let cost = 1;
 
-    if (styleMode === "realistic") {
-        cost += 1;
-    }
-
-    if (format === "vertical") {
-        cost += 1;
-    }
+    if (styleMode === "realistic") cost += 1;
+    if (format === "vertical") cost += 1;
 
     return cost;
 }
 
 function updateGenerationCost() {
+    const cost = calculateGenerationCost(
+        $("styleMode").value,
+        $("format").value
+    );
 
-    const styleMode =
-        document.getElementById("styleMode").value;
-
-    const format =
-        document.getElementById("format").value;
-
-    const cost =
-        calculateGenerationCost(styleMode, format);
-
-    document.getElementById("generationCost").innerText =
-        cost;
+    $("generationCost").innerText = cost;
 }
 
 function toggleCustomTheme() {
-    const theme = document.getElementById("theme").value;
-    const customTheme = document.getElementById("customTheme");
-
-    if (theme === "custom") {
-        customTheme.style.display = "block";
+    if ($("theme").value === "custom") {
+        $("customTheme").style.display = "block";
     } else {
-        customTheme.style.display = "none";
+        $("customTheme").style.display = "none";
     }
 }
 
-function updateAuthUI() {
-    const loggedOutBox = document.getElementById("loggedOutBox");
-    const loggedInBox = document.getElementById("loggedInBox");
-    const currentUserBox = document.getElementById("currentUser");
-
-    if (currentUser) {
-        loggedOutBox.style.display = "none";
-        loggedInBox.style.display = "block";
-        currentUserBox.innerText = "Logged in as: " + currentUser.email;
-    } else {
-        loggedOutBox.style.display = "block";
-        loggedInBox.style.display = "none";
-        currentUserBox.innerText = "Not logged in";
-    }
+function updateCharCount() {
+    $("charCount").innerText = $("text").value.length + " / 250";
 }
 
-async function signUp() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password
-    });
-
-    if (error) {
-        alert("Sign up error: " + error.message);
-        return;
-    }
-
-    alert("Account created. Now click Login.");
-}
-
-async function login() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-    });
-
-    if (error) {
-        alert("Login error: " + error.message);
-        return;
-    }
-
-    currentUser = data.user;
-    updateAuthUI();
-}
-
-async function logout() {
-    await supabaseClient.auth.signOut();
-
-    currentUser = null;
-    updateAuthUI();
-}
-
-async function loadUser() {
-    const {
-        data: { session }
-    } = await supabaseClient.auth.getSession();
-
-    currentUser = session?.user || null;
-
-    updateAuthUI();
-}
-
-async function logout() {
-
-    await supabaseClient.auth.signOut();
-
-    currentUser = null;
-    updateAuthUI();
-}
-
-async function loadUser() {
-    const {
-        data: { session }
-    } = await supabaseClient.auth.getSession();
-
-    if (session?.user) {
-        currentUser = session.user;
-    } else {
-        currentUser = null;
-    }
-
-    updateAuthUI();
+function resetApp() {
+    finalVideoUrl = null;
+    $("video").style.display = "none";
+    $("avatarPreview").style.display = "none";
+    $("actions").className = "actions";
+    $("status").innerText = "";
+    setStep(0);
 }
 
 async function generateVideo() {
-    const customTheme = document.getElementById("customTheme").value;
-    const fileInput = document.getElementById("photo");
-    const text = document.getElementById("text").value;
-    const voice = document.getElementById("voice").value;
-    const format = document.getElementById("format").value;
-    const styleMode = document.getElementById("styleMode").value;
-    const theme = document.getElementById("theme").value;
-    const status = document.getElementById("status");
-    const video = document.getElementById("video");
-    const avatarPreview = document.getElementById("avatarPreview");
-    const btn = document.getElementById("generateBtn");
-    const actions = document.getElementById("actions");
+    const customTheme = $("customTheme").value;
+    const fileInput = $("photo");
+    const text = $("text").value;
+    const voice = $("voice").value;
+    const format = $("format").value;
+    const styleMode = $("styleMode").value;
+    const theme = $("theme").value;
+    const video = $("video");
+    const avatarPreview = $("avatarPreview");
+    const btn = $("generateBtn");
+    const actions = $("actions");
 
-    const generationCost =
-        calculateGenerationCost(styleMode, format);
+    const generationCost = calculateGenerationCost(styleMode, format);
 
     if (!currentUser) {
-        alert("Please login first");
+        alert("Сначала войди в аккаунт");
         return;
     }
 
@@ -1228,11 +1235,11 @@ async function generateVideo() {
     actions.className = "actions";
     video.style.display = "none";
     avatarPreview.style.display = "none";
-    status.innerText = "";
+    setStatus("");
 
     try {
         setStep(1);
-        status.innerText = "⏳ Создаём AI-аватар...";
+        setStatus("⏳ Создаём AI-аватар...");
 
         const avatarForm = new FormData();
         avatarForm.append("file", fileInput.files[0]);
@@ -1258,12 +1265,12 @@ async function generateVideo() {
 
         const jobId = avatarData.job_id;
 
-        status.innerText = "✅ Аватар готов";
+        setStatus("✅ Аватар готов");
         avatarPreview.src = avatarData.avatar_url;
         avatarPreview.style.display = "block";
 
         setStep(2);
-        status.innerText = "⏳ Создаём голос...";
+        setStatus("⏳ Создаём голос...");
 
         const textForm = new FormData();
         textForm.append("text", text);
@@ -1283,13 +1290,10 @@ async function generateVideo() {
         }
 
         setStep(3);
-        status.innerText = "⏳ Запускаем говорящую анимацию...";
+        setStatus("⏳ Запускаем говорящую анимацию...");
 
         const talkForm = new FormData();
-        talkForm.append(
-            "avatar_url",
-            avatarData.did_avatar_url || avatarData.avatar_url
-        );
+        talkForm.append("avatar_url", avatarData.did_avatar_url || avatarData.avatar_url);
         talkForm.append("audio_url", voiceData.audio_url);
 
         const talkResponse = await fetch("/did-video/", {
@@ -1299,14 +1303,14 @@ async function generateVideo() {
 
         const talkData = await talkResponse.json();
 
-        if (!talkData.video_url) {
+        if (talkData.error || !talkData.video_url) {
             throw new Error("Ошибка D-ID: " + JSON.stringify(talkData));
         }
 
         finalVideoUrl = talkData.video_url;
 
         if (format === "vertical") {
-            status.innerText = "⏳ Создаём vertical video...";
+            setStatus("⏳ Создаём vertical video...");
 
             const verticalForm = new FormData();
             verticalForm.append("video_url", finalVideoUrl);
@@ -1327,53 +1331,39 @@ async function generateVideo() {
         }
 
         setStep(4);
-        status.innerText = "✅ Готово!";
+        setStatus("✅ Готово!");
 
         creditsLeft -= generationCost;
-
-        document.getElementById("creditsCount").innerText =
-            creditsLeft;
+        $("creditsCount").innerText = creditsLeft;
 
         video.src = finalVideoUrl;
         video.style.display = "block";
 
-        document.getElementById("downloadLink").href = finalVideoUrl;
-
+        $("downloadLink").href = finalVideoUrl;
         actions.className = "actions show";
-        btn.disabled = false;
 
     } catch (error) {
-        status.innerText = error.message;
+        console.error(error);
+        setStatus(error.message);
+    } finally {
         btn.disabled = false;
     }
 }
 
-document
-    .getElementById("signUpBtn")
-    .addEventListener("click", signUp);
+document.addEventListener("DOMContentLoaded", async () => {
+    $("signUpBtn").addEventListener("click", signUp);
+    $("loginBtn").addEventListener("click", login);
+    $("logoutBtn").addEventListener("click", logout);
+    $("styleMode").addEventListener("change", updateGenerationCost);
+    $("format").addEventListener("change", updateGenerationCost);
+    $("theme").addEventListener("change", toggleCustomTheme);
+    $("text").addEventListener("input", updateCharCount);
 
-document
-    .getElementById("loginBtn")
-    .addEventListener("click", login);
-
-document
-    .getElementById("logoutBtn")
-    .addEventListener("click", logout);
-
-document
-    .getElementById("styleMode")
-    .addEventListener("change", updateGenerationCost);
-
-document
-    .getElementById("format")
-    .addEventListener("change", updateGenerationCost);
-
-toggleCustomTheme();
-
-updateGenerationCost();
-
-loadUser();
-
+    toggleCustomTheme();
+    updateGenerationCost();
+    updateCharCount();
+    await loadUser();
+});
 </script>
 </body>
 </html>
