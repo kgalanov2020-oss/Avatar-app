@@ -541,12 +541,13 @@ def did_video(
         "talk_id": talk_id
     }
 
-
 @app.post("/make-vertical/")
 async def make_vertical(
     video_url: str = Form(...),
     job_id: str = Form("")
 ):
+    import subprocess
+
     if not job_id:
         job_id = str(uuid.uuid4())
 
@@ -560,50 +561,45 @@ async def make_vertical(
 
     if response.status_code != 200:
         return {
-            "error": "Failed to download D-ID video",
-            "details": response.text
+            "error": "Failed to download video",
+            "details": response.text[:500]
         }
 
     with open(input_path, "wb") as file:
         file.write(response.content)
 
-    clip = VideoFileClip(input_path)
+    command = [
+        "ffmpeg",
+        "-y",
+        "-i", input_path,
+        "-vf",
+        "scale=1080:-2:force_original_aspect_ratio=decrease,"
+        "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=black",
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-crf", "28",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        output_path
+    ]
 
-    background = ColorClip(
-        size=(1080, 1920),
-        color=(15, 15, 15)
-    ).with_duration(clip.duration)
-
-    scale = min(1080 / clip.w, 1920 / clip.h)
-
-    foreground = (
-        clip.resized(scale)
-        .with_position(("center", "center"))
+    result = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
     )
 
-    final = CompositeVideoClip(
-        [background, foreground],
-        size=(1080, 1920)
-    )
-
-    final.write_videofile(
-        output_path,
-        codec="libx264",
-        audio_codec="aac",
-        preset="medium",
-        fps=30,
-        threads=2,
-        bitrate="6000k"
-    )
-
-    clip.close()
-    final.close()
+    if result.returncode != 0:
+        return {
+            "error": "ffmpeg vertical failed",
+            "details": result.stderr[-1000:]
+        }
 
     return {
         "job_id": job_id,
         "vertical_video_url": public_file_url(job_id, "vertical.mp4")
     }
-
 
 # =============================
 # FRONTEND PLACEHOLDER
