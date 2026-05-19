@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, FileResponse
 
 from moviepy import AudioFileClip, VideoFileClip, CompositeVideoClip, ColorClip
 from PIL import Image, ImageOps
@@ -41,8 +42,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/files", StaticFiles(directory=UPLOAD_DIR), name="files")
+@app.get("/files/{job_id}/{filename}")
+def get_file(job_id: str, filename: str):
+    file_path = os.path.join(UPLOAD_DIR, job_id, filename)
 
+    if not os.path.exists(file_path):
+        return {"error": "file not found", "path": file_path}
+
+    return FileResponse(file_path)
 
 # =============================
 # SAFETY
