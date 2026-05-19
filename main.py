@@ -178,61 +178,253 @@ def download_first_comfy_image(history: dict, output_path: str):
 # =============================
 
 CARTOON_THEMES = {
-    "default": "high quality 3D cartoon avatar portrait",
-    "astronaut": "3D cartoon astronaut suit, cosmic background",
-    "cowboy": "3D cartoon cowboy outfit, western desert background",
-    "royal": "3D cartoon king or queen outfit, royal palace background",
-    "sport": "3D cartoon athlete uniform, stadium background",
-    "sailor": "3D cartoon sailor outfit, sea background",
-    "samurai": "3D cartoon samurai armor, japanese temple background",
-    "cyberpunk": "3D cartoon cyberpunk style, neon futuristic city background",
-    "superhero": "3D cartoon superhero costume, cinematic action background",
-    "rockstar": "3D cartoon rock star outfit, concert stage background",
-    "gangster": "3D cartoon mafia gangster suit, luxury background",
-    "pirate": "3D cartoon pirate captain outfit, pirate ship background",
-    "wizard": "3D cartoon wizard robe, magical fantasy background",
-    "viking": "3D cartoon viking warrior armor, nordic background",
-    "ninja": "3D cartoon ninja outfit, dark japanese background",
-    "luxury": "3D cartoon billionaire outfit, private jet background",
-    "angel": "3D cartoon angel wings, heavenly clouds background",
-    "demon": "3D cartoon dark fantasy demon style, fantasy fire background",
-    "pharaoh": "3D cartoon egyptian pharaoh outfit, pyramid background",
-    "knight": "3D cartoon medieval knight armor, castle background",
-    "racer": "3D cartoon formula one racing suit, racetrack background",
+    "default": (
+        "high quality colorful 3D cartoon avatar portrait, "
+        "detailed outfit, cinematic background, vibrant lighting, "
+        "pixar style, stylized character, beautiful composition"
+    ),
+
+    "astronaut": (
+        "3D cartoon astronaut wearing a detailed white space suit with patches, "
+        "NASA style details, helmet collar, cosmic background, stars, planets, "
+        "cinematic sci-fi lighting, vibrant colors, pixar style"
+    ),
+
+    "cowboy": (
+        "3D cartoon cowboy wearing leather jacket, cowboy hat, "
+        "western shirt, desert background, sunset lighting, "
+        "cinematic western style, detailed costume"
+    ),
+
+    "royal": (
+        "3D cartoon king or queen wearing royal crown, luxury robe, "
+        "gold embroidery, palace background, elegant cinematic lighting, "
+        "rich details, luxury atmosphere"
+    ),
+
+    "sport": (
+        "3D cartoon professional athlete wearing detailed sports uniform, "
+        "stadium background, dramatic lights, energetic pose, "
+        "colorful cinematic sports style"
+    ),
+
+    "sailor": (
+        "3D cartoon sailor wearing navy sailor uniform, captain hat, "
+        "ocean background, sunset sea, detailed nautical symbols, "
+        "cinematic lighting, anime inspired style"
+    ),
+
+    "samurai": (
+        "3D cartoon samurai wearing detailed armor, japanese temple background, "
+        "cherry blossoms, dramatic cinematic lighting"
+    ),
+
+    "cyberpunk": (
+        "3D cartoon cyberpunk character wearing futuristic jacket, "
+        "neon city background, glowing lights, high tech details, "
+        "colorful cinematic bladerunner style"
+    ),
+
+    "superhero": (
+        "3D cartoon superhero wearing heroic costume, cape, chest emblem, "
+        "detailed suit armor, dramatic city skyline background, "
+        "action movie lighting, powerful heroic pose, marvel inspired"
+    ),
+
+    "rockstar": (
+        "3D cartoon rock star wearing leather jacket, sunglasses, "
+        "concert stage background, colorful spotlights, microphone, "
+        "energetic cinematic lighting"
+    ),
+
+    "gangster": (
+        "3D cartoon 1920s mafia gangster wearing pinstripe suit, "
+        "fedora hat, luxury vintage background, cinematic noir lighting"
+    ),
+
+    "pirate": (
+        "3D cartoon pirate captain wearing pirate coat, hat, gold accessories, "
+        "pirate ship background, ocean adventure lighting"
+    ),
+
+    "wizard": (
+        "3D cartoon wizard wearing magical robe, glowing staff, "
+        "fantasy castle background, magical particles, cinematic fantasy lighting"
+    ),
+
+    "viking": (
+        "3D cartoon viking warrior wearing fur armor, nordic symbols, "
+        "snowy mountain background, dramatic cinematic lighting"
+    ),
+
+    "ninja": (
+        "3D cartoon ninja wearing dark ninja outfit, japanese night background, "
+        "moonlight, cinematic action pose"
+    ),
+
+    "luxury": (
+        "3D cartoon billionaire wearing luxury suit, private jet background, "
+        "gold accents, cinematic premium lighting"
+    ),
+
+    "angel": (
+        "3D cartoon angel with white wings, glowing halo, "
+        "heavenly clouds background, soft cinematic lighting"
+    ),
+
+    "demon": (
+        "3D cartoon dark fantasy demon style, horns, fantasy armor, "
+        "fire background, dramatic cinematic lighting"
+    ),
+
+    "pharaoh": (
+        "3D cartoon egyptian pharaoh wearing gold headdress, "
+        "ancient egypt jewelry, pyramid background, desert sunset lighting"
+    ),
+
+    "knight": (
+        "3D cartoon medieval knight wearing shiny armor, "
+        "castle background, heroic cinematic lighting"
+    ),
+
+    "racer": (
+        "3D cartoon formula one racer wearing detailed racing suit, "
+        "helmet under arm, racetrack background, cinematic speed lighting"
+    ),
 }
 
+
 REALISTIC_THEMES = {
-    "default": "ultra realistic cinematic portrait",
-    "astronaut": "ultra realistic astronaut portrait, cinematic sci-fi lighting",
-    "cowboy": "ultra realistic cowboy portrait, western desert background",
-    "royal": "ultra realistic king or queen portrait, royal palace background",
-    "sport": "ultra realistic athlete portrait, stadium background",
-    "sailor": "ultra realistic sailor portrait, ocean background",
-    "samurai": "ultra realistic samurai portrait",
-    "cyberpunk": "ultra realistic cyberpunk portrait, neon city background",
-    "superhero": "ultra realistic superhero portrait",
-    "rockstar": "ultra realistic rockstar portrait",
-    "gangster": "ultra realistic mafia portrait",
-    "pirate": "ultra realistic pirate captain portrait",
-    "wizard": "ultra realistic wizard portrait",
-    "viking": "ultra realistic viking warrior portrait",
-    "ninja": "ultra realistic ninja portrait",
-    "luxury": "ultra realistic billionaire portrait",
-    "angel": "ultra realistic angel portrait",
-    "demon": "ultra realistic dark fantasy portrait",
-    "pharaoh": "ultra realistic egyptian pharaoh portrait",
-    "knight": "ultra realistic medieval knight portrait",
-    "racer": "ultra realistic formula 1 racer portrait",
+    "default": (
+        "ultra realistic cinematic portrait, highly detailed face, "
+        "professional photography, dramatic lighting, depth of field, "
+        "luxury background, realistic skin texture, cinematic movie still, "
+        "85mm lens, volumetric lighting"
+    ),
+
+    "astronaut": (
+        "ultra realistic astronaut portrait, detailed white NASA style space suit, "
+        "realistic fabric textures, cinematic sci-fi lighting, stars and space background, "
+        "professional photography, cinematic movie still, 85mm lens, ultra detailed"
+    ),
+
+    "cowboy": (
+        "ultra realistic cowboy portrait, leather jacket, cowboy hat, "
+        "western desert background, sunset cinematic lighting, "
+        "rugged realistic style, cinematic movie still"
+    ),
+
+    "royal": (
+        "ultra realistic king or queen portrait, luxury royal outfit, "
+        "gold embroidery, crown, palace interior, cinematic luxury lighting, "
+        "professional photography"
+    ),
+
+    "sport": (
+        "ultra realistic athlete portrait, detailed sports uniform, "
+        "stadium lights, energetic cinematic sports photography"
+    ),
+
+    "sailor": (
+        "ultra realistic sailor portrait, detailed navy uniform, "
+        "ocean sunset background, cinematic maritime photography"
+    ),
+
+    "samurai": (
+        "ultra realistic samurai warrior portrait, detailed armor, "
+        "japanese temple background, cinematic dramatic lighting"
+    ),
+
+    "cyberpunk": (
+        "ultra realistic cyberpunk portrait, futuristic neon jacket, "
+        "glowing city lights, cinematic bladerunner atmosphere"
+    ),
+
+    "superhero": (
+        "ultra realistic superhero portrait, cinematic superhero suit, "
+        "cape, chest emblem, dramatic city skyline background, "
+        "marvel movie lighting, cinematic movie still, "
+        "professional photography, 85mm lens, depth of field, "
+        "high detail, volumetric lighting"
+    ),
+
+    "rockstar": (
+        "ultra realistic rockstar portrait, leather jacket, "
+        "concert stage lights, cinematic music video atmosphere"
+    ),
+
+    "gangster": (
+        "ultra realistic mafia gangster portrait, luxury italian suit, "
+        "fedora hat, vintage noir cinematic lighting"
+    ),
+
+    "pirate": (
+        "ultra realistic pirate captain portrait, detailed pirate coat, "
+        "ocean ship background, cinematic adventure lighting"
+    ),
+
+    "wizard": (
+        "ultra realistic fantasy wizard portrait, magical robe, "
+        "glowing staff, cinematic fantasy environment"
+    ),
+
+    "viking": (
+        "ultra realistic viking warrior portrait, fur armor, "
+        "nordic style, snowy cinematic background"
+    ),
+
+    "ninja": (
+        "ultra realistic ninja portrait, dark tactical ninja suit, "
+        "moonlight cinematic action lighting"
+    ),
+
+    "luxury": (
+        "ultra realistic billionaire portrait, luxury suit, "
+        "private jet background, cinematic premium photography"
+    ),
+
+    "angel": (
+        "ultra realistic angel portrait, glowing wings, "
+        "heavenly clouds, soft cinematic lighting"
+    ),
+
+    "demon": (
+        "ultra realistic dark fantasy demon portrait, "
+        "cinematic fire background, dramatic shadows"
+    ),
+
+    "pharaoh": (
+        "ultra realistic egyptian pharaoh portrait, gold jewelry, "
+        "pyramids background, cinematic desert sunset"
+    ),
+
+    "knight": (
+        "ultra realistic medieval knight portrait, steel armor, "
+        "castle background, dramatic cinematic lighting"
+    ),
+
+    "racer": (
+        "ultra realistic formula one racer portrait, "
+        "detailed racing suit, racetrack lights, cinematic speed atmosphere"
+    ),
 }
+
 
 NEGATIVE_FRAMING = (
     "close-up face, cropped head, giant face, zoomed face, cut forehead, "
     "cut chin, extreme close-up, head out of frame, face out of frame, "
-    "wrong gender, different person, different face, deformed face, bad anatomy, "
-    "asymmetrical face, blurry, low quality, low resolution, artifacts, glitch, "
-    "watermark, text"
+    "wrong gender, different person, different face, deformed face, "
+    "bad anatomy, asymmetrical face, blurry, low quality, "
+    "low resolution, artifacts, glitch, watermark, "
+    "random letters, unreadable text"
 )
 
+
+REALISTIC_NEGATIVE = (
+    "low quality, blurry, deformed face, bad anatomy, cartoon, anime, "
+    "extra fingers, ugly eyes, distorted mouth, unrealistic skin, "
+    "watermark, text artifacts"
+)
 
 def get_theme_prompt(theme: str, custom_theme: str, mode: str) -> str:
     if custom_theme and not is_prompt_safe(custom_theme):
@@ -556,6 +748,69 @@ def did_video(
     return {
         "error": "D-ID timeout",
         "talk_id": talk_id
+    }
+
+@app.post("/make-square/")
+async def make_square(
+    video_url: str = Form(...),
+    job_id: str = Form("")
+):
+    import subprocess
+    import imageio_ffmpeg
+
+    ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+
+    if not job_id:
+        job_id = str(uuid.uuid4())
+
+    job_dir = os.path.join(UPLOAD_DIR, job_id)
+    os.makedirs(job_dir, exist_ok=True)
+
+    input_path = os.path.join(job_dir, "input_square.mp4")
+    output_path = os.path.join(job_dir, "square.mp4")
+
+    response = requests.get(video_url, timeout=180)
+
+    if response.status_code != 200:
+        return {
+            "error": "Failed to download video",
+            "details": response.text[:500]
+        }
+
+    with open(input_path, "wb") as file:
+        file.write(response.content)
+
+    command = [
+        ffmpeg_path,
+        "-y",
+        "-i", input_path,
+        "-vf",
+        "scale=1024:1024:force_original_aspect_ratio=decrease,"
+        "pad=1024:1024:(ow-iw)/2:(oh-ih)/2:color=black",
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-crf", "24",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        output_path
+    ]
+
+    result = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    if result.returncode != 0:
+        return {
+            "error": "ffmpeg square failed",
+            "details": result.stderr[-1000:]
+        }
+
+    return {
+        "job_id": job_id,
+        "square_video_url": public_file_url(job_id, "square.mp4")
     }
 
 @app.post("/make-vertical/")
@@ -1303,7 +1558,29 @@ async function generateVideo() {
         }
 
         finalVideoUrl = talkData.video_url;
+        if (format === "square") {
 
+            const squareForm = new FormData();
+
+            squareForm.append("video_url", finalVideoUrl);
+            squareForm.append("job_id", jobId);
+
+            const squareResponse = await fetch("/make-square/", {
+                method: "POST",
+                body: squareForm
+            });
+
+            const squareData = await squareResponse.json();
+
+            if (squareData.error || !squareData.square_video_url) {
+                throw new Error(
+                    "Ошибка square video: " +
+                    JSON.stringify(squareData)
+                );
+            }
+
+            finalVideoUrl = squareData.square_video_url;
+        }
         if (format === "vertical") {
             status.innerText = "⏳ Создаём vertical video...";
 
