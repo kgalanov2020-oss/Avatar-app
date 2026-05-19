@@ -301,7 +301,16 @@ async def create_3d_avatar(
         }
 
     except Exception as error:
-        return {"error": str(error)}
+        import traceback
+
+        full_error = traceback.format_exc()
+        print("CREATE AVATAR ERROR:")
+        print(full_error)
+
+        return {
+            "error": repr(error),
+            "traceback": full_error
+        }
 
 
 @app.post("/create-realistic-avatar/")
@@ -368,7 +377,16 @@ async def create_realistic_avatar(
         }
 
     except Exception as error:
-        return {"error": str(error)}
+        import traceback
+
+        full_error = traceback.format_exc()
+        print("CREATE AVATAR ERROR:")
+        print(full_error)
+
+        return {
+            "error": repr(error),
+            "traceback": full_error
+        }
 
 
 @app.post("/create-video/")
@@ -1336,8 +1354,6 @@ document
 toggleCustomTheme();
 
 updateGenerationCost();
-
-loadUser();
 
 </script>
 </body>
