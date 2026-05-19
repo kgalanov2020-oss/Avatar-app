@@ -854,46 +854,6 @@ video {
         </button>
     </div>
 
-</div>
-
-    <input
-        type="email"
-        id="email"
-        placeholder="Email"
-        style="margin-bottom:10px;"
-    >
-
-    <input
-        type="password"
-        id="password"
-        placeholder="Password"
-        style="margin-bottom:10px;"
-    >
-
-    <button id="signUpBtn">
-        Sign Up
-    </button>
-
-    <button id="loginBtn" class="secondary" style="margin-top:10px;">
-    
-    Login
-    </button>
-
-    <button id="logoutBtn" class="secondary" style="margin-top:10px;">
-    
-        Logout
-    </button>
-
-    <div
-        id="currentUser"
-        class="hint"
-        style="margin-top:10px;"
-    >
-        Not logged in
-    </div>
-
-</div>
-
 <label>Фото</label>
 
     <input type="file" id="photo" accept="image/*">
