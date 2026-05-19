@@ -828,16 +828,10 @@ video {
     This video will cost: <b id="generationCost">1</b> credit
 </div>
 
-    <div id="loggedInBox" style="display:none;">
-        <div id="currentUser" class="hint" style="margin-top:10px;">
-            Logged in
-        </div>
-
-        <button id="logoutBtn" class="secondary" style="margin-top:10px;">
-            Logout
-        </button>
+   <div id="loggedInBox" style="display:none;">
+    <div id="currentUser" class="hint" style="margin-top:10px;">
+        Logged in
     </div>
-
 </div>
 
 <label>Фото</label>
