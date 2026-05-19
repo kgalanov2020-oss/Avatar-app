@@ -1200,11 +1200,6 @@ async function generateVideo() {
     const generationCost =
         calculateGenerationCost(styleMode, format);
 
-    if (!currentUser) {
-        alert("Please login first");
-        return;
-    }
-
     if (text.length > 250) {
         alert("Текст слишком длинный. Максимум 250 символов.");
         return;
