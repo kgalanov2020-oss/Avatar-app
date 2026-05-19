@@ -594,10 +594,762 @@ async def make_vertical(
 @app.get("/app", response_class=HTMLResponse)
 def app_page():
     return """
-    <html>
-        <body style="font-family: Arial; padding: 40px;">
-            <h1>AI Avatar Video</h1>
-            <p>Backend is clean. Reinsert the current frontend HTML here after testing backend endpoints.</p>
-        </body>
-    </html>
-    """
+    
+    <!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Avatar Video</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    background:
+        radial-gradient(circle at top left, #ffe8f0, transparent 35%),
+        radial-gradient(circle at bottom right, #dff3ff, transparent 35%),
+        #f5f6fa;
+    color: #111;
+    padding: 18px;
+}
+
+.card {
+    width: 100%;
+    max-width: 760px;
+    margin: 18px auto;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.10);
+}
+
+.badge {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #111;
+    color: white;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+h1 {
+    font-size: 44px;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #555;
+    line-height: 1.45;
+    margin-bottom: 24px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+input, textarea, select, button {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    border-radius: 16px;
+    border: 1px solid #d6d6d6;
+    background: white;
+}
+
+textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+button {
+    border: none;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #111, #444);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.secondary {
+    background: #f0f0f0;
+    color: #111;
+}
+
+.steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.step {
+    padding: 14px 10px;
+    border-radius: 16px;
+    background: #f1f1f1;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #777;
+}
+
+.step.active {
+    background: #111;
+    color: white;
+}
+
+.step.done {
+    background: #dff8e7;
+    color: #0f7a35;
+}
+
+.progress-wrap {
+    width: 100%;
+    height: 10px;
+    background: #ececec;
+    border-radius: 999px;
+    margin-top: 18px;
+    overflow: hidden;
+}
+
+#progressBar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #111, #777);
+    transition: width 0.4s ease;
+}
+
+#status {
+    margin-top: 18px;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.hint {
+    font-size: 14px;
+    color: #777;
+    margin-top: 8px;
+}
+
+video {
+    width: 100%;
+    margin-top: 22px;
+    border-radius: 20px;
+    background: #000;
+}
+
+.actions {
+    display: none;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.actions.show {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.footer-note {
+    margin-top: 18px;
+    font-size: 13px;
+    color: #777;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 10px;
+    }
+
+    .card {
+        padding: 22px;
+        border-radius: 24px;
+        margin: 8px auto;
+    }
+
+    h1 {
+        font-size: 34px;
+    }
+
+    .subtitle {
+        font-size: 16px;
+    }
+
+    .steps {
+        grid-template-columns: 1fr;
+    }
+
+    .actions.show {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="card">
+    <div class="badge">AI Greeting Video</div>
+
+    <h1>AI Avatar Video</h1>
+
+<p class="subtitle">
+    Загрузи фото, напиши поздравление — получи говорящее видео с AI-аватаром.
+</p>
+
+<div id="creditsBox" class="hint" style="margin-bottom:16px;">
+    Credits: <b id="creditsCount">3</b>
+</div>
+
+<div class="hint" id="generationCostBox">
+    This video will cost: <b id="generationCost">1</b> credit
+</div>
+
+<div id="authBox" style="margin-bottom:20px;">
+
+    <input
+        type="email"
+        id="email"
+        placeholder="Email"
+        style="margin-bottom:10px;"
+    >
+
+    <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        style="margin-bottom:10px;"
+    >
+
+    <button id="signUpBtn">
+        Sign Up
+    </button>
+
+    <button id="loginBtn" class="secondary" style="margin-top:10px;">
+    
+    Login
+    </button>
+
+    <button id="logoutBtn" class="secondary" style="margin-top:10px;">
+    
+        Logout
+    </button>
+
+    <div
+        id="currentUser"
+        class="hint"
+        style="margin-top:10px;"
+    >
+        Not logged in
+    </div>
+
+</div>
+
+<label>Фото</label>
+
+    <input type="file" id="photo" accept="image/*">
+
+    <label>Текст поздравления</label>
+    <textarea id="text" maxlength="250">С днём рождения! Желаю счастья, здоровья и исполнения всех желаний!</textarea>
+<div class="hint">
+    Максимум 250 символов. Лучше 1–2 коротких предложения.
+</div>
+<div id="charCount">0 / 250</div>
+    <label>Стиль</label>
+
+    <select id="styleMode">
+        <option value="cartoon">Cartoon</option>
+        <option value="realistic">Realistic</option>
+    </select>
+
+    <label>Тема</label>
+
+<select id="theme" onchange="toggleCustomTheme()">
+    <option value="custom">Собственная тема</option>
+    <option value="default">Обычный</option>
+    <option value="astronaut">Космонавт</option>
+    <option value="cowboy">Ковбой</option>
+    <option value="royal">Король / Королева</option>
+    <option value="sport">Спортсмен</option>
+    <option value="sailor">Моряк</option>
+    <option value="samurai">Самурай</option>
+    <option value="cyberpunk">Киберпанк</option>
+    <option value="superhero">Супергерой</option>
+    <option value="rockstar">Рок-звезда</option>
+    <option value="gangster">Гангстер 1920s</option>
+    <option value="pirate">Пират</option>
+    <option value="wizard">Маг / Волшебник</option>
+    <option value="viking">Викинг</option>
+    <option value="ninja">Ниндзя</option>
+    <option value="luxury">Luxury бизнесмен</option>
+    <option value="angel">Ангел</option>
+    <option value="demon">Демон</option>
+    <option value="pharaoh">Фараон</option>
+    <option value="knight">Рыцарь</option>
+    <option value="racer">Гонщик Formula 1</option>
+</select>
+
+<input 
+    type="text" 
+    id="customTheme" 
+    placeholder="Например: врач, футболист, принцесса, робот..." 
+    style="display:none;"
+>
+
+    <label>Голос</label>
+<select id="voice">
+
+    <option value="ru_female_1">
+        🇷🇺 Женский 1
+    </option>
+
+    <option value="ru_female_2">
+        🇷🇺 Женский 2
+    </option>
+
+    <option value="ru_male_1">
+        🇷🇺 Мужской 1
+    </option>
+
+    <option value="ru_male_2">
+        🇷🇺 Мужской 2
+    </option>
+
+    <option value="girl">
+        👧 Девочка
+    </option>
+
+    <option value="boy">
+        👦 Мальчик
+    </option>
+
+    <option value="grandma">
+        👵 Бабушка
+    </option>
+
+    <option value="grandpa">
+        👴 Дедушка
+    </option>
+
+    <option value="en_female">
+        🇺🇸 English Female
+    </option>
+
+    <option value="en_male">
+        🇺🇸 English Male
+    </option>
+
+    <option value="es_female">
+        🇪🇸 Español Female
+    </option>
+
+    <option value="pt_female">
+        🇧🇷 Português Female
+    </option>
+
+</select>
+
+    <label>Формат видео</label>
+
+    <select id="format">
+        <option value="square">Квадрат (1:1)</option>
+        <option value="vertical">TikTok / Reels (9:16)</option>
+    </select>
+
+    <button id="generateBtn" onclick="generateVideo()">Создать видео</button>
+
+    <div class="steps">
+        <div id="stepAvatar" class="step">1. Аватар</div>
+        <div id="stepVoice" class="step">2. Голос</div>
+        <div id="stepVideo" class="step">3. Видео</div>
+    </div>
+
+    <div class="progress-wrap">
+        <div id="progressBar"></div>
+    </div>
+
+    <div id="status"></div>
+
+    <video id="video" controls style="display:none;"></video>
+    <img id="avatarPreview" style="display:none; width:100%; border-radius:20px; margin-top:20px;">
+
+    <div id="actions" class="actions">
+        <a id="downloadLink" href="#" download="avatar-video.mp4">
+            <button>Скачать видео</button>
+        </a>
+        <button class="secondary" onclick="resetApp()">Создать ещё</button>
+    </div>
+
+    <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
+</div>
+
+<div id="currentUser">Not logged in</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const supabaseClient = window.supabase.createClient(
+    "https://yvynivfphhyqriqwpiic.supabase.co",
+    "sb_publishable_MSlFLoKbU-DJhWcP5d3wbw_YZQbc-jb"
+);
+
+let finalVideoUrl = null;
+
+let creditsLeft = 3;
+
+let currentUser = null;
+
+function setProgress(percent) {
+    document.getElementById("progressBar").style.width = percent + "%";
+}
+function setStep(step) {
+    const avatar = document.getElementById("stepAvatar");
+    const voice = document.getElementById("stepVoice");
+    const video = document.getElementById("stepVideo");
+
+    avatar.className = "step";
+    voice.className = "step";
+    video.className = "step";
+
+    if (step === 1) {
+        avatar.className = "step active";
+        setProgress(20);
+    }
+
+    if (step === 2) {
+        avatar.className = "step done";
+        voice.className = "step active";
+        setProgress(45);
+    }
+
+    if (step === 3) {
+        avatar.className = "step done";
+        voice.className = "step done";
+        video.className = "step active";
+        setProgress(70);
+    }
+
+    if (step === 4) {
+        avatar.className = "step done";
+        voice.className = "step done";
+        video.className = "step done";
+        setProgress(100);
+    }
+
+    if (step === 0) {
+        setProgress(0);
+    }
+}
+
+function calculateGenerationCost(styleMode, format) {
+
+    let cost = 1;
+
+    if (styleMode === "realistic") {
+        cost += 1;
+    }
+
+    if (format === "vertical") {
+        cost += 1;
+    }
+
+    return cost;
+}
+
+function updateGenerationCost() {
+
+    const styleMode =
+        document.getElementById("styleMode").value;
+
+    const format =
+        document.getElementById("format").value;
+
+    const cost =
+        calculateGenerationCost(styleMode, format);
+
+    document.getElementById("generationCost").innerText =
+        cost;
+}
+
+function toggleCustomTheme() {
+    const theme = document.getElementById("theme").value;
+    const customTheme = document.getElementById("customTheme");
+
+    if (theme === "custom") {
+        customTheme.style.display = "block";
+    } else {
+        customTheme.style.display = "none";
+    }
+}
+
+async function signUp() {
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    const { data, error } =
+        await supabaseClient.auth.signUp({
+            email,
+            password
+        });
+
+if (error) {
+    console.error("Sign up error:", error);
+    alert("Sign up error: " + error.message);
+    return;
+}
+
+console.log("Sign up data:", data);
+alert("Check your email for confirmation.");
+}
+
+async function login() {
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    const { data, error } =
+        await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        });
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    currentUser = data.user;
+
+    document.getElementById("currentUser").innerText =
+        currentUser.email;
+}
+
+async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    currentUser = null;
+
+    document.getElementById("currentUser").innerText =
+        "Not logged in";
+}
+
+async function generateVideo() {
+    const customTheme = document.getElementById("customTheme").value;
+    const fileInput = document.getElementById("photo");
+    const text = document.getElementById("text").value;
+    const voice = document.getElementById("voice").value;
+    const format = document.getElementById("format").value;
+    const styleMode = document.getElementById("styleMode").value;
+    const theme = document.getElementById("theme").value;
+    const status = document.getElementById("status");
+    const video = document.getElementById("video");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const btn = document.getElementById("generateBtn");
+    const actions = document.getElementById("actions");
+
+    const generationCost =
+        calculateGenerationCost(styleMode, format);
+
+    if (text.length > 250) {
+        alert("Текст слишком длинный. Максимум 250 символов.");
+        return;
+    }
+
+    if (text.trim().length < 3) {
+        alert("Введите текст поздравления.");
+        return;
+    }
+
+    if (!fileInput.files.length) {
+        alert("Выбери фото");
+        return;
+    }
+
+    if (creditsLeft < generationCost) {
+        alert("Недостаточно credits");
+        return;
+    }
+
+    btn.disabled = true;
+    actions.className = "actions";
+    video.style.display = "none";
+    avatarPreview.style.display = "none";
+    status.innerText = "";
+
+    try {
+        setStep(1);
+        status.innerText = "⏳ Создаём AI-аватар...";
+
+        const avatarForm = new FormData();
+        avatarForm.append("file", fileInput.files[0]);
+        avatarForm.append("theme", theme);
+        avatarForm.append("custom_theme", customTheme);
+
+        let avatarEndpoint = "/create-3d-avatar/";
+
+        if (styleMode === "realistic") {
+            avatarEndpoint = "/create-realistic-avatar/";
+        }
+
+        const avatarResponse = await fetch(avatarEndpoint, {
+            method: "POST",
+            body: avatarForm
+        });
+
+        const avatarData = await avatarResponse.json();
+
+        if (avatarData.error || !avatarData.avatar_url) {
+            throw new Error("Ошибка аватара: " + JSON.stringify(avatarData));
+        }
+
+        const jobId = avatarData.job_id;
+
+        status.innerText = "✅ Аватар готов";
+        avatarPreview.src = avatarData.avatar_url;
+        avatarPreview.style.display = "block";
+
+        setStep(2);
+        status.innerText = "⏳ Создаём голос...";
+
+        const textForm = new FormData();
+        textForm.append("text", text);
+        textForm.append("voice", voice);
+        textForm.append("format", format);
+        textForm.append("job_id", jobId);
+
+        const voiceResponse = await fetch("/create-video/", {
+            method: "POST",
+            body: textForm
+        });
+
+        const voiceData = await voiceResponse.json();
+
+        if (voiceData.error || !voiceData.audio_url) {
+            throw new Error("Ошибка голоса: " + JSON.stringify(voiceData));
+        }
+
+        setStep(3);
+        status.innerText = "⏳ Запускаем говорящую анимацию...";
+
+        const talkForm = new FormData();
+        talkForm.append(
+            "avatar_url",
+            avatarData.did_avatar_url || avatarData.avatar_url
+        );
+        talkForm.append("audio_url", voiceData.audio_url);
+
+        const talkResponse = await fetch("/did-video/", {
+            method: "POST",
+            body: talkForm
+        });
+
+        const talkData = await talkResponse.json();
+
+        if (!talkData.video_url) {
+            throw new Error("Ошибка D-ID: " + JSON.stringify(talkData));
+        }
+
+        finalVideoUrl = talkData.video_url;
+
+        if (format === "vertical") {
+            status.innerText = "⏳ Создаём vertical video...";
+
+            const verticalForm = new FormData();
+            verticalForm.append("video_url", finalVideoUrl);
+            verticalForm.append("job_id", jobId);
+
+            const verticalResponse = await fetch("/make-vertical/", {
+                method: "POST",
+                body: verticalForm
+            });
+
+            const verticalData = await verticalResponse.json();
+
+            if (verticalData.error || !verticalData.vertical_video_url) {
+                throw new Error("Ошибка vertical video: " + JSON.stringify(verticalData));
+            }
+
+            finalVideoUrl = verticalData.vertical_video_url;
+        }
+
+        setStep(4);
+        status.innerText = "✅ Готово!";
+
+        creditsLeft -= generationCost;
+
+        document.getElementById("creditsCount").innerText =
+            creditsLeft;
+
+        video.src = finalVideoUrl;
+        video.style.display = "block";
+
+        document.getElementById("downloadLink").href = finalVideoUrl;
+
+        actions.className = "actions show";
+        btn.disabled = false;
+
+    } catch (error) {
+        status.innerText = error.message;
+        btn.disabled = false;
+    }
+}
+
+document
+    .getElementById("signUpBtn")
+    .addEventListener("click", signUp);
+
+document
+    .getElementById("loginBtn")
+    .addEventListener("click", login);
+
+document
+    .getElementById("logoutBtn")
+    .addEventListener("click", logout);
+
+document
+    .getElementById("styleMode")
+    .addEventListener("change", updateGenerationCost);
+
+document
+    .getElementById("format")
+    .addEventListener("change", updateGenerationCost);
+
+toggleCustomTheme();
+
+updateGenerationCost();
+
+</script>
+</body>
+</html>
+"""
