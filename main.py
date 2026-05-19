@@ -828,23 +828,6 @@ video {
     This video will cost: <b id="generationCost">1</b> credit
 </div>
 
-<div id="authBox" style="margin-bottom:20px;">
-
-    <div id="loggedOutBox">
-        <input type="email" id="email" placeholder="Email" style="margin-bottom:10px;">
-        <input type="password" id="password" placeholder="Password" style="margin-bottom:10px;">
-
-        <button id="signUpBtn">Create account</button>
-
-        <button id="loginBtn" class="secondary" style="margin-top:10px;">
-            Login
-        </button>
-
-        <div class="hint" style="margin-top:10px;">
-            New user? Create account. Already registered? Login.
-        </div>
-    </div>
-
     <div id="loggedInBox" style="display:none;">
         <div id="currentUser" class="hint" style="margin-top:10px;">
             Logged in
@@ -995,19 +978,10 @@ video {
     <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 
-const supabaseClient = window.supabase.createClient(
-    "https://yvynivfphhyqriqwpiic.supabase.co",
-    "sb_publishable_MSlFLoKbU-DJhWcP5d3wbw_YZQbc-jb"
-);
-
 let finalVideoUrl = null;
-
-let creditsLeft = 3;
-
+let creditsLeft = 999;
 let currentUser = null;
 
 function setProgress(percent) {
