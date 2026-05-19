@@ -854,6 +854,8 @@ video {
         </button>
     </div>
 
+</div>
+
 <label>Фото</label>
 
     <input type="file" id="photo" accept="image/*">
@@ -1098,66 +1100,64 @@ function updateAuthUI() {
     if (currentUser) {
         loggedOutBox.style.display = "none";
         loggedInBox.style.display = "block";
-
-        currentUserBox.innerText =
-            "Logged in as: " + currentUser.email;
+        currentUserBox.innerText = "Logged in as: " + currentUser.email;
     } else {
         loggedOutBox.style.display = "block";
         loggedInBox.style.display = "none";
-
         currentUserBox.innerText = "Not logged in";
     }
 }
 
 async function signUp() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-    const email =
-        document.getElementById("email").value;
-
-    const password =
-        document.getElementById("password").value;
-
-    const { data, error } =
-        await supabaseClient.auth.signUp({
-            email,
-            password
-        });
+    const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password
+    });
 
     if (error) {
-        console.error("Sign up error:", error);
         alert("Sign up error: " + error.message);
         return;
     }
 
-    console.log("Sign up data:", data);
-
-    if (data.user) {
-        alert("Account created. Now click Login.");
-    }
-
-} // ← ВОТ ЭТОГО НЕ ХВАТАЛО
+    alert("Account created. Now click Login.");
+}
 
 async function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-    const email =
-        document.getElementById("email").value;
-
-    const password =
-        document.getElementById("password").value;
-
-    const { data, error } =
-        await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-        });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
 
     if (error) {
-        alert(error.message);
+        alert("Login error: " + error.message);
         return;
     }
 
-   currentUser = data.user;
-   updateAuthUI();
+    currentUser = data.user;
+    updateAuthUI();
+}
+
+async function logout() {
+    await supabaseClient.auth.signOut();
+
+    currentUser = null;
+    updateAuthUI();
+}
+
+async function loadUser() {
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    currentUser = session?.user || null;
+
+    updateAuthUI();
 }
 
 async function logout() {
