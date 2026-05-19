@@ -829,6 +829,33 @@ video {
 
 <div id="authBox" style="margin-bottom:20px;">
 
+    <div id="loggedOutBox">
+        <input type="email" id="email" placeholder="Email" style="margin-bottom:10px;">
+        <input type="password" id="password" placeholder="Password" style="margin-bottom:10px;">
+
+        <button id="signUpBtn">Create account</button>
+
+        <button id="loginBtn" class="secondary" style="margin-top:10px;">
+            Login
+        </button>
+
+        <div class="hint" style="margin-top:10px;">
+            New user? Create account. Already registered? Login.
+        </div>
+    </div>
+
+    <div id="loggedInBox" style="display:none;">
+        <div id="currentUser" class="hint" style="margin-top:10px;">
+            Logged in
+        </div>
+
+        <button id="logoutBtn" class="secondary" style="margin-top:10px;">
+            Logout
+        </button>
+    </div>
+
+</div>
+
     <input
         type="email"
         id="email"
@@ -1105,6 +1132,25 @@ function toggleCustomTheme() {
     }
 }
 
+function updateAuthUI() {
+    const loggedOutBox = document.getElementById("loggedOutBox");
+    const loggedInBox = document.getElementById("loggedInBox");
+    const currentUserBox = document.getElementById("currentUser");
+
+    if (currentUser) {
+        loggedOutBox.style.display = "none";
+        loggedInBox.style.display = "block";
+
+        currentUserBox.innerText =
+            "Logged in as: " + currentUser.email;
+    } else {
+        loggedOutBox.style.display = "block";
+        loggedInBox.style.display = "none";
+
+        currentUserBox.innerText = "Not logged in";
+    }
+}
+
 async function signUp() {
 
     const email =
@@ -1126,7 +1172,9 @@ if (error) {
 }
 
 console.log("Sign up data:", data);
-alert("Check your email for confirmation.");
+
+if (data.user) {
+    alert("Account created. Now click Login.");
 }
 
 async function login() {
@@ -1148,10 +1196,8 @@ async function login() {
         return;
     }
 
-    currentUser = data.user;
-
-    document.getElementById("currentUser").innerText =
-        currentUser.email;
+   currentUser = data.user;
+   updateAuthUI();
 }
 
 async function logout() {
@@ -1159,9 +1205,21 @@ async function logout() {
     await supabaseClient.auth.signOut();
 
     currentUser = null;
+    updateAuthUI();
+}
 
-    document.getElementById("currentUser").innerText =
-        "Not logged in";
+async function loadUser() {
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (session?.user) {
+        currentUser = session.user;
+    } else {
+        currentUser = null;
+    }
+
+    updateAuthUI();
 }
 
 async function generateVideo() {
@@ -1180,6 +1238,11 @@ async function generateVideo() {
 
     const generationCost =
         calculateGenerationCost(styleMode, format);
+
+    if (!currentUser) {
+        alert("Please login first");
+        return;
+    }
 
     if (text.length > 250) {
         alert("Текст слишком длинный. Максимум 250 символов.");
@@ -1348,6 +1411,8 @@ document
 toggleCustomTheme();
 
 updateGenerationCost();
+
+loadUser();
 
 </script>
 </body>
