@@ -992,8 +992,6 @@ video {
     <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
 </div>
 
-<div id="currentUser">Not logged in</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -1125,17 +1123,19 @@ async function signUp() {
             password
         });
 
-if (error) {
-    console.error("Sign up error:", error);
-    alert("Sign up error: " + error.message);
-    return;
-}
+    if (error) {
+        console.error("Sign up error:", error);
+        alert("Sign up error: " + error.message);
+        return;
+    }
 
-console.log("Sign up data:", data);
+    console.log("Sign up data:", data);
 
-if (data.user) {
-    alert("Account created. Now click Login.");
-}
+    if (data.user) {
+        alert("Account created. Now click Login.");
+    }
+
+} // ← ВОТ ЭТОГО НЕ ХВАТАЛО
 
 async function login() {
 
