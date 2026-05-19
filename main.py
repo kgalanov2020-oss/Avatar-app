@@ -547,6 +547,9 @@ async def make_vertical(
     job_id: str = Form("")
 ):
     import subprocess
+    import imageio_ffmpeg
+
+    ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
 
     if not job_id:
         job_id = str(uuid.uuid4())
@@ -569,7 +572,7 @@ async def make_vertical(
         file.write(response.content)
 
     command = [
-        "ffmpeg",
+        ffmpeg_path,
         "-y",
         "-i", input_path,
         "-vf",
