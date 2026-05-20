@@ -1429,15 +1429,12 @@ async function loadUser() {
     updateAuthUI();
 }
 
-async function logout() {
-
     await supabaseClient.auth.signOut();
 
     currentUser = null;
     updateAuthUI();
 }
 
-async function loadUser() {
     const {
         data: { session }
     } = await supabaseClient.auth.getSession();
@@ -1495,9 +1492,7 @@ async function generateVideo() {
     const generationCost =
         calculateGenerationCost(styleMode, format);
 
-    currentUser = { email: "test@test.com" };
-
-    if (isGenerated) {
+        if (isGenerated) {
         alert("Видео уже создано. Нажми 'Создать ещё', чтобы начать заново.");
         return;
     }
@@ -1669,18 +1664,6 @@ async function generateVideo() {
         btn.disabled = false;
     }
 }
-
-document
-    .getElementById("signUpBtn")
-    .addEventListener("click", signUp);
-
-document
-    .getElementById("loginBtn")
-    .addEventListener("click", login);
-
-document
-    .getElementById("logoutBtn")
-    .addEventListener("click", logout);
 
 document
     .getElementById("styleMode")
