@@ -1875,6 +1875,37 @@ updateCharCount();
 document.getElementById("creditsCount").innerText = creditsLeft;
 setStep(0);
 </script>
+<footer style="
+    max-width:760px;
+    margin:30px auto 10px;
+    padding:20px;
+    text-align:center;
+    color:#666;
+    font-size:14px;
+    line-height:1.8;
+">
+    <div style="margin-bottom:10px;">
+        <a href="/oferta" target="_blank">Пользовательское соглашение</a>
+        —
+        <a href="/privacy" target="_blank">Политика конфиденциальности</a>
+    </div>
+
+    <div>
+        ООО "БИЗНЕС-ПРОФИЛЬ"
+    </div>
+
+    <div>
+        ИНН: 9728162388
+    </div>
+
+    <div>
+        Email: support@your-domain.com
+    </div>
+
+    <div>
+        AI Avatar Video — сервис генерации AI-видео и AI-аватаров
+    </div>
+</footer>
 </body>
 </html>
 """
