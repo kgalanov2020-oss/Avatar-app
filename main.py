@@ -1369,9 +1369,10 @@ video {
         color:#666;
         line-height:1.6;
     ">
-        Credits используются для генерации AI-видео и AI-аватаров.
-        1 генерация = 1 credit.
-        После оплаты credits автоматически начисляются на аккаунт пользователя.
+        Кредиты используются для генерации AI-видео и AI-аватаров. 
+        1 генерация = 1 кредит.
+
+            После оплаты кредиты автоматически начисляются на аккаунт пользователя.
     </p>
 </div>
 
@@ -1381,6 +1382,26 @@ video {
 
 <div class="hint" id="generationCostBox">
     Стоимость генерации: <b id="generationCost">1</b> кредит
+</div>
+
+<div style="margin-top:16px;">
+    <label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.5;">
+        <input type="checkbox" id="agreeTerms" style="width:auto; margin-top:4px;">
+
+        <span>
+            Я ознакомлен и согласен с
+            <a href="/terms" target="_blank">
+                Пользовательским соглашением
+            </a>
+            и
+            <a href="/privacy" target="_blank">
+                Политикой конфиденциальности
+            </a>,
+            даю согласие на обработку персональных данных,
+            а также на передачу данных третьим лицам и внешним сервисам,
+            необходимым для работы платформы.
+        </span>
+    </label>
 </div>
 
 <div id="authBox" style="margin-top:20px; margin-bottom:20px;">
@@ -1634,6 +1655,14 @@ function updateAuthUI() {
 }
 
 async function signUp() {
+    const agree =
+    document.getElementById("agreeTerms").checked;
+
+if (!agree) {
+    alert("Необходимо согласиться с Пользовательским соглашением и Политикой конфиденциальности");
+    return;
+}
+    
     if (!window.supabase) {
         alert("Supabase не загрузился");
         return;
@@ -1676,6 +1705,14 @@ async function signUp() {
 }
 
 async function login() {
+    const agree =
+    document.getElementById("agreeTerms").checked;
+
+if (!agree) {
+    alert("Необходимо согласиться с Пользовательским соглашением и Политикой конфиденциальности");
+    return;
+}
+    
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
@@ -2040,6 +2077,10 @@ setStep(0);
     font-size:14px;
     line-height:1.8;
 ">
+<div style="margin-top:14px; font-size:13px; color:#777;">
+    Используя сайт, вы соглашаетесь с обработкой персональных данных
+    и условиями Пользовательского соглашения.
+</div>
     <div style="margin-bottom:10px;">
         <a href="/oferta" target="_blank">
             Пользовательское соглашение
