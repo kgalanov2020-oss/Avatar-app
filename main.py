@@ -884,7 +884,6 @@ async def make_vertical(
 def app_page():
     return """
     
-
     <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -1060,6 +1059,10 @@ video {
 .actions.show {
     display: grid;
     grid-template-columns: 1fr 1fr;
+}
+
+.actions.show button.secondary {
+    grid-column: 1 / -1;
 }
 
 .footer-note {
@@ -1253,9 +1256,16 @@ video {
 
     <div id="actions" class="actions">
         <a id="downloadLink" href="#" download="avatar-video.mp4">
-            <button>Скачать видео</button>
+            <button type="button">Скачать видео</button>
         </a>
-        <button class="secondary" onclick="resetApp()">Создать ещё</button>
+
+        <a id="downloadImageLink" href="#" download="avatar-image.png">
+            <button type="button">Скачать картинку</button>
+        </a>
+
+        <button type="button" class="secondary" onclick="resetApp()">
+            Создать ещё
+        </button>
     </div>
 
     <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
@@ -1264,8 +1274,9 @@ video {
 <script>
 
 let finalVideoUrl = null;
-let creditsLeft = 999;
-let currentUser = null;
+let finalAvatarUrl = null;
+let creditsLeft = 3;
+let isGenerated = false;
 
 function setProgress(percent) {
     document.getElementById("progressBar").style.width = percent + "%";
@@ -1440,6 +1451,33 @@ async function loadUser() {
     updateAuthUI();
 }
 
+function resetApp() {
+    finalVideoUrl = null;
+    finalAvatarUrl = null;
+    isGenerated = false;
+
+    const video = document.getElementById("video");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const actions = document.getElementById("actions");
+    const status = document.getElementById("status");
+    const btn = document.getElementById("generateBtn");
+
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    video.style.display = "none";
+
+    avatarPreview.removeAttribute("src");
+    avatarPreview.style.display = "none";
+
+    actions.className = "actions";
+    status.innerText = "";
+
+    btn.disabled = false;
+
+    setStep(0);
+}
+
 async function generateVideo() {
     const customTheme = document.getElementById("customTheme").value;
     const fileInput = document.getElementById("photo");
@@ -1458,6 +1496,11 @@ async function generateVideo() {
         calculateGenerationCost(styleMode, format);
 
     currentUser = { email: "test@test.com" };
+
+    if (isGenerated) {
+        alert("Видео уже создано. Нажми 'Создать ещё', чтобы начать заново.");
+        return;
+    }
 
     if (text.length > 250) {
         alert("Текст слишком длинный. Максимум 250 символов.");
@@ -1515,6 +1558,9 @@ async function generateVideo() {
         status.innerText = "✅ Аватар готов";
         avatarPreview.src = avatarData.avatar_url;
         avatarPreview.style.display = "block";
+
+        finalAvatarUrl = avatarData.avatar_url;
+        document.getElementById("downloadImageLink").href = finalAvatarUrl;
 
         setStep(2);
         status.innerText = "⏳ Создаём голос...";
@@ -1606,9 +1652,7 @@ async function generateVideo() {
         status.innerText = "✅ Готово!";
 
         creditsLeft -= generationCost;
-
-        document.getElementById("creditsCount").innerText =
-            creditsLeft;
+        document.getElementById("creditsCount").innerText = creditsLeft;
 
         video.src = finalVideoUrl;
         video.style.display = "block";
@@ -1616,7 +1660,9 @@ async function generateVideo() {
         document.getElementById("downloadLink").href = finalVideoUrl;
 
         actions.className = "actions show";
-        btn.disabled = false;
+
+        isGenerated = true;
+        btn.disabled = true;
 
     } catch (error) {
         status.innerText = error.message;
@@ -1647,6 +1693,20 @@ document
 toggleCustomTheme();
 
 updateGenerationCost();
+
+document.getElementById("theme").addEventListener("change", toggleCustomTheme);
+
+document.getElementById("text").addEventListener("input", function () {
+    document.getElementById("charCount").innerText =
+        this.value.length + " / 250";
+});
+
+toggleCustomTheme();
+
+document.getElementById("charCount").innerText =
+    document.getElementById("text").value.length + " / 250";
+
+document.getElementById("creditsCount").innerText = creditsLeft;
 
 </script>
 </body>
