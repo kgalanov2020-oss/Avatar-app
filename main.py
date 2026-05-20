@@ -1854,6 +1854,8 @@ video {
         </button>
     </div>
 
+    <div id="historyBox" style="margin-top:30px;"></div>
+
     <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
 </div>
 
@@ -2013,6 +2015,7 @@ if (!agree) {
     currentUser = data.user;
     updateAuthUI();
     await ensureProfile();
+    await loadHistory();
 }
 
 async function logout() {
@@ -2026,6 +2029,7 @@ async function loadUser() {
     currentUser = data.session?.user || null;
     updateAuthUI();
     await ensureProfile();
+    await loadHistory();
 }
 
 function setProgress(percent) {
@@ -2120,6 +2124,72 @@ function resetApp() {
     btn.innerText = "Создать видео";
 
     setStep(0);
+}
+
+async function loadHistory() {
+
+    if (!currentUser) return;
+
+    const response = await fetch(
+        "/my-generations/" + currentUser.id
+    );
+
+    const data = await response.json();
+
+    const historyBox =
+        document.getElementById("historyBox");
+
+    if (!data.generations?.length) {
+        historyBox.innerHTML = "";
+        return;
+    }
+
+    historyBox.innerHTML = `
+        <h2 style="margin-bottom:16px;">
+            Мои генерации
+        </h2>
+    `;
+
+    data.generations.forEach(item => {
+
+        historyBox.innerHTML += `
+            <div style="
+                background:white;
+                border-radius:20px;
+                padding:16px;
+                margin-bottom:16px;
+                box-shadow:0 6px 20px rgba(0,0,0,0.06);
+            ">
+
+                <img
+                    src="${item.image_url}"
+                    style="
+                        width:100%;
+                        border-radius:16px;
+                        margin-bottom:12px;
+                    "
+                >
+
+                <video
+                    src="${item.video_url}"
+                    controls
+                    style="
+                        width:100%;
+                        border-radius:16px;
+                    "
+                ></video>
+
+                <div style="
+                    margin-top:10px;
+                    font-size:14px;
+                    color:#666;
+                ">
+                    ${item.style} • ${item.theme} • ${item.format}
+                </div>
+
+            </div>
+        `;
+    });
 }
 
 async function generateVideo() {
@@ -2332,6 +2402,7 @@ document.getElementById("creditsCount").innerText = creditsLeft;
         });
 
         actions.className = "actions show";
+        await loadHistory();
 
         isGenerated = true;
             btn.disabled = true;
