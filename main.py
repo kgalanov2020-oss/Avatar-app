@@ -1318,6 +1318,52 @@ async def make_vertical(
         "vertical_video_url": public_file_url(job_id, "vertical.mp4")
     }
 
+@app.post("/save-generation/")
+def save_generation(
+    user_id: str = Form(...),
+    image_url: str = Form(...),
+    video_url: str = Form(...),
+    style: str = Form(""),
+    theme: str = Form(""),
+    format: str = Form("")
+):
+
+    result = (
+        supabase_admin
+        .table("generations")
+        .insert({
+            "user_id": user_id,
+            "image_url": image_url,
+            "video_url": video_url,
+            "style": style,
+            "theme": theme,
+            "format": format
+        })
+        .execute()
+    )
+
+    return {
+        "success": True,
+        "data": result.data
+    }
+
+@app.get("/my-generations/{user_id}")
+def my_generations(user_id: str):
+
+    result = (
+        supabase_admin
+        .table("generations")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .limit(20)
+        .execute()
+    )
+
+    return {
+        "generations": result.data
+    }
+
 # =============================
 # FRONTEND PLACEHOLDER
 # =============================
@@ -2270,6 +2316,20 @@ document.getElementById("creditsCount").innerText = creditsLeft;
         video.style.display = "block";
 
         document.getElementById("downloadLink").href = finalVideoUrl;
+
+        const saveForm = new FormData();
+
+        saveForm.append("user_id", currentUser.id);
+        saveForm.append("image_url", finalAvatarUrl);
+        saveForm.append("video_url", finalVideoUrl);
+        saveForm.append("style", styleMode);
+        saveForm.append("theme", theme);
+        saveForm.append("format", format);
+
+        await fetch("/save-generation/", {
+            method: "POST",
+            body: saveForm
+        });
 
         actions.className = "actions show";
 
