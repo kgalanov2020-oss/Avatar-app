@@ -1877,25 +1877,32 @@ let currentUser = null;
 async function ensureProfile() {
     if (!currentUser) return;
 
-    const { data } = await supabaseClient
+    const { data, error } = await supabaseClient
         .from("profiles")
         .select("*")
         .eq("id", currentUser.id)
-        .single();
-
-    if (!data) {
-    const { error } = await supabaseClient
-        .from("profiles")
-        .insert({
-            id: currentUser.id,
-            email: currentUser.email,
-            credits: 3
-        });
+        .maybeSingle();
 
     if (error) {
-        console.error(error);
+        console.error("Profile load error:", error);
+        return;
     }
-}
+
+    if (!data) {
+        const { error: insertError } = await supabaseClient
+            .from("profiles")
+            .insert({
+                id: currentUser.id,
+                email: currentUser.email,
+                credits: 3
+            });
+
+        if (insertError) {
+            console.error("Profile insert error:", insertError);
+            return;
+        }
+    }
+
     await loadCredits();
 }
 
@@ -1986,14 +1993,13 @@ if (!agree) {
 }
 
 async function login() {
-    const agree =
-    document.getElementById("agreeTerms").checked;
+    const agree = document.getElementById("agreeTerms").checked;
 
-if (!agree) {
-    alert("Необходимо согласиться с Пользовательским соглашением и Политикой конфиденциальности");
-    return;
-}
-    
+    if (!agree) {
+        alert("Необходимо согласиться с Пользовательским соглашением и Политикой конфиденциальности");
+        return;
+    }
+
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
@@ -2013,8 +2019,11 @@ if (!agree) {
     }
 
     currentUser = data.user;
-    updateAuthUI();
+
     await ensureProfile();
+
+    updateAuthUI();
+
     await loadHistory();
 }
 
@@ -2026,10 +2035,15 @@ async function logout() {
 
 async function loadUser() {
     const { data } = await supabaseClient.auth.getSession();
+
     currentUser = data.session?.user || null;
+
+    if (currentUser) {
+        await ensureProfile();
+        await loadHistory();
+    }
+
     updateAuthUI();
-    await ensureProfile();
-    await loadHistory();
 }
 
 function setProgress(percent) {
