@@ -18,6 +18,7 @@ import os
 import requests
 import time
 import json
+from fastapi.responses import HTMLResponse
 
 # =============================
 # CONFIG
@@ -509,6 +510,161 @@ def get_theme_prompt(theme: str, custom_theme: str, mode: str) -> str:
 def root():
     return {"status": "AI Avatar Video server is running"}
 
+@app.get("/oferta", response_class=HTMLResponse)
+async def oferta():
+    return """
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>Пользовательское соглашение</title>
+        <style>
+            body{
+                max-width:900px;
+                margin:40px auto;
+                padding:20px;
+                font-family:Arial,sans-serif;
+                line-height:1.7;
+                color:#111;
+            }
+            h1,h2{
+                margin-top:40px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <h1>Пользовательское соглашение</h1>
+
+    <p>
+        Настоящее соглашение регулирует использование сервиса AI Avatar Video.
+    </p>
+
+    <h2>1. О сервисе</h2>
+
+    <p>
+        AI Avatar Video предоставляет пользователям возможность
+        создавать AI-аватары и AI-видео на основе загруженных изображений
+        и текстов.
+    </p>
+
+    <h2>2. Оплата</h2>
+
+    <p>
+        Оплата производится за внутренние credits сервиса.
+    </p>
+
+    <p>
+        1 generation = 1 credit.
+    </p>
+
+    <p>
+        После оплаты credits автоматически начисляются
+        на аккаунт пользователя.
+    </p>
+
+    <h2>3. Ответственность пользователя</h2>
+
+    <p>
+        Пользователь обязуется не загружать незаконный,
+        оскорбительный или нарушающий права третьих лиц контент.
+    </p>
+
+    <h2>4. Ограничение ответственности</h2>
+
+    <p>
+        Сервис предоставляется «как есть».
+        Администрация не гарантирует абсолютную бесперебойность работы.
+    </p>
+
+    <h2>5. Контакты</h2>
+
+    <p>
+        ИП Галанов Константин Николаевич
+        <br>
+        ИНН: 563901816803
+        <br>
+        Email: galanovkn@yandex.ru
+    </p>
+
+    </body>
+    </html>
+    """
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy():
+    return """
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>Политика конфиденциальности</title>
+        <style>
+            body{
+                max-width:900px;
+                margin:40px auto;
+                padding:20px;
+                font-family:Arial,sans-serif;
+                line-height:1.7;
+                color:#111;
+            }
+            h1,h2{
+                margin-top:40px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <h1>Политика конфиденциальности</h1>
+
+    <p>
+        Настоящая политика описывает порядок обработки персональных данных.
+    </p>
+
+    <h2>1. Какие данные собираются</h2>
+
+    <p>
+        Сервис может собирать:
+    </p>
+
+    <ul>
+        <li>Email пользователя</li>
+        <li>Загруженные изображения</li>
+        <li>Текст для генерации видео</li>
+    </ul>
+
+    <h2>2. Цель обработки данных</h2>
+
+    <p>
+        Данные используются исключительно
+        для работы AI Avatar Video.
+    </p>
+
+    <h2>3. Хранение данных</h2>
+
+    <p>
+        Администрация принимает разумные меры
+        для защиты пользовательских данных.
+    </p>
+
+    <h2>4. Передача третьим лицам</h2>
+
+    <p>
+        Данные могут передаваться внешним AI-сервисам,
+        необходимым для генерации изображений и видео.
+    </p>
+
+    <h2>5. Контакты</h2>
+
+    <p>
+        ИП Галанов Константин Николаевич
+        <br>
+        ИНН: 563901816803
+        <br>
+        Email: galanovkn@yandex.ru
+    </p>
+
+    </body>
+    </html>
+    """
 
 @app.post("/create-3d-avatar/")
 async def create_3d_avatar(
