@@ -1294,7 +1294,7 @@ video {
     <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <script>
 let finalVideoUrl = null;
@@ -1326,8 +1326,17 @@ function updateAuthUI() {
 }
 
 async function signUp() {
+    alert("Кнопка регистрации нажалась");
+
+    if (!window.supabase) {
+        alert("Supabase не загрузился");
+        return;
+    }
+
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
+
+    alert("Пробую зарегистрировать: " + email);
 
     if (!email || !password) {
         alert("Введите email и пароль");
@@ -1349,13 +1358,7 @@ async function signUp() {
         return;
     }
 
-    if (data.session) {
-        currentUser = data.user;
-        updateAuthUI();
-        alert("Аккаунт создан, вход выполнен");
-    } else {
-        alert("Аккаунт создан. Проверь email и подтверди регистрацию.");
-    }
+    alert("Регистрация отправлена. Проверь email.");
 }
 
 async function login() {
