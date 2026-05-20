@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.responses import FileResponse, Response
+from fastapi import Header
+from supabase import create_client
 
 from moviepy import AudioFileClip, VideoFileClip, CompositeVideoClip, ColorClip
 from PIL import Image, ImageOps
@@ -25,12 +27,20 @@ APP_BASE_URL = os.getenv("APP_BASE_URL", "https://avatar-app-vcer.onrender.com")
 COMFY_URL = os.getenv("COMFY_URL", "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net")
 DID_API_KEY = os.getenv("DID_API_KEY")
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
 UPLOAD_DIR = "uploads"
 CARTOON_WORKFLOW_PATH = "instantid_cartoon_workflow_api.json"
 REALISTIC_WORKFLOW_PATH = "instantid_workflow_api.json"
 
 MAX_TEXT_LENGTH = 250
 MAX_AUDIO_DURATION = 15
+
+supabase_admin = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY
+)
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -51,6 +61,49 @@ def get_file(job_id: str, filename: str):
         return {"error": "file not found", "path": file_path}
 
     return FileResponse(file_path)
+
+@app.post("/use-credit/")
+def use_credit(authorization: str = Header(None)):
+    if not authorization:
+        return {"error": "Missing authorization header"}
+
+    token = authorization.replace("Bearer ", "")
+
+    user_response = supabase_admin.auth.get_user(token)
+
+    if not user_response.user:
+        return {"error": "Invalid user"}
+
+    user_id = user_response.user.id
+
+    profile_response = (
+        supabase_admin
+        .table("profiles")
+        .select("credits")
+        .eq("id", user_id)
+        .single()
+        .execute()
+    )
+
+    credits = profile_response.data["credits"]
+
+    if credits <= 0:
+        return {"error": "Not enough credits"}
+
+    new_credits = credits - 1
+
+    (
+        supabase_admin
+        .table("profiles")
+        .update({"credits": new_credits})
+        .eq("id", user_id)
+        .execute()
+    )
+
+    return {
+        "success": True,
+        "credits": new_credits
+    }
 
 @app.head("/files/{job_id}/{filename}")
 def head_file(job_id: str, filename: str):
@@ -1715,14 +1768,23 @@ async function generateVideo() {
         setStep(4);
         status.innerText = "✅ Готово!";
 
-        creditsLeft -= generationCost;
+const { data: sessionData } = await supabaseClient.auth.getSession();
 
-        await supabaseClient
-            .from("profiles")
-            .update({ credits: creditsLeft })
-            .eq("id", currentUser.id);
+const creditResponse = await fetch("/use-credit/", {
+    method: "POST",
+    headers: {
+        "Authorization": "Bearer " + sessionData.session.access_token
+    }
+});
 
-        document.getElementById("creditsCount").innerText = creditsLeft;
+const creditData = await creditResponse.json();
+
+if (creditData.error) {
+    throw new Error("Ошибка списания кредита: " + creditData.error);
+}
+
+creditsLeft = creditData.credits;
+document.getElementById("creditsCount").innerText = creditsLeft;
 
         video.src = finalVideoUrl;
         video.style.display = "block";
