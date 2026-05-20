@@ -1113,11 +1113,11 @@ video {
 </p>
 
 <div id="creditsBox" class="hint" style="margin-bottom:16px;">
-    Credits: <b id="creditsCount">3</b>
+    Кредиты: <b id="creditsCount">3</b>
 </div>
 
 <div class="hint" id="generationCostBox">
-    This video will cost: <b id="generationCost">1</b> credit
+    Стоимость генерации: <b id="generationCost">1</b> кредит
 </div>
 
 <label>Фото</label>
