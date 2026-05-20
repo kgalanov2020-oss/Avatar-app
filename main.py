@@ -1319,15 +1319,18 @@ async function ensureProfile() {
         .single();
 
     if (!data) {
-        await supabaseClient
-            .from("profiles")
-            .insert({
-                id: currentUser.id,
-                email: currentUser.email,
-                credits: 3
-            });
-    }
+    const { error } = await supabaseClient
+        .from("profiles")
+        .insert({
+            id: currentUser.id,
+            email: currentUser.email,
+            credits: 3
+        });
 
+    if (error) {
+        console.error(error);
+    }
+}
     await loadCredits();
 }
 
