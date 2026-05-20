@@ -1903,7 +1903,7 @@ setStep(0);
     </div>
 
     <div>
-        Email: support@your-domain.com
+        Email: galanovkn@yandex.ru
     </div>
 
     <div>
