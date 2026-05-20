@@ -1309,6 +1309,48 @@ const supabaseClient = window.supabase.createClient(
 
 let currentUser = null;
 
+async function ensureProfile() {
+    if (!currentUser) return;
+
+    const { data } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .single();
+
+    if (!data) {
+        await supabaseClient
+            .from("profiles")
+            .insert({
+                id: currentUser.id,
+                email: currentUser.email,
+                credits: 3
+            });
+    }
+
+    await loadCredits();
+}
+
+async function loadCredits() {
+    if (!currentUser) return;
+
+    const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("credits")
+        .eq("id", currentUser.id)
+        .single();
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    creditsLeft = data.credits;
+
+    document.getElementById("creditsCount").innerText =
+        creditsLeft;
+}
+
 function updateAuthUI() {
     const loggedOutBox = document.getElementById("loggedOutBox");
     const loggedInBox = document.getElementById("loggedInBox");
@@ -1326,8 +1368,6 @@ function updateAuthUI() {
 }
 
 async function signUp() {
-    alert("Кнопка регистрации нажалась");
-
     if (!window.supabase) {
         alert("Supabase не загрузился");
         return;
@@ -1335,8 +1375,6 @@ async function signUp() {
 
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
-
-    alert("Пробую зарегистрировать: " + email);
 
     if (!email || !password) {
         alert("Введите email и пароль");
@@ -1358,7 +1396,17 @@ async function signUp() {
         return;
     }
 
-    alert("Регистрация отправлена. Проверь email.");
+    if (data.session) {
+        currentUser = data.user;
+
+        await ensureProfile();
+
+        updateAuthUI();
+
+        alert("Аккаунт создан, вход выполнен");
+    } else {
+        alert("Регистрация отправлена. Проверь email и подтверди аккаунт.");
+    }
 }
 
 async function login() {
@@ -1382,6 +1430,7 @@ async function login() {
 
     currentUser = data.user;
     updateAuthUI();
+    await ensureProfile();
 }
 
 async function logout() {
@@ -1394,6 +1443,7 @@ async function loadUser() {
     const { data } = await supabaseClient.auth.getSession();
     currentUser = data.session?.user || null;
     updateAuthUI();
+    await ensureProfile();
 }
 
 function setProgress(percent) {
@@ -1663,6 +1713,12 @@ async function generateVideo() {
         status.innerText = "✅ Готово!";
 
         creditsLeft -= generationCost;
+
+        await supabaseClient
+            .from("profiles")
+            .update({ credits: creditsLeft })
+            .eq("id", currentUser.id);
+
         document.getElementById("creditsCount").innerText = creditsLeft;
 
         video.src = finalVideoUrl;
@@ -1673,7 +1729,7 @@ async function generateVideo() {
         actions.className = "actions show";
 
         isGenerated = true;
-        btn.disabled = true;
+            btn.disabled = true;
         btn.innerText = "Видео создано";
 
     } catch (error) {
