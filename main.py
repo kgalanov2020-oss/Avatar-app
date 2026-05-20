@@ -1429,25 +1429,6 @@ async function loadUser() {
     updateAuthUI();
 }
 
-    await supabaseClient.auth.signOut();
-
-    currentUser = null;
-    updateAuthUI();
-}
-
-    const {
-        data: { session }
-    } = await supabaseClient.auth.getSession();
-
-    if (session?.user) {
-        currentUser = session.user;
-    } else {
-        currentUser = null;
-    }
-
-    updateAuthUI();
-}
-
 function resetApp() {
     finalVideoUrl = null;
     finalAvatarUrl = null;
@@ -1458,6 +1439,9 @@ function resetApp() {
     const actions = document.getElementById("actions");
     const status = document.getElementById("status");
     const btn = document.getElementById("generateBtn");
+
+    document.getElementById("status").innerText = "";
+    document.getElementById("photo").value = "";
 
     video.pause();
     video.removeAttribute("src");
