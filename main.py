@@ -2220,8 +2220,6 @@ async function generateVideo() {
     const btn = document.getElementById("generateBtn");
     const actions = document.getElementById("actions");
 
-    const generationCost = 1;
-
     if (!currentUser) {
         alert("Сначала войди в аккаунт");
         return;
@@ -2232,11 +2230,6 @@ async function generateVideo() {
         return;
     }
 
-    if (text.length > 250) {
-        alert("Текст слишком длинный. Максимум 250 символов.");
-        return;
-    }
-
     if (text.trim().length < 3) {
         alert("Введите текст поздравления.");
         return;
@@ -2244,11 +2237,6 @@ async function generateVideo() {
 
     if (!fileInput.files.length) {
         alert("Выбери фото");
-        return;
-    }
-
-    if (creditsLeft < generationCost) {
-        alert("Недостаточно credits");
         return;
     }
 
@@ -2268,11 +2256,10 @@ async function generateVideo() {
         avatarForm.append("theme", theme);
         avatarForm.append("custom_theme", customTheme);
 
-        let avatarEndpoint = "/create-3d-avatar/";
-
-        if (styleMode === "realistic") {
-            avatarEndpoint = "/create-realistic-avatar/";
-        }
+        const avatarEndpoint =
+            styleMode === "realistic"
+                ? "/create-realistic-avatar/"
+                : "/create-3d-avatar/";
 
         const avatarResponse = await fetch(avatarEndpoint, {
             method: "POST",
@@ -2287,10 +2274,9 @@ async function generateVideo() {
 
         const jobId = avatarData.job_id;
 
-        avatarPreview.src = avatarData.avatar_url;
-        avatarPreview.style.display = "block";
-
         finalAvatarUrl = avatarData.avatar_url;
+        avatarPreview.src = finalAvatarUrl;
+        avatarPreview.style.display = "block";
         document.getElementById("downloadImageLink").href = finalAvatarUrl;
 
         setStep(2);
@@ -2314,7 +2300,7 @@ async function generateVideo() {
         }
 
         setStep(3);
-        status.innerText = "⏳ Создаём talking video...";
+        status.innerText = "⏳ Создаём видео...";
 
         const talkForm = new FormData();
         talkForm.append("avatar_url", avatarData.did_avatar_url || avatarData.avatar_url);
@@ -2334,8 +2320,6 @@ async function generateVideo() {
         finalVideoUrl = talkData.video_url;
 
         if (format === "square") {
-            status.innerText = "⏳ Создаём square video...";
-
             const squareForm = new FormData();
             squareForm.append("video_url", finalVideoUrl);
             squareForm.append("job_id", jobId);
@@ -2355,75 +2339,14 @@ async function generateVideo() {
         }
 
         if (format === "vertical") {
-            status.innerText = "⏳ Создаём vertical video...";
-
             const verticalForm = new FormData();
             verticalForm.append("video_url", finalVideoUrl);
             verticalForm.append("job_id", jobId);
 
-const verticalData = await verticalResponse.json();
-
-if (verticalData.error || !verticalData.vertical_video_url) {
-    throw new Error("Ошибка vertical video: " + JSON.stringify(verticalData));
-}
-
-finalVideoUrl = verticalData.vertical_video_url;
-}
-
-const {
-    data: { session }
-} = await supabaseClient.auth.getSession();
-
-await fetch("/use-credit/", {
-    method: "POST",
-    headers: {
-        "Authorization": "Bearer " + session.access_token
-    }
-});
-
-await loadCredits();
-
-await fetch("/save-generation/", {
-    method: "POST",
-    body: (() => {
-        const form = new FormData();
-
-        form.append("user_id", currentUser.id);
-        form.append("image_url", finalAvatarUrl);
-        form.append("video_url", finalVideoUrl);
-        form.append("style", styleMode);
-        form.append("theme", theme);
-        form.append("format", format);
-
-        return form;
-    })()
-});
-
-await loadHistory();
-
-setStep(4);
-status.innerText = "✅ Готово!";
-
-video.src = finalVideoUrl;
-video.style.display = "block";
-
-document.getElementById("downloadLink").href =
-    finalVideoUrl;
-
-actions.className = "actions show";
-
-isGenerated = true;
-btn.disabled = true;
-btn.innerText = "Видео создано";
-
-} catch (error) {
-
-status.innerText = error.message;
-
-btn.disabled = false;
-btn.innerText = "Создать видео";
-}
-}
+            const verticalResponse = await fetch("/make-vertical/", {
+                method: "POST",
+                body: verticalForm
+            });
 
             const verticalData = await verticalResponse.json();
 
@@ -2434,34 +2357,25 @@ btn.innerText = "Создать видео";
             finalVideoUrl = verticalData.vertical_video_url;
         }
 
-        setStep(4);
-        status.innerText = "✅ Готово!";
+        const { data: sessionData } = await supabaseClient.auth.getSession();
 
-const { data: sessionData } = await supabaseClient.auth.getSession();
+        const creditResponse = await fetch("/use-credit/", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + sessionData.session.access_token
+            }
+        });
 
-const creditResponse = await fetch("/use-credit/", {
-    method: "POST",
-    headers: {
-        "Authorization": "Bearer " + sessionData.session.access_token
-    }
-});
+        const creditData = await creditResponse.json();
 
-const creditData = await creditResponse.json();
+        if (creditData.error) {
+            throw new Error("Ошибка списания кредита: " + creditData.error);
+        }
 
-if (creditData.error) {
-    throw new Error("Ошибка списания кредита: " + creditData.error);
-}
-
-creditsLeft = creditData.credits;
-document.getElementById("creditsCount").innerText = creditsLeft;
-
-        video.src = finalVideoUrl;
-        video.style.display = "block";
-
-        document.getElementById("downloadLink").href = finalVideoUrl;
+        creditsLeft = creditData.credits;
+        document.getElementById("creditsCount").innerText = creditsLeft;
 
         const saveForm = new FormData();
-
         saveForm.append("user_id", currentUser.id);
         saveForm.append("image_url", finalAvatarUrl);
         saveForm.append("video_url", finalVideoUrl);
@@ -2474,23 +2388,17 @@ document.getElementById("creditsCount").innerText = creditsLeft;
             body: saveForm
         });
 
-        actions.className = "actions show";
-        const saveForm = new FormData();
-
-        saveForm.append("user_id", currentUser.id);
-        saveForm.append("image_url", finalAvatarUrl);
-        saveForm.append("video_url", finalVideoUrl);
-        saveForm.append("style", styleMode);
-        saveForm.append("theme", theme);
-        saveForm.append("format", format);
-
-await fetch("/save-generation/", {
-    method: "POST",
-    body: saveForm
-});
-
-await loadHistory();
         await loadHistory();
+
+        setStep(4);
+        status.innerText = "✅ Готово!";
+
+        video.src = finalVideoUrl;
+        video.style.display = "block";
+
+        document.getElementById("downloadLink").href = finalVideoUrl;
+
+        actions.className = "actions show";
 
         isGenerated = true;
         btn.disabled = true;
