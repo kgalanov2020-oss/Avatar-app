@@ -2361,10 +2361,69 @@ async function generateVideo() {
             verticalForm.append("video_url", finalVideoUrl);
             verticalForm.append("job_id", jobId);
 
-            const verticalResponse = await fetch("/make-vertical/", {
-                method: "POST",
-                body: verticalForm
-            });
+const verticalData = await verticalResponse.json();
+
+if (verticalData.error || !verticalData.vertical_video_url) {
+    throw new Error("Ошибка vertical video: " + JSON.stringify(verticalData));
+}
+
+finalVideoUrl = verticalData.vertical_video_url;
+}
+
+const {
+    data: { session }
+} = await supabaseClient.auth.getSession();
+
+await fetch("/use-credit/", {
+    method: "POST",
+    headers: {
+        "Authorization": "Bearer " + session.access_token
+    }
+});
+
+await loadCredits();
+
+await fetch("/save-generation/", {
+    method: "POST",
+    body: (() => {
+        const form = new FormData();
+
+        form.append("user_id", currentUser.id);
+        form.append("image_url", finalAvatarUrl);
+        form.append("video_url", finalVideoUrl);
+        form.append("style", styleMode);
+        form.append("theme", theme);
+        form.append("format", format);
+
+        return form;
+    })()
+});
+
+await loadHistory();
+
+setStep(4);
+status.innerText = "✅ Готово!";
+
+video.src = finalVideoUrl;
+video.style.display = "block";
+
+document.getElementById("downloadLink").href =
+    finalVideoUrl;
+
+actions.className = "actions show";
+
+isGenerated = true;
+btn.disabled = true;
+btn.innerText = "Видео создано";
+
+} catch (error) {
+
+status.innerText = error.message;
+
+btn.disabled = false;
+btn.innerText = "Создать видео";
+}
+}
 
             const verticalData = await verticalResponse.json();
 
@@ -2460,6 +2519,11 @@ updateGenerationCost();
 updateCharCount();
 document.getElementById("creditsCount").innerText = creditsLeft;
 setStep(0);
+window.signUp = signUp;
+window.login = login;
+window.logout = logout;
+window.generateVideo = generateVideo;
+window.resetApp = resetApp;
 </script>
 <footer style="
     max-width:760px;
