@@ -1885,17 +1885,21 @@ setStep(0);
     line-height:1.8;
 ">
     <div style="margin-bottom:10px;">
-        <a href="/oferta" target="_blank">Пользовательское соглашение</a>
+        <a href="/oferta" target="_blank">
+            Пользовательское соглашение
+        </a>
         —
-        <a href="/privacy" target="_blank">Политика конфиденциальности</a>
+        <a href="/privacy" target="_blank">
+            Политика конфиденциальности
+        </a>
     </div>
 
     <div>
-        ООО "БИЗНЕС-ПРОФИЛЬ"
+        ИП Галанов Константин Николаевич
     </div>
 
     <div>
-        ИНН: 9728162388
+        ИНН: 563901816803
     </div>
 
     <div>
