@@ -1120,12 +1120,6 @@ video {
     This video will cost: <b id="generationCost">1</b> credit
 </div>
 
-   <div id="loggedInBox" style="display:none;">
-    <div id="currentUser" class="hint" style="margin-top:10px;">
-        Logged in
-    </div>
-</div>
-
 <label>Фото</label>
 
     <input type="file" id="photo" accept="image/*">
@@ -1272,7 +1266,6 @@ video {
 </div>
 
 <script>
-
 let finalVideoUrl = null;
 let finalAvatarUrl = null;
 let creditsLeft = 3;
@@ -1281,6 +1274,7 @@ let isGenerated = false;
 function setProgress(percent) {
     document.getElementById("progressBar").style.width = percent + "%";
 }
+
 function setStep(step) {
     const avatar = document.getElementById("stepAvatar");
     const voice = document.getElementById("stepVoice");
@@ -1321,112 +1315,23 @@ function setStep(step) {
 }
 
 function calculateGenerationCost(styleMode, format) {
-
-    let cost = 1;
-
-    if (styleMode === "realistic") {
-        cost += 1;
-    }
-
-    if (format === "vertical") {
-        cost += 1;
-    }
-
-    return cost;
+    return 1;
 }
 
 function updateGenerationCost() {
-
-    const styleMode =
-        document.getElementById("styleMode").value;
-
-    const format =
-        document.getElementById("format").value;
-
-    const cost =
-        calculateGenerationCost(styleMode, format);
-
-    document.getElementById("generationCost").innerText =
-        cost;
+    document.getElementById("generationCost").innerText = 1;
 }
 
 function toggleCustomTheme() {
     const theme = document.getElementById("theme").value;
     const customTheme = document.getElementById("customTheme");
 
-    if (theme === "custom") {
-        customTheme.style.display = "block";
-    } else {
-        customTheme.style.display = "none";
-    }
+    customTheme.style.display = theme === "custom" ? "block" : "none";
 }
 
-function updateAuthUI() {
-    const loggedOutBox = document.getElementById("loggedOutBox");
-    const loggedInBox = document.getElementById("loggedInBox");
-    const currentUserBox = document.getElementById("currentUser");
-
-    if (currentUser) {
-        loggedOutBox.style.display = "none";
-        loggedInBox.style.display = "block";
-        currentUserBox.innerText = "Logged in as: " + currentUser.email;
-    } else {
-        loggedOutBox.style.display = "block";
-        loggedInBox.style.display = "none";
-        currentUserBox.innerText = "Not logged in";
-    }
-}
-
-async function signUp() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password
-    });
-
-    if (error) {
-        alert("Sign up error: " + error.message);
-        return;
-    }
-
-    alert("Account created. Now click Login.");
-}
-
-async function login() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-    });
-
-    if (error) {
-        alert("Login error: " + error.message);
-        return;
-    }
-
-    currentUser = data.user;
-    updateAuthUI();
-}
-
-async function logout() {
-    await supabaseClient.auth.signOut();
-
-    currentUser = null;
-    updateAuthUI();
-}
-
-async function loadUser() {
-    const {
-        data: { session }
-    } = await supabaseClient.auth.getSession();
-
-    currentUser = session?.user || null;
-
-    updateAuthUI();
+function updateCharCount() {
+    const text = document.getElementById("text").value;
+    document.getElementById("charCount").innerText = text.length + " / 250";
 }
 
 function resetApp() {
@@ -1440,9 +1345,6 @@ function resetApp() {
     const status = document.getElementById("status");
     const btn = document.getElementById("generateBtn");
 
-    document.getElementById("status").innerText = "";
-    document.getElementById("photo").value = "";
-
     video.pause();
     video.removeAttribute("src");
     video.load();
@@ -1451,10 +1353,14 @@ function resetApp() {
     avatarPreview.removeAttribute("src");
     avatarPreview.style.display = "none";
 
+    document.getElementById("downloadLink").href = "#";
+    document.getElementById("downloadImageLink").href = "#";
+
     actions.className = "actions";
     status.innerText = "";
 
     btn.disabled = false;
+    btn.innerText = "Создать видео";
 
     setStep(0);
 }
@@ -1473,10 +1379,9 @@ async function generateVideo() {
     const btn = document.getElementById("generateBtn");
     const actions = document.getElementById("actions");
 
-    const generationCost =
-        calculateGenerationCost(styleMode, format);
+    const generationCost = 1;
 
-        if (isGenerated) {
+    if (isGenerated) {
         alert("Видео уже создано. Нажми 'Создать ещё', чтобы начать заново.");
         return;
     }
@@ -1485,6 +1390,7 @@ async function generateVideo() {
         alert("Текст слишком длинный. Максимум 250 символов.");
         return;
     }
+
     if (text.trim().length < 3) {
         alert("Введите текст поздравления.");
         return;
@@ -1501,6 +1407,7 @@ async function generateVideo() {
     }
 
     btn.disabled = true;
+    btn.innerText = "Генерация...";
     actions.className = "actions";
     video.style.display = "none";
     avatarPreview.style.display = "none";
@@ -1534,7 +1441,6 @@ async function generateVideo() {
 
         const jobId = avatarData.job_id;
 
-        status.innerText = "✅ Аватар готов";
         avatarPreview.src = avatarData.avatar_url;
         avatarPreview.style.display = "block";
 
@@ -1562,13 +1468,10 @@ async function generateVideo() {
         }
 
         setStep(3);
-        status.innerText = "⏳ Запускаем говорящую анимацию...";
+        status.innerText = "⏳ Создаём talking video...";
 
         const talkForm = new FormData();
-        talkForm.append(
-            "avatar_url",
-            avatarData.did_avatar_url || avatarData.avatar_url
-        );
+        talkForm.append("avatar_url", avatarData.did_avatar_url || avatarData.avatar_url);
         talkForm.append("audio_url", voiceData.audio_url);
 
         const talkResponse = await fetch("/did-video/", {
@@ -1583,10 +1486,11 @@ async function generateVideo() {
         }
 
         finalVideoUrl = talkData.video_url;
+
         if (format === "square") {
+            status.innerText = "⏳ Создаём square video...";
 
             const squareForm = new FormData();
-
             squareForm.append("video_url", finalVideoUrl);
             squareForm.append("job_id", jobId);
 
@@ -1598,14 +1502,12 @@ async function generateVideo() {
             const squareData = await squareResponse.json();
 
             if (squareData.error || !squareData.square_video_url) {
-                throw new Error(
-                    "Ошибка square video: " +
-                    JSON.stringify(squareData)
-                );
+                throw new Error("Ошибка square video: " + JSON.stringify(squareData));
             }
 
             finalVideoUrl = squareData.square_video_url;
         }
+
         if (format === "vertical") {
             status.innerText = "⏳ Создаём vertical video...";
 
@@ -1642,39 +1544,25 @@ async function generateVideo() {
 
         isGenerated = true;
         btn.disabled = true;
+        btn.innerText = "Видео создано";
 
     } catch (error) {
         status.innerText = error.message;
         btn.disabled = false;
+        btn.innerText = "Создать видео";
     }
 }
 
-document
-    .getElementById("styleMode")
-    .addEventListener("change", updateGenerationCost);
-
-document
-    .getElementById("format")
-    .addEventListener("change", updateGenerationCost);
-
-toggleCustomTheme();
-
-updateGenerationCost();
-
+document.getElementById("styleMode").addEventListener("change", updateGenerationCost);
+document.getElementById("format").addEventListener("change", updateGenerationCost);
 document.getElementById("theme").addEventListener("change", toggleCustomTheme);
-
-document.getElementById("text").addEventListener("input", function () {
-    document.getElementById("charCount").innerText =
-        this.value.length + " / 250";
-});
+document.getElementById("text").addEventListener("input", updateCharCount);
 
 toggleCustomTheme();
-
-document.getElementById("charCount").innerText =
-    document.getElementById("text").value.length + " / 250";
-
+updateGenerationCost();
+updateCharCount();
 document.getElementById("creditsCount").innerText = creditsLeft;
-
+setStep(0);
 </script>
 </body>
 </html>
