@@ -1165,6 +1165,60 @@ video {
     Загрузи фото, напиши поздравление — получи говорящее видео с AI-аватаром.
 </p>
 
+<div class="card" style="margin-top:20px;">
+    <h2 style="margin-top:0;">Тарифы</h2>
+
+    <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:16px;
+        margin-top:20px;
+    ">
+
+        <div style="
+            padding:20px;
+            border-radius:20px;
+            background:#f7f7f7;
+        ">
+            <h3>Starter</h3>
+            <div style="font-size:32px;font-weight:800;">249 ₽</div>
+            <div style="margin-top:10px;">5 credits</div>
+        </div>
+
+        <div style="
+            padding:20px;
+            border-radius:20px;
+            background:#111;
+            color:white;
+        ">
+            <h3>Popular</h3>
+            <div style="font-size:32px;font-weight:800;">399 ₽</div>
+            <div style="margin-top:10px;">10 credits</div>
+        </div>
+
+        <div style="
+            padding:20px;
+            border-radius:20px;
+            background:#f7f7f7;
+        ">
+            <h3>Pro</h3>
+            <div style="font-size:32px;font-weight:800;">899 ₽</div>
+            <div style="margin-top:10px;">30 credits</div>
+        </div>
+
+    </div>
+
+    <p style="
+        margin-top:20px;
+        color:#666;
+        line-height:1.6;
+    ">
+        Credits используются для генерации AI-видео и AI-аватаров.
+        1 генерация = 1 credit.
+        После оплаты credits автоматически начисляются на аккаунт пользователя.
+    </p>
+</div>
+
 <div id="creditsBox" class="hint" style="margin-bottom:16px;">
     Кредиты: <b id="creditsCount">3</b>
 </div>
