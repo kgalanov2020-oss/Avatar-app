@@ -2402,10 +2402,25 @@ document.getElementById("creditsCount").innerText = creditsLeft;
         });
 
         actions.className = "actions show";
+        const saveForm = new FormData();
+
+        saveForm.append("user_id", currentUser.id);
+        saveForm.append("image_url", finalAvatarUrl);
+        saveForm.append("video_url", finalVideoUrl);
+        saveForm.append("style", styleMode);
+        saveForm.append("theme", theme);
+        saveForm.append("format", format);
+
+await fetch("/save-generation/", {
+    method: "POST",
+    body: saveForm
+});
+
+await loadHistory();
         await loadHistory();
 
         isGenerated = true;
-            btn.disabled = true;
+        btn.disabled = true;
         btn.innerText = "Видео создано";
 
     } catch (error) {
