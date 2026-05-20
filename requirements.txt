@@ -10,3 +10,4 @@ deep-translator
 imageio
 imageio-ffmpeg
 numpy
+supabase
