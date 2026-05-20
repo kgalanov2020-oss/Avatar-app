@@ -1120,6 +1120,35 @@ video {
     Стоимость генерации: <b id="generationCost">1</b> кредит
 </div>
 
+<div id="authBox" style="margin-top:20px; margin-bottom:20px;">
+
+    <div id="loggedOutBox">
+        <input type="email" id="email" placeholder="Email" style="margin-bottom:10px;">
+        <input type="password" id="password" placeholder="Пароль" style="margin-bottom:10px;">
+
+        <button id="signUpBtn" type="button">Зарегистрироваться</button>
+
+        <button id="loginBtn" type="button" class="secondary" style="margin-top:10px;">
+            Войти
+        </button>
+
+        <div class="hint" style="margin-top:10px;">
+            После регистрации подтверди email, затем войди.
+        </div>
+    </div>
+
+    <div id="loggedInBox" style="display:none;">
+        <div id="currentUser" class="hint" style="margin-top:10px;">
+            Вы вошли
+        </div>
+
+        <button id="logoutBtn" type="button" class="secondary" style="margin-top:10px;">
+            Выйти
+        </button>
+    </div>
+
+</div>
+
 <label>Фото</label>
 
     <input type="file" id="photo" accept="image/*">
@@ -1265,11 +1294,104 @@ video {
     <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 let finalVideoUrl = null;
 let finalAvatarUrl = null;
 let creditsLeft = 3;
 let isGenerated = false;
+
+const supabaseClient = window.supabase.createClient(
+    "https://yvynivfphhyqriqwpiic.supabase.co",
+    "sb_publishable_MSlFLoKbU-DJhWcP5d3wbw_YZQbc-jb"
+);
+
+let currentUser = null;
+
+function updateAuthUI() {
+    const loggedOutBox = document.getElementById("loggedOutBox");
+    const loggedInBox = document.getElementById("loggedInBox");
+    const currentUserBox = document.getElementById("currentUser");
+
+    if (currentUser) {
+        loggedOutBox.style.display = "none";
+        loggedInBox.style.display = "block";
+        currentUserBox.innerText = "Вы вошли как: " + currentUser.email;
+    } else {
+        loggedOutBox.style.display = "block";
+        loggedInBox.style.display = "none";
+        currentUserBox.innerText = "Вы не вошли";
+    }
+}
+
+async function signUp() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!email || !password) {
+        alert("Введите email и пароль");
+        return;
+    }
+
+    if (password.length < 6) {
+        alert("Пароль должен быть минимум 6 символов");
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password
+    });
+
+    if (error) {
+        alert("Ошибка регистрации: " + error.message);
+        return;
+    }
+
+    if (data.session) {
+        currentUser = data.user;
+        updateAuthUI();
+        alert("Аккаунт создан, вход выполнен");
+    } else {
+        alert("Аккаунт создан. Проверь email и подтверди регистрацию.");
+    }
+}
+
+async function login() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!email || !password) {
+        alert("Введите email и пароль");
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+        alert("Ошибка входа: " + error.message);
+        return;
+    }
+
+    currentUser = data.user;
+    updateAuthUI();
+}
+
+async function logout() {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    updateAuthUI();
+}
+
+async function loadUser() {
+    const { data } = await supabaseClient.auth.getSession();
+    currentUser = data.session?.user || null;
+    updateAuthUI();
+}
 
 function setProgress(percent) {
     document.getElementById("progressBar").style.width = percent + "%";
@@ -1380,6 +1502,11 @@ async function generateVideo() {
     const actions = document.getElementById("actions");
 
     const generationCost = 1;
+
+    if (!currentUser) {
+        alert("Сначала войди в аккаунт");
+        return;
+    }
 
     if (isGenerated) {
         alert("Видео уже создано. Нажми 'Создать ещё', чтобы начать заново.");
@@ -1557,6 +1684,12 @@ document.getElementById("styleMode").addEventListener("change", updateGeneration
 document.getElementById("format").addEventListener("change", updateGenerationCost);
 document.getElementById("theme").addEventListener("change", toggleCustomTheme);
 document.getElementById("text").addEventListener("input", updateCharCount);
+
+document.getElementById("signUpBtn").addEventListener("click", signUp);
+document.getElementById("loginBtn").addEventListener("click", login);
+document.getElementById("logoutBtn").addEventListener("click", logout);
+
+loadUser();
 
 toggleCustomTheme();
 updateGenerationCost();
