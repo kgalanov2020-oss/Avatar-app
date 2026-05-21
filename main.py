@@ -515,10 +515,11 @@ def create_payment(data: dict):
     amount = data.get("amount")
     credits = data.get("credits")
     user_id = data.get("user_id")
+    email = data.get("email", "customer@example.com")
 
     payment = Payment.create({
         "amount": {
-            "value": str(amount),
+            "value": f"{amount}.00",
             "currency": "RUB"
         },
 
@@ -531,6 +532,25 @@ def create_payment(data: dict):
 
         "description": f"Покупка {credits} кредитов",
 
+        "receipt": {
+            "customer": {
+                "email": email
+            },
+            "items": [
+                {
+                    "description": f"{credits} кредитов AI Avatar Video",
+                    "quantity": "1.00",
+                    "amount": {
+                        "value": f"{amount}.00",
+                        "currency": "RUB"
+                    },
+                    "vat_code": 1,
+                    "payment_mode": "full_payment",
+                    "payment_subject": "service"
+                }
+            ]
+        },
+
         "metadata": {
             "user_id": user_id,
             "credits": credits
@@ -539,8 +559,7 @@ def create_payment(data: dict):
     }, uuid.uuid4())
 
     return {
-        "payment_url":
-            payment.confirmation.confirmation_url
+        "payment_url": payment.confirmation.confirmation_url
     }
 
 # =============================
@@ -1967,6 +1986,8 @@ video {
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
+window.buyCredits = buyCredits;
+
 <script>
 let finalVideoUrl = null;
 let finalAvatarUrl = null;
@@ -2315,25 +2336,35 @@ async function loadHistory() {
 async function buyCredits(credits, amount) {
 
     if (!currentUser) {
-        alert("Сначала войдите");
+        alert("Сначала войдите в аккаунт");
         return;
     }
 
     const response = await fetch("/create-payment/", {
         method: "POST",
-
         headers: {
             "Content-Type": "application/json"
         },
+    body: JSON.stringify({
+        amount: amount,
+        credits: credits,
+        user_id: currentUser.id,
+        email: currentUser.email
+    })
 
-        body: JSON.stringify({
-            amount,
-            credits,
-            user_id: currentUser.id
-        })
-    });
+});
 
     const data = await response.json();
+
+    if (data.error) {
+        alert("Ошибка оплаты: " + data.error);
+        return;
+    }
+
+    if (!data.payment_url) {
+        alert("Не удалось получить ссылку на оплату");
+        return;
+    }
 
     window.location.href = data.payment_url;
 }
