@@ -588,16 +588,17 @@ async def yookassa_webhook(request: Request):
         print("INVALID PAYMENT DATA")
         return {"error": "invalid payment data"}
 
-existing_payment = (
-    supabase_admin
-    .table("payments")
-    .select("payment_id")
-    .eq("payment_id", payment_id)
-    .execute()
-)
-
-if existing_payment.data and len(existing_payment.data) > 0:
-    return {"status": "already_processed"}
+    existing_payment = (
+        supabase_admin
+        .table("payments")
+        .select("payment_id")
+        .eq("payment_id", payment_id)
+        .execute()
+    )
+    
+    if existing_payment.data and len(existing_payment.data) > 0:
+        return {"status": "already_processed"}
+    
     profile = (
         supabase_admin
         .table("profiles")
