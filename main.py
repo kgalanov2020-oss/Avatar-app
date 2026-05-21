@@ -1864,7 +1864,7 @@ video {
     Стоимость генерации: <b id="generationCost">1</b> кредит
 </div>
 
-<div style="margin-top:16px;">
+<div id="termsBox" style="margin-top:16px;">
     <label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.5;">
             <input type="checkbox" id="agreeTerms" style="width:auto; margin-top:4px;">
     
@@ -2132,14 +2132,17 @@ function updateAuthUI() {
     const loggedOutBox = document.getElementById("loggedOutBox");
     const loggedInBox = document.getElementById("loggedInBox");
     const currentUserBox = document.getElementById("currentUser");
+    const termsBox = document.getElementById("termsBox");
 
     if (currentUser) {
         loggedOutBox.style.display = "none";
         loggedInBox.style.display = "block";
+        termsBox.style.display = "none";
         currentUserBox.innerText = "Вы вошли как: " + currentUser.email;
     } else {
         loggedOutBox.style.display = "block";
         loggedInBox.style.display = "none";
+        termsBox.style.display = "block";
         currentUserBox.innerText = "Вы не вошли";
     }
 }
