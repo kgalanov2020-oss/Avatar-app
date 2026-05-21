@@ -1601,7 +1601,7 @@ video {
 </p>
 
 <div class="card" style="margin-top:20px;">
-    <h2 style="margin-top:0;">3 генерации бесплатно, далее необходимо выбрать тарифы</h2>
+    <h2 style="margin-top:0;">3 генерации бесплатно, далее на выбор</h2>
 
     <div style="
         display:grid;
