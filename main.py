@@ -1642,60 +1642,123 @@ video {
 </p>
 
 <div class="card" style="margin-top:20px;">
-    <h2 style="margin-top:0;">3 генерации бесплатно, далее на выбор</h2>
+
+    <h2 style="margin-top:0;">
+        3 генерации бесплатно, далее на выбор
+    </h2>
 
     <div style="
         display:grid;
         grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
         gap:16px;
         margin-top:20px;
-        ">
-    
+    ">
+
         <div onclick="buyCredits(5, 249)" style="
-            background:#f3f3f3;
-            border-radius:32px;
-            padding:32px;
+            padding:24px;
+            border-radius:24px;
+            background:#f5f5f5;
             cursor:pointer;
+            transition:0.2s;
         ">
-                <h3>Starter</h3>
-                <div style="font-size:32px;font-weight:800;">249 ₽</div>
-                <div style="margin-top:10px;">5 credits</div>
-            <div onclick="buyCredits(5, 249)" style="
-            </div>
-    
+            <h3 style="margin-top:0;">Starter</h3>
+
             <div style="
-            padding:20px;
-            border-radius:20px;
-            background:#111;
-            color:white;
-        ">
-            <h3>Popular</h3>
-            <div style="font-size:32px;font-weight:800;">399 ₽</div>
-            <div style="margin-top:10px;">10 credits</div>
+                font-size:36px;
+                font-weight:800;
+                margin-top:10px;
+            ">
+                249 ₽
+            </div>
+
+            <div style="
+                margin-top:12px;
+                color:#666;
+            ">
+                5 кредитов
+            </div>
         </div>
 
-        <div style="
-            padding:20px;
-            border-radius:20px;
-            background:#f7f7f7;
+        <div onclick="buyCredits(10, 399)" style="
+            padding:24px;
+            border-radius:24px;
+            background:#111;
+            color:white;
+            cursor:pointer;
+            transition:0.2s;
+            transform:scale(1.03);
         ">
-            <h3>Pro</h3>
-            <div style="font-size:32px;font-weight:800;">899 ₽</div>
-            <div style="margin-top:10px;">30 credits</div>
+            <div style="
+                display:inline-block;
+                padding:6px 12px;
+                border-radius:999px;
+                background:white;
+                color:#111;
+                font-size:12px;
+                font-weight:700;
+                margin-bottom:14px;
+            ">
+                Популярный
+            </div>
+
+            <h3 style="margin-top:0;">Popular</h3>
+
+            <div style="
+                font-size:36px;
+                font-weight:800;
+                margin-top:10px;
+            ">
+                399 ₽
+            </div>
+
+            <div style="
+                margin-top:12px;
+                opacity:0.8;
+            ">
+                10 кредитов
+            </div>
+        </div>
+
+        <div onclick="buyCredits(30, 899)" style="
+            padding:24px;
+            border-radius:24px;
+            background:#f5f5f5;
+            cursor:pointer;
+            transition:0.2s;
+        ">
+            <h3 style="margin-top:0;">Pro</h3>
+
+            <div style="
+                font-size:36px;
+                font-weight:800;
+                margin-top:10px;
+            ">
+                899 ₽
+            </div>
+
+            <div style="
+                margin-top:12px;
+                color:#666;
+            ">
+                30 кредитов
+            </div>
         </div>
 
     </div>
 
     <p style="
-        margin-top:20px;
+        margin-top:24px;
         color:#666;
-        line-height:1.6;
+        line-height:1.7;
+        font-size:15px;
     ">
-        Кредиты используются для генерации AI-видео и AI-аватаров. 
-        1 генерация = 1 кредит.
+        Кредиты используются для генерации AI-видео и AI-аватаров.<br>
+        1 генерация = 1 кредит.<br><br>
 
-            После оплаты кредиты автоматически начисляются на аккаунт пользователя.
+        После успешной оплаты кредиты автоматически начисляются
+        на аккаунт пользователя.
     </p>
+
 </div>
 
 <div id="creditsBox" class="hint" style="margin-bottom:16px;">
