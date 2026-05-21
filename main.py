@@ -574,7 +574,6 @@ async def yookassa_webhook(request: Request):
         return {"status": "ignored"}
 
     payment_object = body.get("object", {})
-
     metadata = payment_object.get("metadata", {})
 
     user_id = metadata.get("user_id")
@@ -583,25 +582,32 @@ async def yookassa_webhook(request: Request):
     if not user_id or credits <= 0:
         return {"error": "invalid metadata"}
 
-    profile = supabase.table("profiles") \
-        .select("credits") \
-        .eq("id", user_id) \
-        .single() \
+    profile = (
+        supabase_admin
+        .table("profiles")
+        .select("credits")
+        .eq("id", user_id)
+        .single()
         .execute()
+    )
 
     current_credits = profile.data["credits"]
 
     new_credits = current_credits + credits
 
-    supabase.table("profiles") \
-        .update({
-            "credits": new_credits
-        }) \
-        .eq("id", user_id) \
+    (
+        supabase_admin
+        .table("profiles")
+        .update({"credits": new_credits})
+        .eq("id", user_id)
         .execute()
+    )
 
     return {
-        "status": "success"
+        "status": "success",
+        "user_id": user_id,
+        "credits_added": credits,
+        "new_credits": new_credits
     }
 
 # =============================
