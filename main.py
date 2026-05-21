@@ -568,19 +568,35 @@ async def yookassa_webhook(request: Request):
 
     body = await request.json()
 
-    event = body.get("event")
-
-    if event != "payment.succeeded":
+    if body.get("event") != "payment.succeeded":
         return {"status": "ignored"}
 
     payment_object = body.get("object", {})
+    payment_id = payment_object.get("id")
+
     metadata = payment_object.get("metadata", {})
 
     user_id = metadata.get("user_id")
     credits = int(metadata.get("credits", 0))
 
-    if not user_id or credits <= 0:
-        return {"error": "invalid metadata"}
+    amount = int(float(
+        payment_object.get("amount", {}).get("value", "0")
+    ))
+
+    if not payment_id or not user_id or credits <= 0:
+        return {"error": "invalid payment data"}
+
+    existing_payment = (
+        supabase_admin
+        .table("payments")
+        .select("payment_id")
+        .eq("payment_id", payment_id)
+        .maybe_single()
+        .execute()
+    )
+
+    if existing_payment.data:
+        return {"status": "already_processed"}
 
     profile = (
         supabase_admin
@@ -592,7 +608,6 @@ async def yookassa_webhook(request: Request):
     )
 
     current_credits = profile.data["credits"]
-
     new_credits = current_credits + credits
 
     (
@@ -603,9 +618,22 @@ async def yookassa_webhook(request: Request):
         .execute()
     )
 
+    (
+        supabase_admin
+        .table("payments")
+        .insert({
+            "user_id": user_id,
+            "payment_id": payment_id,
+            "amount": amount,
+            "credits": credits,
+            "status": "succeeded"
+        })
+        .execute()
+    )
+
     return {
         "status": "success",
-        "user_id": user_id,
+        "payment_id": payment_id,
         "credits_added": credits,
         "new_credits": new_credits
     }
