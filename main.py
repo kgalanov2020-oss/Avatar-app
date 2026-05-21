@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi import Header
 from supabase import create_client
 from yookassa import Configuration, Payment
+from fastapi import Request
 import uuid
 
 from moviepy import AudioFileClip, VideoFileClip, CompositeVideoClip, ColorClip
@@ -560,6 +561,47 @@ def create_payment(data: dict):
 
     return {
         "payment_url": payment.confirmation.confirmation_url
+    }
+
+@app.post("/yookassa-webhook/")
+async def yookassa_webhook(request: Request):
+
+    body = await request.json()
+
+    event = body.get("event")
+
+    if event != "payment.succeeded":
+        return {"status": "ignored"}
+
+    payment_object = body.get("object", {})
+
+    metadata = payment_object.get("metadata", {})
+
+    user_id = metadata.get("user_id")
+    credits = int(metadata.get("credits", 0))
+
+    if not user_id or credits <= 0:
+        return {"error": "invalid metadata"}
+
+    profile = supabase.table("profiles") \
+        .select("credits") \
+        .eq("id", user_id) \
+        .single() \
+        .execute()
+
+    current_credits = profile.data["credits"]
+
+    new_credits = current_credits + credits
+
+    supabase.table("profiles") \
+        .update({
+            "credits": new_credits
+        }) \
+        .eq("id", user_id) \
+        .execute()
+
+    return {
+        "status": "success"
     }
 
 # =============================
