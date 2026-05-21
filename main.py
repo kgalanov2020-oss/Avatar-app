@@ -1987,7 +1987,6 @@ video {
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <script>
-window.buyCredits = buyCredits;
 
 let finalVideoUrl = null;
 let finalAvatarUrl = null;
@@ -2598,6 +2597,8 @@ window.login = login;
 window.logout = logout;
 window.generateVideo = generateVideo;
 window.resetApp = resetApp;
+window.buyCredits = buyCredits;
+
 </script>
 <footer style="
     max-width:760px;
