@@ -567,6 +567,7 @@ def create_payment(data: dict):
 async def yookassa_webhook(request: Request):
 
     body = await request.json()
+    print("YOOKASSA WEBHOOK:", body)
 
     if body.get("event") != "payment.succeeded":
         return {"status": "ignored"}
@@ -584,20 +585,19 @@ async def yookassa_webhook(request: Request):
     ))
 
     if not payment_id or not user_id or credits <= 0:
+        print("INVALID PAYMENT DATA")
         return {"error": "invalid payment data"}
 
-    existing_payment = (
-        supabase_admin
-        .table("payments")
-        .select("payment_id")
-        .eq("payment_id", payment_id)
-        .maybe_single()
-        .execute()
-    )
+existing_payment = (
+    supabase_admin
+    .table("payments")
+    .select("payment_id")
+    .eq("payment_id", payment_id)
+    .execute()
+)
 
-    if existing_payment.data:
-        return {"status": "already_processed"}
-
+if existing_payment.data and len(existing_payment.data) > 0:
+    return {"status": "already_processed"}
     profile = (
         supabase_admin
         .table("profiles")
@@ -1182,6 +1182,7 @@ async def create_video(
     format: str = Form("square"),
     job_id: str = Form("")
 ):
+    
     if len(text) > MAX_TEXT_LENGTH:
         return {"error": f"Text is too long. Maximum {MAX_TEXT_LENGTH} characters."}
 
