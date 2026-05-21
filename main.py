@@ -6,6 +6,8 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.responses import FileResponse, Response
 from fastapi import Header
 from supabase import create_client
+from yookassa import Configuration, Payment
+import uuid
 
 from moviepy import AudioFileClip, VideoFileClip, CompositeVideoClip, ColorClip
 from PIL import Image, ImageOps
@@ -42,6 +44,12 @@ supabase_admin = create_client(
     SUPABASE_URL,
     SUPABASE_SERVICE_ROLE_KEY
 )
+
+YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID")
+YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY")
+
+Configuration.account_id = YOOKASSA_SHOP_ID
+Configuration.secret_key = YOOKASSA_SECRET_KEY
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -501,6 +509,39 @@ def get_theme_prompt(theme: str, custom_theme: str, mode: str) -> str:
 
     return REALISTIC_THEMES.get(theme, REALISTIC_THEMES["default"])
 
+@app.post("/create-payment/")
+def create_payment(data: dict):
+
+    amount = data.get("amount")
+    credits = data.get("credits")
+    user_id = data.get("user_id")
+
+    payment = Payment.create({
+        "amount": {
+            "value": str(amount),
+            "currency": "RUB"
+        },
+
+        "confirmation": {
+            "type": "redirect",
+            "return_url": f"{APP_BASE_URL}/app"
+        },
+
+        "capture": True,
+
+        "description": f"Покупка {credits} кредитов",
+
+        "metadata": {
+            "user_id": user_id,
+            "credits": credits
+        }
+
+    }, uuid.uuid4())
+
+    return {
+        "payment_url":
+            payment.confirmation.confirmation_url
+    }
 
 # =============================
 # ROUTES
@@ -1643,6 +1684,10 @@ video {
 
     </div>
 
+    <button onclick="buyCredits(5, 99)">
+        Купить 5 кредитов
+    </button>
+    
     <p style="
         margin-top:20px;
         color:#666;
@@ -2204,6 +2249,32 @@ async function loadHistory() {
             </div>
         `;
     });
+}
+
+async function buyCredits(credits, amount) {
+
+    if (!currentUser) {
+        alert("Сначала войдите");
+        return;
+    }
+
+    const response = await fetch("/create-payment/", {
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            amount,
+            credits,
+            user_id: currentUser.id
+        })
+    });
+
+    const data = await response.json();
+
+    window.location.href = data.payment_url;
 }
 
 async function generateVideo() {
