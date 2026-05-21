@@ -1454,52 +1454,6 @@ async def make_vertical(
         "vertical_video_url": public_file_url(job_id, "vertical.mp4")
     }
 
-@app.post("/save-generation/")
-def save_generation(
-    user_id: str = Form(...),
-    image_url: str = Form(...),
-    video_url: str = Form(...),
-    style: str = Form(""),
-    theme: str = Form(""),
-    format: str = Form("")
-):
-
-    result = (
-        supabase_admin
-        .table("generations")
-        .insert({
-            "user_id": user_id,
-            "image_url": image_url,
-            "video_url": video_url,
-            "style": style,
-            "theme": theme,
-            "format": format
-        })
-        .execute()
-    )
-
-    return {
-        "success": True,
-        "data": result.data
-    }
-
-@app.get("/my-generations/{user_id}")
-def my_generations(user_id: str):
-
-    result = (
-        supabase_admin
-        .table("generations")
-        .select("*")
-        .eq("user_id", user_id)
-        .order("created_at", desc=True)
-        .limit(20)
-        .execute()
-    )
-
-    return {
-        "generations": result.data
-    }
-
 # =============================
 # FRONTEND PLACEHOLDER
 # =============================
@@ -2055,8 +2009,6 @@ video {
         </button>
     </div>
 
-    <div id="historyBox" style="margin-top:30px;"></div>
-
     <div class="footer-note">Генерация обычно занимает 1–3 минуты.</div>
 </div>
 
@@ -2229,8 +2181,7 @@ async function login() {
 
     updateAuthUI();
 
-    await loadHistory();
-}
+    }
 
 async function logout() {
     await supabaseClient.auth.signOut();
@@ -2245,7 +2196,6 @@ async function loadUser() {
 
     if (currentUser) {
         await ensureProfile();
-        await loadHistory();
     }
 
     updateAuthUI();
@@ -2346,72 +2296,6 @@ function resetApp() {
     document.getElementById("status").innerText = "";
 
     setStep(0);
-}
-
-async function loadHistory() {
-
-    if (!currentUser) return;
-
-    const response = await fetch(
-        "/my-generations/" + currentUser.id
-    );
-
-    const data = await response.json();
-
-    const historyBox =
-        document.getElementById("historyBox");
-
-    if (!data.generations?.length) {
-        historyBox.innerHTML = "";
-        return;
-    }
-
-    historyBox.innerHTML = `
-        <h2 style="margin-bottom:16px;">
-            Мои генерации
-        </h2>
-    `;
-
-    data.generations.forEach(item => {
-
-        historyBox.innerHTML += `
-            <div style="
-                background:white;
-                border-radius:20px;
-                padding:16px;
-                margin-bottom:16px;
-                box-shadow:0 6px 20px rgba(0,0,0,0.06);
-            ">
-
-                <img
-                    src="${item.image_url}"
-                    style="
-                        width:100%;
-                        border-radius:16px;
-                        margin-bottom:12px;
-                    "
-                >
-
-                <video
-                    src="${item.video_url}"
-                    controls
-                    style="
-                        width:100%;
-                        border-radius:16px;
-                    "
-                ></video>
-
-                <div style="
-                    margin-top:10px;
-                    font-size:14px;
-                    color:#666;
-                ">
-                    ${item.style} • ${item.theme} • ${item.format}
-                </div>
-
-            </div>
-        `;
-    });
 }
 
 async function buyCredits(credits, amount) {
@@ -2618,21 +2502,6 @@ async function generateVideo() {
 
         creditsLeft = creditData.credits;
         document.getElementById("creditsCount").innerText = creditsLeft;
-
-        const saveForm = new FormData();
-        saveForm.append("user_id", currentUser.id);
-        saveForm.append("image_url", finalAvatarUrl);
-        saveForm.append("video_url", finalVideoUrl);
-        saveForm.append("style", styleMode);
-        saveForm.append("theme", theme);
-        saveForm.append("format", format);
-
-        await fetch("/save-generation/", {
-            method: "POST",
-            body: saveForm
-        });
-
-        await loadHistory();
 
         setStep(4);
         status.innerText = "✅ Готово!";
