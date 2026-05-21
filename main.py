@@ -1986,9 +1986,9 @@ video {
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
+<script>
 window.buyCredits = buyCredits;
 
-<script>
 let finalVideoUrl = null;
 let finalAvatarUrl = null;
 let creditsLeft = 3;
@@ -2263,6 +2263,9 @@ function resetApp() {
 
     btn.disabled = false;
     btn.innerText = "Создать видео";
+
+    document.getElementById("photo").value = "";
+    document.getElementById("status").innerText = "";
 
     setStep(0);
 }
