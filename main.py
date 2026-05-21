@@ -637,7 +637,6 @@ async def yookassa_webhook(request: Request):
         "credits_added": credits,
         "new_credits": new_credits
     }
-
 # =============================
 # ROUTES
 # =============================
