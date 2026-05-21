@@ -1649,19 +1649,21 @@ video {
         grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
         gap:16px;
         margin-top:20px;
-    ">
-
-        <div style="
-            padding:20px;
-            border-radius:20px;
-            background:#f7f7f7;
         ">
-            <h3>Starter</h3>
-            <div style="font-size:32px;font-weight:800;">249 ₽</div>
-            <div style="margin-top:10px;">5 credits</div>
-        </div>
-
-        <div style="
+    
+        <div onclick="buyCredits(5, 249)" style="
+            background:#f3f3f3;
+            border-radius:32px;
+            padding:32px;
+            cursor:pointer;
+        ">
+                <h3>Starter</h3>
+                <div style="font-size:32px;font-weight:800;">249 ₽</div>
+                <div style="margin-top:10px;">5 credits</div>
+            <div onclick="buyCredits(5, 249)" style="
+            </div>
+    
+            <div style="
             padding:20px;
             border-radius:20px;
             background:#111;
@@ -1684,10 +1686,6 @@ video {
 
     </div>
 
-    <button onclick="buyCredits(5, 99)">
-        Купить 5 кредитов
-    </button>
-    
     <p style="
         margin-top:20px;
         color:#666;
