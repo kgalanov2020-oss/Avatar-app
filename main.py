@@ -218,15 +218,19 @@ async def text_handler(
     text = update.message.text
 
     if "photo_path" not in context.user_data:
+
         await update.message.reply_text(
             "Сначала отправь фотографию 📸"
         )
+
         return
 
     if "style" not in context.user_data:
+
         await update.message.reply_text(
             "Сначала выбери стиль"
         )
+
         return
 
     context.user_data["text"] = text
