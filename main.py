@@ -685,7 +685,7 @@ async def oferta():
     <p>
         Исполнитель: Индивидуальный предприниматель Галанов Константин Николаевич<br>
         ИНН: 563901816803<br>
-        Электронная почта: galanovkn@yandex.ru
+        Электронная почта: aiavatarvideo@mail.ru
     </p>
 
     <h2>2. Описание сервиса</h2>
@@ -844,7 +844,7 @@ async def oferta():
     <p>
         ИП Галанов Константин Николаевич<br>
         ИНН: 563901816803<br>
-        Электронная почта: galanovkn@yandex.ru
+        Электронная почта: aiavatarvideo@mail.ru
     </p>
 
     </body>
@@ -890,7 +890,7 @@ async def privacy():
     <p>
         Оператор: Индивидуальный предприниматель Галанов Константин Николаевич<br>
         ИНН: 563901816803<br>
-        Электронная почта: galanovkn@yandex.ru
+        Электронная почта: aiavatarvideo@mail.ru
     </p>
 
     <h2>2. Какие данные обрабатываются</h2>
@@ -1028,7 +1028,7 @@ async def privacy():
     <p>
         ИП Галанов Константин Николаевич<br>
         ИНН: 563901816803<br>
-        Электронная почта: galanovkn@yandex.ru
+        Электронная почта: aiavatarvideo@mail.ru
     </p>
 
     </body>
@@ -2581,7 +2581,7 @@ window.buyCredits = buyCredits;
     </div>
 
     <div>
-        Email: galanovkn@yandex.ru
+        E-mail: aiavatarvideo@mail.ru
     </div>
 
     <div>
