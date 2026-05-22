@@ -81,8 +81,21 @@ async def start_command(
         "Отправь фотографию, и я создам AI-видео 🎭"
     )
 
+async def photo_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    await update.message.reply_text(
+        "Фото получил ✅\n\n"
+        "Теперь напиши текст, который должен сказать аватар."
+    )
+
 telegram_app.add_handler(
     CommandHandler("start", start_command)
+)
+
+telegram_app.add_handler(
+    MessageHandler(filters.PHOTO, photo_handler)
 )
 
 @app.post("/telegram-webhook/")
