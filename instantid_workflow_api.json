@@ -1,0 +1,198 @@
+{
+  "1": {
+    "inputs": {
+      "ckpt_name": "juggernautXL.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Загрузить сheckpoint"
+    }
+  },
+  "2": {
+    "inputs": {
+      "text": "ultra realistic portrait photo,\ncinematic lighting,\nnatural skin texture,\n85mm lens,\nprofessional photography,\nhigh detail,\nphotorealistic,\nsharp focus,\nreal human,\nsymmetrical face,\nstudio lighting,\nupper body portrait,\nlooking at camera,\ncentered composition,\nhead fully visible",
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Кодирование текста CLIP (Запрос)"
+    }
+  },
+  "3": {
+    "inputs": {
+      "text": "blurry,\nlow quality,\ndeformed,\nbad anatomy,\ncropped head,\ncut face,\nduplicate,\nmutated,\nextra limbs,\nbad eyes,\ncross eye,\noversmoothed skin,\ncartoon,\ncgi,\n3d render,\nanime,\nwatermark,\ntext,\nlogo",
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Кодирование текста CLIP (Запрос)"
+    }
+  },
+  "4": {
+    "inputs": {
+      "width": 768,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Пустое латентное изображение"
+    }
+  },
+  "5": {
+    "inputs": {
+      "seed": 580155530043179,
+      "steps": 20,
+      "cfg": 5,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "denoise": 1,
+      "model": [
+        "20",
+        0
+      ],
+      "positive": [
+        "20",
+        1
+      ],
+      "negative": [
+        "20",
+        2
+      ],
+      "latent_image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "6": {
+    "inputs": {
+      "samples": [
+        "5",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "Декодировать VAE"
+    }
+  },
+  "7": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "6",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Сохранить изображение"
+    }
+  },
+  "10": {
+    "inputs": {
+      "instantid_file": "ip-adapter.bin"
+    },
+    "class_type": "InstantIDModelLoader",
+    "_meta": {
+      "title": "Load InstantID Model"
+    }
+  },
+  "11": {
+    "inputs": {
+      "provider": "CUDA"
+    },
+    "class_type": "InstantIDFaceAnalysis",
+    "_meta": {
+      "title": "InstantID Face Analysis"
+    }
+  },
+  "13": {
+    "inputs": {
+      "image": "DSC_5748.JPG"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Загрузить изображение"
+    }
+  },
+  "20": {
+    "inputs": {
+      "weight": 0.75,
+      "start_at": 0,
+      "end_at": 1,
+      "instantid": [
+        "10",
+        0
+      ],
+      "insightface": [
+        "11",
+        0
+      ],
+      "control_net": [
+        "22",
+        0
+      ],
+      "image": [
+        "23",
+        0
+      ],
+      "model": [
+        "1",
+        0
+      ],
+      "positive": [
+        "2",
+        0
+      ],
+      "negative": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "ApplyInstantID",
+    "_meta": {
+      "title": "Apply InstantID"
+    }
+  },
+  "22": {
+    "inputs": {
+      "control_net_name": "instantid_controlnet.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Загрузить модель ControlNet"
+    }
+  },
+  "23": {
+    "inputs": {
+      "target_width": 768,
+      "target_height": 1024,
+      "feathering": 0,
+      "upscale_method": "nearest-exact",
+      "image": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "ImagePadForOutpaintTargetSize",
+    "_meta": {
+      "title": "Image Pad For Outpaint Target Size"
+    }
+  }
+}
