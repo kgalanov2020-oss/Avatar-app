@@ -93,7 +93,7 @@ async def photo_handler(
     file_path = f"telegram_{update.message.chat_id}.jpg"
 
     await file.download_to_drive(file_path)
-    
+
     context.user_data["photo_path"] = file_path
 
     await update.message.reply_text(
