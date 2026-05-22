@@ -95,10 +95,72 @@ async def start_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-    await update.message.reply_text(
-        "Привет 👋\n\n"
-        "Отправь фотографию, и я создам AI-видео 🎭"
-    )
+await update.message.reply_text(
+    "Текст получил ✅\n\n"
+    "Создаю AI-аватар... ⏳"
+)
+
+await generate_telegram_avatar(update, context)
+
+async def generate_telegram_avatar(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    try:
+        photo_path = context.user_data["photo_path"]
+        style = context.user_data.get("style", "cartoon")
+
+        with open(photo_path, "rb") as file:
+            files = {
+                "file": file
+            }
+
+            data = {
+                "theme": "default",
+                "custom_theme": ""
+            }
+
+            endpoint = (
+                f"{APP_BASE_URL}/create-realistic-avatar/"
+                if style == "realistic"
+                else f"{APP_BASE_URL}/create-3d-avatar/"
+            )
+
+            response = requests.post(
+                endpoint,
+                files=files,
+                data=data,
+                timeout=240
+            )
+
+        result = response.json()
+
+        if result.get("error"):
+            await update.message.reply_text(
+                "Ошибка создания аватара 😔\n\n"
+                + str(result.get("error"))
+            )
+            return
+
+        avatar_url = result["avatar_url"]
+
+        context.user_data["job_id"] = result["job_id"]
+        context.user_data["avatar_url"] = avatar_url
+        context.user_data["did_avatar_url"] = result.get(
+            "did_avatar_url",
+            avatar_url
+        )
+
+        await update.message.reply_photo(
+            photo=avatar_url,
+            caption="AI-аватар готов ✅"
+        )
+
+    except Exception as error:
+        await update.message.reply_text(
+            "Ошибка Telegram генерации аватара 😔\n\n"
+            + str(error)
+        )
 
 async def photo_handler(
     update: Update,
