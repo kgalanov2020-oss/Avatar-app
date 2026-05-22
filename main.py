@@ -102,83 +102,6 @@ async def start_command(
         "Отправь фотографию, и я создам AI-аватар 🎭"
     )
 
-async def generate_telegram_avatar(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-    try:
-        photo_path = context.user_data["photo_path"]
-        style = context.user_data.get("style", "cartoon")
-
-        with open(photo_path, "rb") as file:
-
-            files = {
-                "file": file
-            }
-
-            data = {
-                "theme": "default",
-                "custom_theme": ""
-            }
-
-            endpoint = (
-                f"{APP_BASE_URL}/create-realistic-avatar/"
-                if style == "realistic"
-                else f"{APP_BASE_URL}/create-3d-avatar/"
-            )
-
-            response = requests.post(
-                endpoint,
-                files=files,
-                data=data,
-                timeout=240
-            )
-
-        result = response.json()
-
-        if result.get("error"):
-            await update.message.reply_text(
-                "Ошибка создания аватара 😔\n\n"
-                + str(result.get("error"))
-            )
-            return
-
-        avatar_url = result["avatar_url"]
-
-        context.user_data["job_id"] = result["job_id"]
-        context.user_data["avatar_url"] = avatar_url
-        context.user_data["did_avatar_url"] = result.get(
-            "did_avatar_url",
-            avatar_url
-        )    
-
-        await update.message.reply_photo(
-            photo=avatar_url,
-            caption="AI-аватар готов ✅"
-        )
-
-    except Exception as error:
-        await update.message.reply_text(
-            "Ошибка Telegram генерации аватара 😔\n\n"
-            + str(error)
-        )
-
-telegram_app.add_handler(
-    CommandHandler("start", start_command)
-)
-
-telegram_app.add_handler(
-    MessageHandler(filters.PHOTO, photo_handler)
-)
-
-telegram_app.add_handler(
-    CallbackQueryHandler(style_callback)
-)
-
-telegram_app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler)
-)
-
 async def photo_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -317,6 +240,22 @@ async def generate_telegram_avatar(
             "Ошибка Telegram генерации 😔\n\n"
             + str(error)
         )
+
+telegram_app.add_handler(
+    CommandHandler("start", start_command)
+)
+
+telegram_app.add_handler(
+    MessageHandler(filters.PHOTO, photo_handler)
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(style_callback)
+)
+
+telegram_app.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler)
+)
 
 @app.post("/telegram-webhook/")
 async def telegram_webhook(request: Request):
