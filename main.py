@@ -24,14 +24,15 @@ import json
 from fastapi.responses import HTMLResponse
 import telegram
 
-from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
+    CallbackQueryHandler,
     ContextTypes,
     filters
-)
+)    
 
 # =============================
 # CONFIG
@@ -85,19 +86,42 @@ async def photo_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
     photo = update.message.photo[-1]
-
     file = await context.bot.get_file(photo.file_id)
 
     file_path = f"telegram_{update.message.chat_id}.jpg"
-
     await file.download_to_drive(file_path)
 
     context.user_data["photo_path"] = file_path
 
+    keyboard = [
+        [
+            InlineKeyboardButton("🎨 Cartoon", callback_data="style_cartoon"),
+            InlineKeyboardButton("📸 Realistic", callback_data="style_realistic"),
+        ]
+    ]
+
     await update.message.reply_text(
-        "Фото получил ✅\n\n"
+        "Фото получил ✅\n\nВыбери стиль:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+async def style_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "style_cartoon":
+        context.user_data["style"] = "cartoon"
+        style_text = "Cartoon"
+    else:
+        context.user_data["style"] = "realistic"
+        style_text = "Realistic"
+
+    await query.edit_message_text(
+        f"Стиль выбран: {style_text} ✅\n\n"
         "Теперь напиши текст, который должен сказать аватар."
     )
 
@@ -107,6 +131,10 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     MessageHandler(filters.PHOTO, photo_handler)
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(style_callback)
 )
 
 @app.post("/telegram-webhook/")
