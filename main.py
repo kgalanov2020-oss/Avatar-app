@@ -24,6 +24,7 @@ import json
 from fastapi.responses import HTMLResponse
 import telegram
 
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
