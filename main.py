@@ -143,6 +143,39 @@ async def style_callback(
         "Теперь напиши текст, который должен сказать аватар."
     )
 
+async def text_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    text = update.message.text
+
+    if "photo_path" not in context.user_data:
+        await update.message.reply_text(
+            "Сначала отправь фотографию 📸"
+        )
+        return
+
+    if "style" not in context.user_data:
+        await update.message.reply_text(
+            "Сначала выбери стиль: Cartoon или Realistic"
+        )
+        return
+
+    context.user_data["text"] = text
+
+    await update.message.reply_text(
+        "Текст получил ✅\n\n"
+        "Скоро начну создавать видео 🎬"
+    )
+
+telegram_app.add_handler(
+    CallbackQueryHandler(style_callback)
+)
+
+telegram_app.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler)
+)
+
 telegram_app.add_handler(
     CommandHandler("start", start_command)
 )
