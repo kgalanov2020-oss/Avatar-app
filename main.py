@@ -111,6 +111,7 @@ async def generate_telegram_avatar(
         style = context.user_data.get("style", "cartoon")
 
         with open(photo_path, "rb") as file:
+
             files = {
                 "file": file
             }
