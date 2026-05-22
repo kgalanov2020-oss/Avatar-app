@@ -95,15 +95,11 @@ async def start_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+    context.user_data.clear()
 
     await update.message.reply_text(
-        "Текст получил ✅\n\n"
-        "Создаю AI-аватар... ⏳"
-    )
-
-    await generate_telegram_avatar(
-        update,
-        context
+        "Привет 👋\n\n"
+        "Отправь фотографию, и я создам AI-аватар 🎭"
     )
 
 async def generate_telegram_avatar(
@@ -154,7 +150,7 @@ async def generate_telegram_avatar(
         context.user_data["did_avatar_url"] = result.get(
             "did_avatar_url",
             avatar_url
-        )
+        )    
 
         await update.message.reply_photo(
             photo=avatar_url,
@@ -166,6 +162,10 @@ async def generate_telegram_avatar(
             "Ошибка Telegram генерации аватара 😔\n\n"
             + str(error)
         )
+
+telegram_app.add_handler(
+    CommandHandler("start", start_command)
+)
 
 async def photo_handler(
     update: Update,
