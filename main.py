@@ -22,6 +22,16 @@ import requests
 import time
 import json
 from fastapi.responses import HTMLResponse
+import telegram
+
+from telegram import Update
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters
+)
 
 # =============================
 # CONFIG
@@ -33,6 +43,8 @@ DID_API_KEY = os.getenv("DID_API_KEY")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 UPLOAD_DIR = "uploads"
 CARTOON_WORKFLOW_PATH = "instantid_cartoon_workflow_api.json"
@@ -55,6 +67,39 @@ Configuration.secret_key = YOOKASSA_SECRET_KEY
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = FastAPI()
+
+telegram_app = Application.builder().token(
+    TELEGRAM_BOT_TOKEN
+).build()
+
+async def start_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    await update.message.reply_text(
+        "Привет 👋\n\n"
+        "Отправь фотографию, и я создам AI-видео 🎭"
+    )
+
+telegram_app.add_handler(
+    CommandHandler("start", start_command)
+)
+
+@app.post("/telegram-webhook/")
+async def telegram_webhook(request: Request):
+
+    data = await request.json()
+
+    update = Update.de_json(
+        data,
+        telegram_app.bot
+    )
+
+    await telegram_app.initialize()
+
+    await telegram_app.process_update(update)
+
+    return {"ok": True}
 
 app.add_middleware(
     CORSMiddleware,
