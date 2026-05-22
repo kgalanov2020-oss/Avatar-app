@@ -167,6 +167,18 @@ telegram_app.add_handler(
     CommandHandler("start", start_command)
 )
 
+telegram_app.add_handler(
+    MessageHandler(filters.PHOTO, photo_handler)
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(style_callback)
+)
+
+telegram_app.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler)
+)
+
 async def photo_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
