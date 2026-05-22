@@ -1190,13 +1190,13 @@ async def create_realistic_avatar(
         )
 
         if "20" in workflow:
-            workflow["20"]["inputs"]["weight"] = 0.85
+            workflow["20"]["inputs"]["weight"] = 0.75
             workflow["20"]["inputs"]["start_at"] = 0
             workflow["20"]["inputs"]["end_at"] = 1
 
         workflow["5"]["inputs"]["seed"] = int(time.time())
-        workflow["5"]["inputs"]["steps"] = 40
-        workflow["5"]["inputs"]["cfg"] = 5.5
+        workflow["5"]["inputs"]["steps"] = 20
+        workflow["5"]["inputs"]["cfg"] = 5.0
         workflow["5"]["inputs"]["sampler_name"] = "dpmpp_2m"
         workflow["5"]["inputs"]["scheduler"] = "karras"
 
