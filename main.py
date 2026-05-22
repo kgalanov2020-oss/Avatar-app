@@ -210,6 +210,7 @@ async def text_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     text = update.message.text
 
     if "photo_path" not in context.user_data:
@@ -220,7 +221,7 @@ async def text_handler(
 
     if "style" not in context.user_data:
         await update.message.reply_text(
-            "Сначала выбери стиль: Cartoon или Realistic"
+            "Сначала выбери стиль"
         )
         return
 
@@ -228,7 +229,12 @@ async def text_handler(
 
     await update.message.reply_text(
         "Текст получил ✅\n\n"
-        "Скоро начну создавать видео 🎬"
+        "Создаю AI-аватар... ⏳"
+    )
+
+    await generate_telegram_avatar(
+        update,
+        context
     )
 
 telegram_app.add_handler(
