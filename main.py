@@ -95,12 +95,16 @@ async def start_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-await update.message.reply_text(
-    "Текст получил ✅\n\n"
-    "Создаю AI-аватар... ⏳"
-)
 
-await generate_telegram_avatar(update, context)
+    await update.message.reply_text(
+        "Текст получил ✅\n\n"
+        "Создаю AI-аватар... ⏳"
+    )
+
+    await generate_telegram_avatar(
+        update,
+        context
+    )
 
 async def generate_telegram_avatar(
     update: Update,
