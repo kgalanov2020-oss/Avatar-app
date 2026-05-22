@@ -1,18 +1,48 @@
-from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import HTMLResponse
+from fastapi import (
+    FastAPI,
+    UploadFile,
+    File,
+    Form,
+    Header,
+    Request
+)
+
+from fastapi.responses import (
+    HTMLResponse,
+    FileResponse,
+    Response
+)
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.responses import FileResponse, Response
-from fastapi import Header
+
 from supabase import create_client
 from yookassa import Configuration, Payment
-from fastapi import Request
-import uuid
 
-from moviepy import AudioFileClip, VideoFileClip, CompositeVideoClip, ColorClip
+from moviepy import (
+    AudioFileClip,
+    VideoFileClip,
+    CompositeVideoClip,
+    ColorClip
+)
+
 from PIL import Image, ImageOps
 from deep_translator import GoogleTranslator
+
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup
+)
+
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    CallbackQueryHandler,
+    ContextTypes,
+    filters
+)
 
 import edge_tts
 import shutil
@@ -21,19 +51,6 @@ import os
 import requests
 import time
 import json
-from fastapi.responses import HTMLResponse
-import telegram
-
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    CallbackQueryHandler,
-    ContextTypes,
-    filters
-)    
 
 # =============================
 # CONFIG
