@@ -230,7 +230,7 @@ def download_first_comfy_image(history: dict, output_path: str):
 
         with open(output_path, "wb") as file:
             file.write(response.content)
-
+    
         return
 
     raise RuntimeError("No image output from ComfyUI")
@@ -242,251 +242,298 @@ def download_first_comfy_image(history: dict, output_path: str):
 
 CARTOON_THEMES = {
     "default": (
-        "high quality colorful 3D cartoon avatar portrait, "
-        "detailed outfit, cinematic background, vibrant lighting, "
-        "pixar style, stylized character, beautiful composition"
+        "clean sharp 3D cartoon avatar portrait, "
+        "pixar style, stylized character, vibrant colors, "
+        "smooth shapes, sharp focus, clean face, "
+        "cute cartoon style, crisp details, no blur"
     ),
 
     "astronaut": (
-        "3D cartoon astronaut wearing a detailed white space suit with patches, "
-        "NASA style details, helmet collar, cosmic background, stars, planets, "
-        "cinematic sci-fi lighting, vibrant colors, pixar style"
+        "clean sharp 3D cartoon astronaut avatar, "
+        "white space suit, colorful patches, helmet collar, "
+        "stars and planets background, bright cartoon space style, "
+        "vibrant colors, crisp details, no blur"
     ),
 
     "cowboy": (
-        "3D cartoon cowboy wearing leather jacket, cowboy hat, "
-        "western shirt, desert background, sunset lighting, "
-        "cinematic western style, detailed costume"
+        "clean sharp 3D cartoon cowboy avatar, "
+        "cowboy hat, leather jacket, western shirt, "
+        "simple desert background, warm sunset colors, "
+        "stylized cartoon look, crisp details, no blur"
     ),
 
     "royal": (
-        "3D cartoon king or queen wearing royal crown, luxury robe, "
-        "gold embroidery, palace background, elegant cinematic lighting, "
-        "rich details, luxury atmosphere"
+        "clean sharp 3D cartoon royal avatar, "
+        "gold crown, elegant robe, simple palace background, "
+        "bright colors, stylized cartoon character, "
+        "crisp details, no blur"
     ),
 
     "sport": (
-        "3D cartoon professional athlete wearing detailed sports uniform, "
-        "stadium background, dramatic lights, energetic pose, "
-        "colorful cinematic sports style"
+        "clean sharp 3D cartoon athlete avatar, "
+        "sports uniform, stadium background, energetic pose, "
+        "bright colorful cartoon style, crisp details, no blur"
     ),
 
     "sailor": (
-        "3D cartoon sailor wearing navy sailor uniform, captain hat, "
-        "ocean background, sunset sea, detailed nautical symbols, "
-        "cinematic lighting, anime inspired style"
+        "clean sharp 3D cartoon sailor avatar, "
+        "navy sailor uniform, captain hat, ocean background, "
+        "bright nautical cartoon style, crisp details, no blur"
     ),
 
     "samurai": (
-        "3D cartoon samurai wearing detailed armor, japanese temple background, "
-        "cherry blossoms, dramatic cinematic lighting"
+        "clean sharp 3D cartoon samurai avatar, "
+        "stylized armor, japanese temple background, cherry blossoms, "
+        "bright cartoon style, crisp details, no blur"
     ),
 
     "cyberpunk": (
-        "3D cartoon cyberpunk character wearing futuristic jacket, "
-        "neon city background, glowing lights, high tech details, "
-        "colorful cinematic bladerunner style"
+        "clean sharp 3D cartoon cyberpunk avatar, "
+        "futuristic jacket, neon city background, glowing lights, "
+        "bright cyberpunk cartoon style, crisp details, no blur"
     ),
 
     "superhero": (
-        "3D cartoon superhero wearing heroic costume, cape, chest emblem, "
-        "detailed suit armor, dramatic city skyline background, "
-        "action movie lighting, powerful heroic pose, marvel inspired"
+        "clean sharp 3D cartoon superhero avatar, "
+        "hero costume, cape, chest emblem, city background, "
+        "bold colorful cartoon style, crisp details, no blur"
     ),
 
     "rockstar": (
-        "3D cartoon rock star wearing leather jacket, sunglasses, "
-        "concert stage background, colorful spotlights, microphone, "
-        "energetic cinematic lighting"
+        "clean sharp 3D cartoon rock star avatar, "
+        "leather jacket, sunglasses, concert stage background, "
+        "bright colorful spotlights, crisp details, no blur"
     ),
 
     "gangster": (
-        "3D cartoon 1920s mafia gangster wearing pinstripe suit, "
-        "fedora hat, luxury vintage background, cinematic noir lighting"
+        "clean sharp 3D cartoon 1920s gangster avatar, "
+        "pinstripe suit, fedora hat, vintage background, "
+        "stylized cartoon look, crisp details, no blur"
     ),
 
     "pirate": (
-        "3D cartoon pirate captain wearing pirate coat, hat, gold accessories, "
-        "pirate ship background, ocean adventure lighting"
+        "clean sharp 3D cartoon pirate avatar, "
+        "pirate hat, captain coat, gold accessories, ship background, "
+        "adventure cartoon style, crisp details, no blur"
     ),
 
     "wizard": (
-        "3D cartoon wizard wearing magical robe, glowing staff, "
-        "fantasy castle background, magical particles, cinematic fantasy lighting"
+        "clean sharp 3D cartoon wizard avatar, "
+        "magic robe, glowing staff, fantasy castle background, "
+        "bright fantasy cartoon style, crisp details, no blur"
     ),
 
     "viking": (
-        "3D cartoon viking warrior wearing fur armor, nordic symbols, "
-        "snowy mountain background, dramatic cinematic lighting"
+        "clean sharp 3D cartoon viking avatar, "
+        "fur armor, nordic symbols, snowy mountain background, "
+        "bold cartoon style, crisp details, no blur"
     ),
 
     "ninja": (
-        "3D cartoon ninja wearing dark ninja outfit, japanese night background, "
-        "moonlight, cinematic action pose"
+        "clean sharp 3D cartoon ninja avatar, "
+        "dark ninja outfit, moonlit japanese background, "
+        "stylized action cartoon style, crisp details, no blur"
     ),
 
     "luxury": (
-        "3D cartoon billionaire wearing luxury suit, private jet background, "
-        "gold accents, cinematic premium lighting"
+        "clean sharp 3D cartoon luxury businessman avatar, "
+        "elegant suit, gold accents, premium background, "
+        "stylized cartoon look, crisp details, no blur"
     ),
 
     "angel": (
-        "3D cartoon angel with white wings, glowing halo, "
-        "heavenly clouds background, soft cinematic lighting"
+        "clean sharp 3D cartoon angel avatar, "
+        "white wings, glowing halo, soft cloud background, "
+        "bright heavenly cartoon style, crisp details, no blur"
     ),
 
     "demon": (
-        "3D cartoon dark fantasy demon style, horns, fantasy armor, "
-        "fire background, dramatic cinematic lighting"
+        "clean sharp 3D cartoon fantasy demon avatar, "
+        "small horns, fantasy armor, fire background, "
+        "dark colorful cartoon style, crisp details, no blur"
     ),
 
     "pharaoh": (
-        "3D cartoon egyptian pharaoh wearing gold headdress, "
-        "ancient egypt jewelry, pyramid background, desert sunset lighting"
+        "clean sharp 3D cartoon egyptian pharaoh avatar, "
+        "gold headdress, ancient jewelry, pyramid background, "
+        "bright desert cartoon style, crisp details, no blur"
     ),
 
     "knight": (
-        "3D cartoon medieval knight wearing shiny armor, "
-        "castle background, heroic cinematic lighting"
+        "clean sharp 3D cartoon medieval knight avatar, "
+        "shiny armor, castle background, heroic cartoon style, "
+        "crisp details, no blur"
     ),
 
     "racer": (
-        "3D cartoon formula one racer wearing detailed racing suit, "
-        "helmet under arm, racetrack background, cinematic speed lighting"
+        "clean sharp 3D cartoon racing driver avatar, "
+        "racing suit, helmet under arm, racetrack background, "
+        "bright speed cartoon style, crisp details, no blur"
     ),
 }
 
 
 REALISTIC_THEMES = {
     "default": (
-        "ultra realistic cinematic portrait, highly detailed face, "
-        "professional photography, dramatic lighting, depth of field, "
-        "luxury background, realistic skin texture, cinematic movie still, "
-        "85mm lens, volumetric lighting"
+        "professional portrait photo, "
+        "sharp focus, natural skin, clean studio lighting, "
+        "detailed eyes, realistic face, simple background, "
+        "high quality portrait"
     ),
 
     "astronaut": (
-        "ultra realistic astronaut portrait, detailed white NASA style space suit, "
-        "realistic fabric textures, cinematic sci-fi lighting, stars and space background, "
-        "professional photography, cinematic movie still, 85mm lens, ultra detailed"
+        "professional portrait photo of an astronaut, "
+        "white space suit, clean space background, "
+        "sharp focus, natural skin, realistic face, "
+        "simple lighting, high quality portrait"
     ),
 
     "cowboy": (
-        "ultra realistic cowboy portrait, leather jacket, cowboy hat, "
-        "western desert background, sunset cinematic lighting, "
-        "rugged realistic style, cinematic movie still"
+        "professional portrait photo of a cowboy, "
+        "cowboy hat, leather jacket, simple desert background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "royal": (
-        "ultra realistic king or queen portrait, luxury royal outfit, "
-        "gold embroidery, crown, palace interior, cinematic luxury lighting, "
-        "professional photography"
+        "professional portrait photo of a royal person, "
+        "crown, elegant robe, simple palace background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "sport": (
-        "ultra realistic athlete portrait, detailed sports uniform, "
-        "stadium lights, energetic cinematic sports photography"
+        "professional portrait photo of an athlete, "
+        "sports uniform, simple stadium background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "sailor": (
-        "ultra realistic sailor portrait, detailed navy uniform, "
-        "ocean sunset background, cinematic maritime photography"
+        "professional portrait photo of a sailor, "
+        "navy uniform, captain hat, simple ocean background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "samurai": (
-        "ultra realistic samurai warrior portrait, detailed armor, "
-        "japanese temple background, cinematic dramatic lighting"
+        "professional portrait photo of a samurai, "
+        "simple armor, japanese background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "cyberpunk": (
-        "ultra realistic cyberpunk portrait, futuristic neon jacket, "
-        "glowing city lights, cinematic bladerunner atmosphere"
+        "professional portrait photo of a cyberpunk character, "
+        "futuristic jacket, simple neon city background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "superhero": (
-        "ultra realistic superhero portrait, cinematic superhero suit, "
-        "cape, chest emblem, dramatic city skyline background, "
-        "marvel movie lighting, cinematic movie still, "
-        "professional photography, 85mm lens, depth of field, "
-        "high detail, volumetric lighting"
+        "professional portrait photo of a superhero, "
+        "hero suit, cape, chest emblem, simple city background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "rockstar": (
-        "ultra realistic rockstar portrait, leather jacket, "
-        "concert stage lights, cinematic music video atmosphere"
+        "professional portrait photo of a rock star, "
+        "leather jacket, simple concert background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "gangster": (
-        "ultra realistic mafia gangster portrait, luxury italian suit, "
-        "fedora hat, vintage noir cinematic lighting"
+        "professional portrait photo of a 1920s gangster, "
+        "pinstripe suit, fedora hat, vintage background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "pirate": (
-        "ultra realistic pirate captain portrait, detailed pirate coat, "
-        "ocean ship background, cinematic adventure lighting"
+        "professional portrait photo of a pirate captain, "
+        "pirate coat, hat, simple ship background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "wizard": (
-        "ultra realistic fantasy wizard portrait, magical robe, "
-        "glowing staff, cinematic fantasy environment"
+        "professional portrait photo of a wizard, "
+        "magic robe, simple fantasy background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "viking": (
-        "ultra realistic viking warrior portrait, fur armor, "
-        "nordic style, snowy cinematic background"
+        "professional portrait photo of a viking, "
+        "fur armor, snowy background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "ninja": (
-        "ultra realistic ninja portrait, dark tactical ninja suit, "
-        "moonlight cinematic action lighting"
+        "professional portrait photo of a ninja, "
+        "dark ninja outfit, simple night background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "luxury": (
-        "ultra realistic billionaire portrait, luxury suit, "
-        "private jet background, cinematic premium photography"
+        "professional portrait photo of a luxury businessman, "
+        "elegant suit, premium simple background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "angel": (
-        "ultra realistic angel portrait, glowing wings, "
-        "heavenly clouds, soft cinematic lighting"
+        "professional portrait photo of an angel, "
+        "white wings, soft cloud background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "demon": (
-        "ultra realistic dark fantasy demon portrait, "
-        "cinematic fire background, dramatic shadows"
+        "professional portrait photo of a fantasy demon character, "
+        "small horns, dark fantasy background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "pharaoh": (
-        "ultra realistic egyptian pharaoh portrait, gold jewelry, "
-        "pyramids background, cinematic desert sunset"
+        "professional portrait photo of an egyptian pharaoh, "
+        "gold headdress, simple pyramid background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "knight": (
-        "ultra realistic medieval knight portrait, steel armor, "
-        "castle background, dramatic cinematic lighting"
+        "professional portrait photo of a medieval knight, "
+        "steel armor, simple castle background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 
     "racer": (
-        "ultra realistic formula one racer portrait, "
-        "detailed racing suit, racetrack lights, cinematic speed atmosphere"
+        "professional portrait photo of a racing driver, "
+        "racing suit, racetrack background, "
+        "sharp focus, natural skin, realistic face, "
+        "high quality portrait"
     ),
 }
 
 
 NEGATIVE_FRAMING = (
-    "close-up face, cropped head, giant face, zoomed face, cut forehead, "
-    "cut chin, extreme close-up, head out of frame, face out of frame, "
-    "wrong gender, different person, different face, deformed face, "
-    "bad anatomy, asymmetrical face, blurry, low quality, "
-    "low resolution, artifacts, glitch, watermark, "
-    "random letters, unreadable text"
+    "cropped face, out of frame, blurry, soft focus, "
+    "low quality, deformed face, asymmetrical face, "
+    "bad eyes, distorted mouth, watermark, text"
 )
 
 
 REALISTIC_NEGATIVE = (
-    "low quality, blurry, deformed face, bad anatomy, cartoon, anime, "
-    "extra fingers, ugly eyes, distorted mouth, unrealistic skin, "
-    "watermark, text artifacts"
+    "blurry, soft focus, low quality, distorted face, "
+    "bad anatomy, extra fingers, ugly eyes, "
+    "watermark, text artifacts, overprocessed skin"
 )
 
 def get_theme_prompt(theme: str, custom_theme: str, mode: str) -> str:
