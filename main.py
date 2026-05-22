@@ -308,26 +308,27 @@ async def generate_telegram_avatar(
 
 @app.post("/telegram-webhook/")
 async def telegram_webhook(request: Request):
+    try:
+        data = await request.json()
+        print("TELEGRAM UPDATE:", data)
 
-    data = await request.json()
+        update = Update.de_json(
+            data,
+            telegram_app.bot
+        )
 
-    update = Update.de_json(
-        data,
-        telegram_app.bot
-    )
+        await telegram_app.initialize()
+        await telegram_app.process_update(update)
 
-    await telegram_app.initialize()
+        return {"ok": True}
 
-    await telegram_app.process_update(update)
+    except Exception as error:
+        import traceback
 
-    return {"ok": True}
+        print("TELEGRAM WEBHOOK ERROR:")
+        print(traceback.format_exc())
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+        return {"ok": False, "error": str(error)}
 
 @app.get("/files/{job_id}/{filename}")
 def get_file(job_id: str, filename: str):
