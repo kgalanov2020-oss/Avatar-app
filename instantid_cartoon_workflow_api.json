@@ -1,0 +1,678 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "revision": 0,
+  "last_node_id": 22,
+  "last_link_id": 32,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        100,
+        130
+      ],
+      "size": [
+        297.095703125,
+        98
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            30
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            17,
+            18
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            24
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "juggernautXL.safetensors"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "CLIPTextEncode",
+      "pos": [
+        509.06640625,
+        130
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            31
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "high quality 3D cartoon avatar of the exact same person, preserve facial identity, same gender, same age, same face shape, same eyes, same nose, same lips, same hairstyle, animated movie character, stylized 3D portrait, clean background, cinematic lighting"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "CLIPTextEncode",
+      "pos": [
+        509.06640625,
+        460
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            32
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "nsfw, nude, naked, breasts, nipples, porn, erotic, wrong gender, different person, deformed face, bad anatomy, ugly, blurry, realistic photo, horror, creepy, artifacts, glitch, text, watermark"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "EmptyLatentImage",
+      "pos": [
+        100,
+        358
+      ],
+      "size": [
+        287.2525390625,
+        106
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            22
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2",
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ]
+    },
+    {
+      "id": 6,
+      "type": "VAEDecode",
+      "pos": [
+        1781.029296875,
+        130
+      ],
+      "size": [
+        174.439453125,
+        46
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 23
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 24
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            25
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2",
+        "Node name for S&R": "VAEDecode"
+      }
+    },
+    {
+      "id": 7,
+      "type": "SaveImage",
+      "pos": [
+        2055.46875,
+        130
+      ],
+      "size": [
+        294.41796875,
+        58
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 25
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 10,
+      "type": "InstantIDModelLoader",
+      "pos": [
+        100,
+        594
+      ],
+      "size": [
+        270,
+        58
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INSTANTID",
+          "type": "INSTANTID",
+          "links": [
+            26
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_instantid",
+        "ver": "1.0.0",
+        "Node name for S&R": "InstantIDModelLoader"
+      },
+      "widgets_values": [
+        "ip-adapter.bin"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "InstantIDFaceAnalysis",
+      "pos": [
+        100,
+        782
+      ],
+      "size": [
+        270,
+        58
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "FACEANALYSIS",
+          "type": "FACEANALYSIS",
+          "links": [
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_instantid",
+        "ver": "1.0.0",
+        "Node name for S&R": "InstantIDFaceAnalysis"
+      },
+      "widgets_values": [
+        "CUDA"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "LoadImage",
+      "pos": [
+        100,
+        970
+      ],
+      "size": [
+        309.06640625,
+        102
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            29
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2",
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "DSC_5748.JPG",
+        "image"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "ControlNetLoader",
+      "pos": [
+        100,
+        1202
+      ],
+      "size": [
+        279.835546875,
+        58
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CONTROL_NET",
+          "type": "CONTROL_NET",
+          "links": [
+            28
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2",
+        "Node name for S&R": "ControlNetLoader"
+      },
+      "widgets_values": [
+        "instantid_controlnet.safetensors"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "KSampler",
+      "pos": [
+        1379.06640625,
+        130
+      ],
+      "size": [
+        301.962890625,
+        262
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 19
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 20
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 21
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            23
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.18.2",
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        74778183673499,
+        "randomize",
+        18,
+        5,
+        "dpmpp_2m",
+        "karras",
+        1
+      ]
+    },
+    {
+      "id": 20,
+      "type": "ApplyInstantID",
+      "pos": [
+        1009.06640625,
+        130
+      ],
+      "size": [
+        270,
+        266
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "instantid",
+          "type": "INSTANTID",
+          "link": 26
+        },
+        {
+          "name": "insightface",
+          "type": "FACEANALYSIS",
+          "link": 27
+        },
+        {
+          "name": "control_net",
+          "type": "CONTROL_NET",
+          "link": 28
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 29
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 30
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 31
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 32
+        },
+        {
+          "name": "image_kps",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            19
+          ]
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            20
+          ]
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            21
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_instantid",
+        "ver": "1.0.0",
+        "Node name for S&R": "ApplyInstantID"
+      },
+      "widgets_values": [
+        0.7,
+        0,
+        1
+      ]
+    }
+  ],
+  "links": [
+    [
+      17,
+      1,
+      1,
+      2,
+      0,
+      "CLIP"
+    ],
+    [
+      18,
+      1,
+      1,
+      3,
+      0,
+      "CLIP"
+    ],
+    [
+      19,
+      20,
+      0,
+      5,
+      0,
+      "MODEL"
+    ],
+    [
+      20,
+      20,
+      1,
+      5,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      21,
+      20,
+      2,
+      5,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      22,
+      4,
+      0,
+      5,
+      3,
+      "LATENT"
+    ],
+    [
+      23,
+      5,
+      0,
+      6,
+      0,
+      "LATENT"
+    ],
+    [
+      24,
+      1,
+      2,
+      6,
+      1,
+      "VAE"
+    ],
+    [
+      25,
+      6,
+      0,
+      7,
+      0,
+      "IMAGE"
+    ],
+    [
+      26,
+      10,
+      0,
+      20,
+      0,
+      "INSTANTID"
+    ],
+    [
+      27,
+      11,
+      0,
+      20,
+      1,
+      "FACEANALYSIS"
+    ],
+    [
+      28,
+      22,
+      0,
+      20,
+      2,
+      "CONTROL_NET"
+    ],
+    [
+      29,
+      13,
+      0,
+      20,
+      3,
+      "IMAGE"
+    ],
+    [
+      30,
+      1,
+      0,
+      20,
+      4,
+      "MODEL"
+    ],
+    [
+      31,
+      2,
+      0,
+      20,
+      5,
+      "CONDITIONING"
+    ],
+    [
+      32,
+      3,
+      0,
+      20,
+      6,
+      "CONDITIONING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.77,
+      "offset": [
+        -660.5593826540161,
+        159.42064544606262
+      ]
+    },
+    "frontendVersion": "1.41.21"
+  },
+  "version": 0.4
+}
