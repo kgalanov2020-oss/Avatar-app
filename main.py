@@ -51,6 +51,7 @@ import os
 import requests
 import time
 import json
+import asyncio
 
 # =============================
 # CONFIG
@@ -175,16 +176,17 @@ async def text_handler(
         "Создаю AI-аватар... ⏳"
     )
 
-    await generate_telegram_avatar(
-        update,
-        context
+    asyncio.create_task(
+        generate_telegram_avatar(update, context)
     )
 
 async def generate_telegram_avatar(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
+    await update.message.reply_text(
+        "Генерация запущена. Обычно это занимает 1–3 минуты ⏳"
+    )
     try:
 
         photo_path = context.user_data["photo_path"]
