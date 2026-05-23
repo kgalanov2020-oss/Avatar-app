@@ -243,53 +243,36 @@ async def text_handler(
 
     if context.user_data.get("waiting_for_video_text"):
 
-    context.user_data["waiting_for_video_text"] = False
-    context.user_data["text"] = text
+        context.user_data["waiting_for_video_text"] = False
+        context.user_data["text"] = text
 
-    await update.message.reply_text(
-        "Создаю talking video... ⏳"
-    )
+        await update.message.reply_text(
+            "Создаю talking video... ⏳"
+        )
 
-    asyncio.create_task(
-        generate_talking_video(update, context)
-    )
+        asyncio.create_task(
+            generate_talking_video(update, context)
+        )
 
-    return
-    
+        return
+
     if context.user_data.get("waiting_for_custom_theme"):
+
         context.user_data["custom_theme"] = text
         context.user_data["theme"] = "custom"
         context.user_data["waiting_for_custom_theme"] = False
 
         await update.message.reply_text("Своя тема сохранена ✅")
+
         await update.message.reply_text(
             "Теперь выбери голос:",
-            reply_markup=make_keyboard(TELEGRAM_VOICES, row_size=2)
-        )
-        return
-
-    if "photo_path" not in context.user_data:
-
-        await update.message.reply_text(
-            "Сначала отправь фотографию 📸"
+            reply_markup=make_keyboard(
+                TELEGRAM_VOICES,
+                row_size=2
+            )
         )
 
         return
-
-    if "style" not in context.user_data:
-
-        await update.message.reply_text(
-            "Сначала выбери стиль"
-        )
-
-        return
-
-    context.user_data["text"] = text
-
-    await update.message.reply_text(
-        "Текст получил ✅\n\n"
-        "Создаю AI-аватар... ⏳"
-    )
 
     asyncio.create_task(
         generate_telegram_avatar(update, context)
