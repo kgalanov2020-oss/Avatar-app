@@ -479,7 +479,32 @@ async def generate_talking_video(
 ):
     try:
         chat_id = update.message.chat_id
-
+        telegram_id = update.effective_user.id
+        
+        result = supabase.table("telegram_users").select("*").eq(
+            "telegram_id",
+            telegram_id
+        ).execute()
+        
+        if not result.data:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Ошибка пользователя 😔"
+            )
+            return
+        
+        user = result.data[0]
+        credits = user.get("credits", 0)
+        
+        if credits <= 0:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=(
+                    "У вас закончились кредиты 😔\n\n"
+                    "Скоро подключим оплату через Telegram Stars ⭐ и ЮKassa 💳"
+                )
+            )
+            return
         await context.bot.send_message(
             chat_id=chat_id,
             text="Генерирую видео... Это может занять 1–3 минуты 🎬"
@@ -528,11 +553,18 @@ async def generate_talking_video(
                 text="Ошибка создания видео 😔\n\n" + str(did_data["error"])
             )
             return
-
+        new_credits = credits - 1
+        
+        supabase.table("telegram_users").update({
+            "credits": new_credits
+        }).eq(
+            "telegram_id",
+            telegram_id
+        ).execute()
         await context.bot.send_video(
             chat_id=chat_id,
             video=did_data["video_url"],
-            caption="Видео готово ✅",
+            caption=f"Видео готово ✅\n\nОсталось кредитов: {new_credits}",
             supports_streaming=True,
             read_timeout=120,
             write_timeout=120,
