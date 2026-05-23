@@ -233,7 +233,7 @@ async def generate_telegram_avatar(
                 endpoint,
                 files=files,
                 data=data,
-                timeout=240
+                timeout=600
             )
 
         result = response.json()
