@@ -88,6 +88,10 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = FastAPI()
 
+@app.on_event("startup")
+async def startup():
+    await telegram_app.initialize()
+
 telegram_app = Application.builder().token(
     TELEGRAM_BOT_TOKEN
 ).build()
@@ -270,7 +274,6 @@ async def telegram_webhook(request: Request):
             telegram_app.bot
         )
 
-        await telegram_app.initialize()
         await telegram_app.process_update(update)
 
         return {"ok": True}
