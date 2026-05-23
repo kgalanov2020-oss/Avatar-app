@@ -233,13 +233,14 @@ async def generate_telegram_avatar(
 
             return
 
-        avatar_url = result["avatar_url"]
-
-        await update.message.reply_photo(
-            photo=avatar_url,
-            caption="AI-аватар готов ✅"
-        )
-
+        job_id = result["job_id"]
+        avatar_path = os.path.join(UPLOAD_DIR, job_id, "avatar.png")
+        
+        with open(avatar_path, "rb") as photo_file:
+            await update.message.reply_photo(
+                photo=photo_file,
+                caption="AI-аватар готов ✅"
+            )
     except Exception as error:
 
         await update.message.reply_text(
