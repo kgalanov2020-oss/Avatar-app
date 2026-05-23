@@ -247,11 +247,8 @@ async def text_handler(
         context.user_data["text"] = text
 
         await update.message.reply_text(
-            "Создаю talking video... ⏳"
-        )
-
-        asyncio.create_task(
-            generate_talking_video(update, context)
+            "Текст сохранён ✅\n\n"
+            "Следующий шаг — подключим генерацию видео."
         )
 
         return
