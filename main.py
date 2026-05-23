@@ -201,64 +201,43 @@ async def generate_telegram_avatar(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-    await update.message.reply_text(
-        "Генерация запущена. Обычно это занимает 1–3 минуты ⏳"
-    )
     try:
-
-        photo_path = context.user_data["photo_path"]
-        style = context.user_data.get(
-            "style",
-            "cartoon"
+        await update.message.reply_text(
+            "Генерация запущена. Обычно это занимает 1–3 минуты ⏳"
         )
 
-        with open(photo_path, "rb") as file:
+        photo_path = context.user_data["photo_path"]
+        style = context.user_data.get("style", "cartoon")
 
-            files = {
-                "file": file
-            }
-
-            data = {
-                "theme": "default",
-                "custom_theme": ""
-            }
-
-            endpoint = (
-                f"{APP_BASE_URL}/create-realistic-avatar/"
-                if style == "realistic"
-                else f"{APP_BASE_URL}/create-3d-avatar/"
-            )
-
-            response = requests.post(
-                endpoint,
-                files=files,
-                data=data,
-                timeout=600
-            )
-
-        result = response.json()
+        result = await asyncio.to_thread(
+            generate_avatar_from_path,
+            photo_path,
+            style,
+            "default",
+            ""
+        )
 
         if result.get("error"):
-
             await update.message.reply_text(
-                "Ошибка создания аватара 😔"
+                "Ошибка создания аватара 😔\n\n" + str(result["error"])
             )
-
             return
 
-        job_id = result["job_id"]
-        avatar_path = os.path.join(UPLOAD_DIR, job_id, "avatar.png")
-        
+        avatar_path = result["avatar_path"]
+
         with open(avatar_path, "rb") as photo_file:
             await update.message.reply_photo(
                 photo=photo_file,
                 caption="AI-аватар готов ✅"
             )
+
     except Exception as error:
+        import traceback
+        print("TELEGRAM GENERATION ERROR:")
+        print(traceback.format_exc())
 
         await update.message.reply_text(
-            "Ошибка Telegram генерации 😔\n\n"
-            + str(error)
+            "Ошибка Telegram генерации 😔\n\n" + str(error)
         )
 
 telegram_app.add_handler(
