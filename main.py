@@ -52,21 +52,38 @@ import requests
 import time
 import json
 import asyncio
+from supabase import create_client
 
 # =============================
 # CONFIG
 # =============================
 
-APP_BASE_URL = os.getenv("APP_BASE_URL", "https://avatar-app-vcer.onrender.com")
-COMFY_URL = os.getenv("COMFY_URL", "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net")
+APP_BASE_URL = os.getenv(
+    "APP_BASE_URL",
+    "https://avatar-app-vcer.onrender.com"
+)
+
+COMFY_URL = os.getenv(
+    "COMFY_URL",
+    "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net"
+)
+
 DID_API_KEY = os.getenv("DID_API_KEY")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY"
+)
+
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY
+)
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 UPLOAD_DIR = "uploads"
+
 CARTOON_WORKFLOW_PATH = "instantid_cartoon_workflow_api.json"
 REALISTIC_WORKFLOW_PATH = "instantid_workflow_api.json"
 
