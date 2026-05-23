@@ -362,8 +362,10 @@ async def generate_telegram_avatar(
 
         avatar_path = result["avatar_path"]
         context.user_data["job_id"] = result["job_id"]
+        
         with open(avatar_path, "rb") as photo_file:
-            await update.message.reply_photo(
+            await context.bot.send_photo(
+                chat_id=chat_id,
                 photo=photo_file,
                 caption="AI-аватар готов ✅"
             )
