@@ -245,16 +245,18 @@ async def start_command(
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-
 async def photo_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-    if not context.user_data.get("accepted_terms"):
+    user = get_or_create_telegram_user(update)
+
+    if not user.get("accepted_terms"):
         await update.message.reply_text(
             "Сначала нужно принять условия через /start ✅"
         )
         return
+
     photo = update.message.photo[-1]
     file = await context.bot.get_file(photo.file_id)
 
