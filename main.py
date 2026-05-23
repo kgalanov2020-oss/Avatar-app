@@ -241,6 +241,21 @@ async def text_handler(
 
     text = update.message.text
 
+    if context.user_data.get("waiting_for_video_text"):
+
+    context.user_data["waiting_for_video_text"] = False
+    context.user_data["text"] = text
+
+    await update.message.reply_text(
+        "Создаю talking video... ⏳"
+    )
+
+    asyncio.create_task(
+        generate_talking_video(update, context)
+    )
+
+    return
+    
     if context.user_data.get("waiting_for_custom_theme"):
         context.user_data["custom_theme"] = text
         context.user_data["theme"] = "custom"
@@ -324,6 +339,16 @@ async def generate_telegram_avatar(
                 caption="AI-аватар готов ✅"
             )
 
+        context.user_data["waiting_for_video_text"] = True
+        
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=(
+                "Теперь напиши текст, который должен сказать аватар 🎤\n\n"
+                "Максимум 250 символов."
+            )
+        )    
+    
     except Exception as error:
         import traceback
         print("TELEGRAM GENERATION ERROR:")
