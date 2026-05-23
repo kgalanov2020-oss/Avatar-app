@@ -292,14 +292,17 @@ async def generate_telegram_avatar(
         photo_path = context.user_data["photo_path"]
         style = context.user_data.get("style", "cartoon")
 
+        theme = context.user_data.get("theme", "default")
+        custom_theme = context.user_data.get("custom_theme", "")
+        
         result = await asyncio.to_thread(
             generate_avatar_from_path,
             photo_path,
             style,
-            "default",
-            ""
+            theme,
+            custom_theme
         )
-
+        
         if result.get("error"):
             await update.message.reply_text(
                 "Ошибка создания аватара 😔\n\n" + str(result["error"])
@@ -323,6 +326,34 @@ async def generate_telegram_avatar(
             "Ошибка Telegram генерации 😔\n\n" + str(error)
         )
 
+async def voice_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+
+    context.user_data["voice"] = query.data.replace("voice_", "")
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "⬜ Квадрат (1:1)",
+                callback_data="format_square"
+            ),
+            InlineKeyboardButton(
+                "📱 TikTok / Reels (9:16)",
+                callback_data="format_vertical"
+            ),
+        ]
+    ]
+
+    await query.edit_message_text(
+        "Голос выбран ✅\n\n"
+        "Теперь выбери формат видео:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
 telegram_app.add_handler(
     CommandHandler("start", start_command)
 )
@@ -341,6 +372,10 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler)
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(voice_callback, pattern="^voice_")
 )
 
 @app.on_event("startup")
