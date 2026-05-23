@@ -245,12 +245,16 @@ async def text_handler(
 
         context.user_data["waiting_for_video_text"] = False
         context.user_data["text"] = text
-
+    
         await update.message.reply_text(
-            "Текст сохранён ✅\n\n"
-            "Следующий шаг — подключим генерацию видео."
+            "Текст получил ✅\n\n"
+            "Создаю видео... ⏳"
         )
-
+    
+        asyncio.create_task(
+            generate_talking_video(update, context)
+        )
+    
         return
 
     if context.user_data.get("waiting_for_custom_theme"):
