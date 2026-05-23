@@ -87,6 +87,29 @@ UPLOAD_DIR = "uploads"
 CARTOON_WORKFLOW_PATH = "instantid_cartoon_workflow_api.json"
 REALISTIC_WORKFLOW_PATH = "instantid_workflow_api.json"
 
+CREDIT_PACKAGES = {
+    "stars_3": {
+        "credits": 3,
+        "stars": 75,
+        "title": "3 видео",
+        "description": "Пакет на 3 AI-видео"
+    },
+
+    "stars_10": {
+        "credits": 10,
+        "stars": 199,
+        "title": "10 видео",
+        "description": "Пакет на 10 AI-видео"
+    },
+
+    "stars_30": {
+        "credits": 30,
+        "stars": 499,
+        "title": "30 AI-видео",
+        "description": "Большой пакет"
+    }
+}
+
 MAX_TEXT_LENGTH = 250
 MAX_AUDIO_DURATION = 15
 
