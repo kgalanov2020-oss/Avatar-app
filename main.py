@@ -511,6 +511,8 @@ async def generate_talking_video(
             )
             return
 
+        await asyncio.sleep(2)
+
         avatar_url = public_file_url(job_id, "did_avatar.jpg")
         audio_url = video_data["audio_url"]
 
@@ -527,12 +529,15 @@ async def generate_talking_video(
             )
             return
 
-        await context.bot.send_message(
+        await context.bot.send_video(
             chat_id=chat_id,
-            text=(
-                "Видео готово ✅\n\n"
-                f"{did_data['video_url']}"
-            )
+            video=did_data["video_url"],
+            caption="Видео готово ✅",
+            supports_streaming=True,
+            read_timeout=120,
+            write_timeout=120,
+            connect_timeout=60,
+            pool_timeout=60
         )
 
     except Exception as error:
