@@ -105,59 +105,6 @@ telegram_app = (
     .build()
 )
 
-TELEGRAM_THEMES = [
-    ("✨ Собственная тема", "theme_custom"),
-    ("Обычный", "theme_default"),
-    ("🚀 Космонавт", "theme_astronaut"),
-    ("🤠 Ковбой", "theme_cowboy"),
-    ("👑 Король / Королева", "theme_royal"),
-    ("⚽ Спортсмен", "theme_sport"),
-    ("⚓ Моряк", "theme_sailor"),
-    ("🥷 Самурай", "theme_samurai"),
-    ("🌃 Киберпанк", "theme_cyberpunk"),
-    ("🦸 Супергерой", "theme_superhero"),
-    ("🎸 Рок-звезда", "theme_rockstar"),
-    ("🕴 Гангстер 1920s", "theme_gangster"),
-    ("🏴‍☠️ Пират", "theme_pirate"),
-    ("🧙 Маг / Волшебник", "theme_wizard"),
-    ("🛡 Викинг", "theme_viking"),
-    ("🥷 Ниндзя", "theme_ninja"),
-    ("💼 Luxury бизнесмен", "theme_luxury"),
-    ("😇 Ангел", "theme_angel"),
-    ("😈 Демон", "theme_demon"),
-    ("🏺 Фараон", "theme_pharaoh"),
-    ("⚔️ Рыцарь", "theme_knight"),
-    ("🏎 Гонщик Formula 1", "theme_racer"),
-]
-
-TELEGRAM_VOICES = [
-    ("🇷🇺 Женский 1", "voice_ru_female_1"),
-    ("🇷🇺 Женский 2", "voice_ru_female_2"),
-    ("🇷🇺 Мужской 1", "voice_ru_male_1"),
-    ("🇷🇺 Мужской 2", "voice_ru_male_2"),
-    ("👧 Девочка", "voice_girl"),
-    ("👦 Мальчик", "voice_boy"),
-    ("👵 Бабушка", "voice_grandma"),
-    ("👴 Дедушка", "voice_grandpa"),
-    ("🇺🇸 English Female", "voice_en_female"),
-    ("🇺🇸 English Male", "voice_en_male"),
-    ("🇪🇸 Español Female", "voice_es_female"),
-    ("🇧🇷 Português Female", "voice_pt_female"),
-]
-
-def make_keyboard(items, row_size=2):
-    rows = []
-    for i in range(0, len(items), row_size):
-        rows.append([
-            InlineKeyboardButton(text, callback_data=data)
-            for text, data in items[i:i + row_size]
-        ])
-    return InlineKeyboardMarkup(rows)
-
-@app.on_event("startup")
-async def startup():
-    await telegram_app.initialize()
-
 async def start_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -327,6 +274,63 @@ async def generate_telegram_avatar(
             "Ошибка Telegram генерации 😔\n\n" + str(error)
         )
 
+TELEGRAM_THEMES = [
+    ("✨ Собственная тема", "theme_custom"),
+    ("Обычный", "theme_default"),
+    ("🚀 Космонавт", "theme_astronaut"),
+    ("🤠 Ковбой", "theme_cowboy"),
+    ("👑 Король / Королева", "theme_royal"),
+    ("⚽ Спортсмен", "theme_sport"),
+    ("⚓ Моряк", "theme_sailor"),
+    ("🥷 Самурай", "theme_samurai"),
+    ("🌃 Киберпанк", "theme_cyberpunk"),
+    ("🦸 Супергерой", "theme_superhero"),
+    ("🎸 Рок-звезда", "theme_rockstar"),
+    ("🕴 Гангстер 1920s", "theme_gangster"),
+    ("🏴‍☠️ Пират", "theme_pirate"),
+    ("🧙 Маг / Волшебник", "theme_wizard"),
+    ("🛡 Викинг", "theme_viking"),
+    ("🥷 Ниндзя", "theme_ninja"),
+    ("💼 Luxury бизнесмен", "theme_luxury"),
+    ("😇 Ангел", "theme_angel"),
+    ("😈 Демон", "theme_demon"),
+    ("🏺 Фараон", "theme_pharaoh"),
+    ("⚔️ Рыцарь", "theme_knight"),
+    ("🏎 Гонщик Formula 1", "theme_racer"),
+]
+
+TELEGRAM_VOICES = [
+    ("🇷🇺 Женский 1", "voice_ru_female_1"),
+    ("🇷🇺 Женский 2", "voice_ru_female_2"),
+    ("🇷🇺 Мужской 1", "voice_ru_male_1"),
+    ("🇷🇺 Мужской 2", "voice_ru_male_2"),
+    ("👧 Девочка", "voice_girl"),
+    ("👦 Мальчик", "voice_boy"),
+    ("👵 Бабушка", "voice_grandma"),
+    ("👴 Дедушка", "voice_grandpa"),
+    ("🇺🇸 English Female", "voice_en_female"),
+    ("🇺🇸 English Male", "voice_en_male"),
+    ("🇪🇸 Español Female", "voice_es_female"),
+    ("🇧🇷 Português Female", "voice_pt_female"),
+]
+
+def make_keyboard(items, row_size=2):
+    rows = []
+    for i in range(0, len(items), row_size):
+        rows.append([
+            InlineKeyboardButton(text, callback_data=data)
+            for text, data in items[i:i + row_size]
+        ])
+    return InlineKeyboardMarkup(rows)
+
+telegram_app.add_handler(
+    CommandHandler("start", start_command)
+)
+
+telegram_app.add_handler(
+    MessageHandler(filters.PHOTO, photo_handler)
+)
+
 telegram_app.add_handler(
     CallbackQueryHandler(style_callback, pattern="^style_")
 )
@@ -336,16 +340,12 @@ telegram_app.add_handler(
 )
 
 telegram_app.add_handler(
-    MessageHandler(filters.PHOTO, photo_handler)
-)
-
-telegram_app.add_handler(
-    CallbackQueryHandler(style_callback)
-)
-
-telegram_app.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler)
 )
+
+@app.on_event("startup")
+async def startup():
+    await telegram_app.initialize()
 
 @app.post("/telegram-webhook/")
 async def telegram_webhook(request: Request):
