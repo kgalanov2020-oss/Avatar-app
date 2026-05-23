@@ -96,7 +96,7 @@ telegram_request = HTTPXRequest(
     read_timeout=60,
     write_timeout=60,
     pool_timeout=60
-)
+    )
 
 telegram_app = (
     Application.builder()
@@ -104,6 +104,55 @@ telegram_app = (
     .request(telegram_request)
     .build()
 )
+
+TELEGRAM_THEMES = [
+    ("✨ Собственная тема", "theme_custom"),
+    ("Обычный", "theme_default"),
+    ("🚀 Космонавт", "theme_astronaut"),
+    ("🤠 Ковбой", "theme_cowboy"),
+    ("👑 Король / Королева", "theme_royal"),
+    ("⚽ Спортсмен", "theme_sport"),
+    ("⚓ Моряк", "theme_sailor"),
+    ("🥷 Самурай", "theme_samurai"),
+    ("🌃 Киберпанк", "theme_cyberpunk"),
+    ("🦸 Супергерой", "theme_superhero"),
+    ("🎸 Рок-звезда", "theme_rockstar"),
+    ("🕴 Гангстер 1920s", "theme_gangster"),
+    ("🏴‍☠️ Пират", "theme_pirate"),
+    ("🧙 Маг / Волшебник", "theme_wizard"),
+    ("🛡 Викинг", "theme_viking"),
+    ("🥷 Ниндзя", "theme_ninja"),
+    ("💼 Luxury бизнесмен", "theme_luxury"),
+    ("😇 Ангел", "theme_angel"),
+    ("😈 Демон", "theme_demon"),
+    ("🏺 Фараон", "theme_pharaoh"),
+    ("⚔️ Рыцарь", "theme_knight"),
+    ("🏎 Гонщик Formula 1", "theme_racer"),
+]
+
+TELEGRAM_VOICES = [
+    ("🇷🇺 Женский 1", "voice_ru_female_1"),
+    ("🇷🇺 Женский 2", "voice_ru_female_2"),
+    ("🇷🇺 Мужской 1", "voice_ru_male_1"),
+    ("🇷🇺 Мужской 2", "voice_ru_male_2"),
+    ("👧 Девочка", "voice_girl"),
+    ("👦 Мальчик", "voice_boy"),
+    ("👵 Бабушка", "voice_grandma"),
+    ("👴 Дедушка", "voice_grandpa"),
+    ("🇺🇸 English Female", "voice_en_female"),
+    ("🇺🇸 English Male", "voice_en_male"),
+    ("🇪🇸 Español Female", "voice_es_female"),
+    ("🇧🇷 Português Female", "voice_pt_female"),
+]
+
+def make_keyboard(items, row_size=2):
+    rows = []
+    for i in range(0, len(items), row_size):
+        rows.append([
+            InlineKeyboardButton(text, callback_data=data)
+            for text, data in items[i:i + row_size]
+        ])
+    return InlineKeyboardMarkup(rows)
 
 async def start_command(
     update: Update,
@@ -189,7 +238,9 @@ async def text_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-    
+
+    text = update.message.text
+
     if context.user_data.get("waiting_for_custom_theme"):
         context.user_data["custom_theme"] = text
         context.user_data["theme"] = "custom"
@@ -201,8 +252,6 @@ async def text_handler(
             reply_markup=make_keyboard(TELEGRAM_VOICES, row_size=2)
         )
         return
-
-    text = update.message.text
 
     if "photo_path" not in context.user_data:
 
@@ -273,55 +322,6 @@ async def generate_telegram_avatar(
         await update.message.reply_text(
             "Ошибка Telegram генерации 😔\n\n" + str(error)
         )
-
-TELEGRAM_THEMES = [
-    ("✨ Собственная тема", "theme_custom"),
-    ("Обычный", "theme_default"),
-    ("🚀 Космонавт", "theme_astronaut"),
-    ("🤠 Ковбой", "theme_cowboy"),
-    ("👑 Король / Королева", "theme_royal"),
-    ("⚽ Спортсмен", "theme_sport"),
-    ("⚓ Моряк", "theme_sailor"),
-    ("🥷 Самурай", "theme_samurai"),
-    ("🌃 Киберпанк", "theme_cyberpunk"),
-    ("🦸 Супергерой", "theme_superhero"),
-    ("🎸 Рок-звезда", "theme_rockstar"),
-    ("🕴 Гангстер 1920s", "theme_gangster"),
-    ("🏴‍☠️ Пират", "theme_pirate"),
-    ("🧙 Маг / Волшебник", "theme_wizard"),
-    ("🛡 Викинг", "theme_viking"),
-    ("🥷 Ниндзя", "theme_ninja"),
-    ("💼 Luxury бизнесмен", "theme_luxury"),
-    ("😇 Ангел", "theme_angel"),
-    ("😈 Демон", "theme_demon"),
-    ("🏺 Фараон", "theme_pharaoh"),
-    ("⚔️ Рыцарь", "theme_knight"),
-    ("🏎 Гонщик Formula 1", "theme_racer"),
-]
-
-TELEGRAM_VOICES = [
-    ("🇷🇺 Женский 1", "voice_ru_female_1"),
-    ("🇷🇺 Женский 2", "voice_ru_female_2"),
-    ("🇷🇺 Мужской 1", "voice_ru_male_1"),
-    ("🇷🇺 Мужской 2", "voice_ru_male_2"),
-    ("👧 Девочка", "voice_girl"),
-    ("👦 Мальчик", "voice_boy"),
-    ("👵 Бабушка", "voice_grandma"),
-    ("👴 Дедушка", "voice_grandpa"),
-    ("🇺🇸 English Female", "voice_en_female"),
-    ("🇺🇸 English Male", "voice_en_male"),
-    ("🇪🇸 Español Female", "voice_es_female"),
-    ("🇧🇷 Português Female", "voice_pt_female"),
-]
-
-def make_keyboard(items, row_size=2):
-    rows = []
-    for i in range(0, len(items), row_size):
-        rows.append([
-            InlineKeyboardButton(text, callback_data=data)
-            for text, data in items[i:i + row_size]
-        ])
-    return InlineKeyboardMarkup(rows)
 
 telegram_app.add_handler(
     CommandHandler("start", start_command)
