@@ -312,7 +312,7 @@ async def generate_telegram_avatar(
             return
 
         avatar_path = result["avatar_path"]
-
+        context.user_data["job_id"] = result["job_id"]
         with open(avatar_path, "rb") as photo_file:
             await update.message.reply_photo(
                 photo=photo_file,
@@ -336,6 +336,76 @@ async def generate_telegram_avatar(
 
         await update.message.reply_text(
             "Ошибка Telegram генерации 😔\n\n" + str(error)
+        )
+
+async def generate_talking_video(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    try:
+        chat_id = update.message.chat_id
+
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text="Генерирую видео... Это может занять 1–3 минуты 🎬"
+        )
+
+        text = context.user_data.get("text", "")
+        voice = context.user_data.get("voice", "ru_female_1")
+        video_format = context.user_data.get("format", "square")
+        job_id = context.user_data.get("job_id", "")
+
+        if not job_id:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Ошибка: не найден job_id аватара 😔"
+            )
+            return
+
+        video_data = await create_video(
+            text=text,
+            voice=voice,
+            format=video_format,
+            job_id=job_id
+        )
+
+        if video_data.get("error"):
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Ошибка создания аудио 😔\n\n" + str(video_data["error"])
+            )
+            return
+
+        avatar_url = public_file_url(job_id, "did_avatar.jpg")
+        audio_url = video_data["audio_url"]
+
+        did_data = await asyncio.to_thread(
+            did_video_direct,
+            avatar_url,
+            audio_url
+        )
+
+        if did_data.get("error"):
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Ошибка создания видео 😔\n\n" + str(did_data["error"])
+            )
+            return
+
+        await context.bot.send_video(
+            chat_id=chat_id,
+            video=did_data["video_url"],
+            caption="Видео готово ✅"
+        )
+
+    except Exception as error:
+        import traceback
+        print("TELEGRAM VIDEO ERROR:")
+        print(traceback.format_exc())
+
+        await context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="Ошибка генерации видео 😔\n\n" + str(error)
         )
 
 async def voice_callback(
@@ -1672,6 +1742,80 @@ async def create_video(
 def did_video(
     avatar_url: str = Form(...),
     audio_url: str = Form(...)
+):
+    if not DID_API_KEY:
+        return {"error": "DID_API_KEY is not set"}
+
+    headers = {
+        "Authorization": f"Basic {DID_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "source_url": avatar_url,
+        "script": {
+            "type": "audio",
+            "audio_url": audio_url
+        },
+        "config": {
+            "fluent": True,
+            "pad_audio": 0.0,
+            "stitch": True
+        }
+    }
+
+    create_response = requests.post(
+        "https://api.d-id.com/talks",
+        headers=headers,
+        json=payload,
+        timeout=60
+    )
+
+    if create_response.status_code not in [200, 201]:
+        return {
+            "error": "D-ID create failed",
+            "details": create_response.text
+        }
+
+    talk_id = create_response.json().get("id")
+
+    if not talk_id:
+        return {
+            "error": "No talk_id from D-ID",
+            "details": create_response.json()
+        }
+
+    for _ in range(120):
+        status_response = requests.get(
+            f"https://api.d-id.com/talks/{talk_id}",
+            headers=headers,
+            timeout=60
+        )
+
+        data = status_response.json()
+
+        if data.get("status") == "done":
+            return {
+                "video_url": data.get("result_url"),
+                "talk_id": talk_id
+            }
+
+        if data.get("status") == "error":
+            return {
+                "error": "D-ID generation error",
+                "details": data
+            }
+
+        time.sleep(2)
+
+    return {
+        "error": "D-ID timeout",
+        "talk_id": talk_id
+    }
+
+def did_video_direct(
+    avatar_url: str,
+    audio_url: str
 ):
     if not DID_API_KEY:
         return {"error": "DID_API_KEY is not set"}
