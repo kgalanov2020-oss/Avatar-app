@@ -1303,108 +1303,40 @@ def generate_avatar_from_path(
     theme: str = "default",
     custom_theme: str = ""
 ):
-
-@app.post("/create-3d-avatar/")
-async def create_3d_avatar(
-    file: UploadFile = File(...),
-    theme: str = Form("default"),
-    custom_theme: str = Form("")
-):
-    try:
-        job_id = str(uuid.uuid4())
-        job_dir = os.path.join(UPLOAD_DIR, job_id)
-        os.makedirs(job_dir, exist_ok=True)
-
-        raw_input = os.path.join(job_dir, "raw_input.jpg")
-        input_path = os.path.join(job_dir, "input.jpg")
-        output_path = os.path.join(job_dir, "avatar.png")
-        did_output_path = os.path.join(job_dir, "did_avatar.jpg")
-
-        with open(raw_input, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        prepare_input_image(raw_input, input_path)
-        comfy_image = upload_image_to_comfy(input_path)
-        theme_prompt = get_theme_prompt(theme, custom_theme, "cartoon")
-
-        with open(CARTOON_WORKFLOW_PATH, "r", encoding="utf-8") as file:
-            workflow = json.load(file)
-
-        workflow["13"]["inputs"]["image"] = comfy_image
+    job_id = str(uuid.uuid4())
+    job_dir = os.path.join(UPLOAD_DIR, job_id)
+    os.makedirs(job_dir, exist_ok=True)
+    
+    input_path = os.path.join(job_dir, "input.jpg")
+    output_path = os.path.join(job_dir, "avatar.png")
+    did_output_path = os.path.join(job_dir, "did_avatar.jpg")
+    
+    prepare_input_image(source_path, input_path)
+    comfy_image = upload_image_to_comfy(input_path)
+    
+    workflow_path = (
+        REALISTIC_WORKFLOW_PATH
+        if mode == "realistic"
+        else CARTOON_WORKFLOW_PATH
+    )
+    
+    with open(workflow_path, "r", encoding="utf-8") as file:
+        workflow = json.load(file)
+    
+    workflow["13"]["inputs"]["image"] = comfy_image
+    
+    theme_prompt = get_theme_prompt(theme, custom_theme, mode)
+    
+    if mode == "realistic":
         workflow["2"]["inputs"]["text"] = (
-            "high quality 3D cartoon avatar of the exact same person, "
-            "preserve exact facial identity, same gender, same age, same face shape, "
+            "professional portrait photo of the exact same person, "
+            "preserve facial identity, same gender, same age, "
             "same eyes, same nose, same lips, same hairstyle, "
-            "head fully visible, upper body visible, centered portrait composition, "
-            "safe margins around head, not zoomed in, cinematic lighting, "
-            "animated movie character, stylized 3D portrait, "
+            "upper body visible, head fully visible, centered portrait, "    
+             "sharp focus, natural skin, clean studio lighting, "
             + theme_prompt
         )
-        workflow["3"]["inputs"]["text"] = (
-            "nsfw, nude, naked, porn, erotic, realistic photo, horror, creepy, "
-            + NEGATIVE_FRAMING
-        )
-        workflow["5"]["inputs"]["seed"] = int(time.time())
 
-        history = run_comfy_workflow(workflow)
-        download_first_comfy_image(history, output_path)
-        optimize_image_for_did(output_path, did_output_path)
-
-        return {
-            "job_id": job_id,
-            "avatar_url": public_file_url(job_id, "avatar.png"),
-            "did_avatar_url": public_file_url(job_id, "did_avatar.jpg")
-        }
-
-    except Exception as error:
-        import traceback
-
-        full_error = traceback.format_exc()
-        print("CREATE AVATAR ERROR:")
-        print(full_error)
-
-        return {
-            "error": repr(error),
-            "traceback": full_error
-        }
-
-@app.post("/create-realistic-avatar/")
-async def create_realistic_avatar(
-    file: UploadFile = File(...),
-    theme: str = Form("default"),
-    custom_theme: str = Form("")
-):
-    try:
-        job_id = str(uuid.uuid4())
-        job_dir = os.path.join(UPLOAD_DIR, job_id)
-        os.makedirs(job_dir, exist_ok=True)
-
-        raw_input = os.path.join(job_dir, "raw_input.jpg")
-        input_path = os.path.join(job_dir, "input.jpg")
-        output_path = os.path.join(job_dir, "avatar.png")
-        did_output_path = os.path.join(job_dir, "did_avatar.jpg")
-
-        with open(raw_input, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        prepare_input_image(raw_input, input_path)
-        comfy_image = upload_image_to_comfy(input_path)
-        theme_prompt = get_theme_prompt(theme, custom_theme, "realistic")
-
-        with open(REALISTIC_WORKFLOW_PATH, "r", encoding="utf-8") as file:
-            workflow = json.load(file)
-
-        workflow["13"]["inputs"]["image"] = comfy_image
-        workflow["2"]["inputs"]["text"] = (
-            "ultra realistic cinematic portrait photo of the exact same person "
-            "from the uploaded image, preserve exact facial identity, same gender, "
-            "same age, same face structure, same eyes, same nose, same lips, "
-            "same skin tone, same hairstyle, upper body visible, head fully visible, "
-            "centered portrait composition, safe margins around head, professional cinematic framing, "
-            "natural skin texture, sharp focus, studio lighting, high detail skin pores, "
-            "8k portrait photography, not zoomed in, "
-            + theme_prompt
-        )
         workflow["3"]["inputs"]["text"] = (
             "nsfw, nude, naked, porn, erotic, "
             + NEGATIVE_FRAMING
@@ -1414,34 +1346,90 @@ async def create_realistic_avatar(
             workflow["20"]["inputs"]["weight"] = 0.75
             workflow["20"]["inputs"]["start_at"] = 0
             workflow["20"]["inputs"]["end_at"] = 1
-
-        workflow["5"]["inputs"]["seed"] = int(time.time())
+        
         workflow["5"]["inputs"]["steps"] = 20
-        workflow["5"]["inputs"]["cfg"] = 5.0
-        workflow["5"]["inputs"]["sampler_name"] = "dpmpp_2m"
-        workflow["5"]["inputs"]["scheduler"] = "karras"
+        workflow["5"]["inputs"]["cfg"] = 5.0    
+        
+    else:
+        workflow["2"]["inputs"]["text"] = (
+            "clean sharp 3D cartoon avatar of the exact same person, "
+            "preserve facial identity, same gender, same age, "
+            "same face shape, same eyes, same nose, same lips, "
+            "head fully visible, upper body visible, centered portrait, "
+            "bright cartoon style, crisp details, no blur, "
+            + theme_prompt
+        )
+        
+        workflow["3"]["inputs"]["text"] = (
+            "nsfw, nude, naked, porn, erotic, realistic photo, horror, creepy, "
+            + NEGATIVE_FRAMING
+        )
+    
+    workflow["5"]["inputs"]["seed"] = int(time.time())
+    
+    history = run_comfy_workflow(workflow)
+    download_first_comfy_image(history, output_path)
+    optimize_image_for_did(output_path, did_output_path)
+    
+    return {
+        "job_id": job_id,
+        "avatar_url": public_file_url(job_id, "avatar.png"),
+        "did_avatar_url": public_file_url(job_id, "did_avatar.jpg"),
+        "avatar_path": output_path,
+        "did_avatar_path": did_output_path
+    }
 
-        history = run_comfy_workflow(workflow)
-        download_first_comfy_image(history, output_path)
-        optimize_image_for_did(output_path, did_output_path)
+@app.post("/create-3d-avatar/")
+async def create_3d_avatar(
+    file: UploadFile = File(...),
+    theme: str = Form("default"),
+    custom_theme: str = Form("")
+):
+    try:
+        temp_path = os.path.join(UPLOAD_DIR, f"temp_{uuid.uuid4()}.jpg")
 
-        return {
-            "job_id": job_id,
-            "avatar_url": public_file_url(job_id, "avatar.png"),
-            "did_avatar_url": public_file_url(job_id, "did_avatar.jpg")
-        }
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        return generate_avatar_from_path(
+            temp_path,
+            mode="cartoon",
+            theme=theme,
+            custom_theme=custom_theme
+        )
 
     except Exception as error:
         import traceback
-
         full_error = traceback.format_exc()
         print("CREATE AVATAR ERROR:")
         print(full_error)
+        return {"error": repr(error), "traceback": full_error}
 
-        return {
-            "error": repr(error),
-            "traceback": full_error
-        }
+@app.post("/create-realistic-avatar/")
+async def create_realistic_avatar(
+    file: UploadFile = File(...),
+    theme: str = Form("default"),
+    custom_theme: str = Form("")
+):
+    try:
+        temp_path = os.path.join(UPLOAD_DIR, f"temp_{uuid.uuid4()}.jpg")
+
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        return generate_avatar_from_path(
+            temp_path,
+            mode="realistic",
+            theme=theme,
+            custom_theme=custom_theme
+        )
+
+    except Exception as error:
+        import traceback
+        full_error = traceback.format_exc()
+        print("CREATE REALISTIC AVATAR ERROR:")
+        print(full_error)
+        return {"error": repr(error), "traceback": full_error}
 
 @app.post("/create-video/")
 async def create_video(
