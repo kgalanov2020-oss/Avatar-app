@@ -1318,6 +1318,12 @@ async def privacy():
     </body>
     </html>
     """
+def generate_avatar_from_path(
+    source_path: str,
+    mode: str = "cartoon",
+    theme: str = "default",
+    custom_theme: str = ""
+):
 
 @app.post("/create-3d-avatar/")
 async def create_3d_avatar(
@@ -1382,7 +1388,6 @@ async def create_3d_avatar(
             "error": repr(error),
             "traceback": full_error
         }
-
 
 @app.post("/create-realistic-avatar/")
 async def create_realistic_avatar(
@@ -1458,7 +1463,6 @@ async def create_realistic_avatar(
             "error": repr(error),
             "traceback": full_error
         }
-
 
 @app.post("/create-video/")
 async def create_video(
@@ -1536,7 +1540,6 @@ async def create_video(
         "audio_url": audio_url,
         "format": format
     }
-
 
 @app.post("/did-video/")
 def did_video(
