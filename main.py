@@ -154,6 +154,61 @@ def make_keyboard(items, row_size=2):
         ])
     return InlineKeyboardMarkup(rows)
 
+def get_or_create_telegram_user(update: Update):
+    tg_user = update.effective_user
+
+    result = supabase.table("telegram_users").select("*").eq(
+        "telegram_id",
+        tg_user.id
+    ).execute()
+
+    if result.data:
+        return result.data[0]
+
+    created = supabase.table("telegram_users").insert({
+        "telegram_id": tg_user.id,
+        "username": tg_user.username,
+        "first_name": tg_user.first_name,
+        "accepted_terms": False,
+        "credits": 3
+    }).execute()
+
+    return created.data[0]
+
+
+def update_telegram_user(telegram_id: int, data: dict):
+    return supabase.table("telegram_users").update(data).eq(
+        "telegram_id",
+        telegram_id
+    ).execute()
+
+
+def spend_credit(telegram_id: int):
+    result = supabase.table("telegram_users").select("*").eq(
+        "telegram_id",
+        telegram_id
+    ).execute()
+
+    if not result.data:
+        return {"ok": False, "error": "user_not_found"}
+
+    user = result.data[0]
+    credits = user.get("credits", 0)
+
+    if credits <= 0:
+        return {"ok": False, "error": "no_credits"}
+
+    new_credits = credits - 1
+
+    supabase.table("telegram_users").update({
+        "credits": new_credits
+    }).eq(
+        "telegram_id",
+        telegram_id
+    ).execute()
+
+    return {"ok": True, "credits": new_credits}
+
 async def start_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -245,10 +300,20 @@ async def accept_terms_callback(
     query = update.callback_query
     await query.answer()
 
+    user = get_or_create_telegram_user(update)
+
+    update_telegram_user(
+        update.effective_user.id,
+        {
+            "accepted_terms": True
+        }
+    )
+
     context.user_data["accepted_terms"] = True
 
     await query.edit_message_text(
         "Спасибо ✅\n\n"
+        "Вам начислено 3 тестовых кредита 🎁\n\n"
         "Теперь отправь фотографию, и я создам AI-аватар 🎭"
     )
 
