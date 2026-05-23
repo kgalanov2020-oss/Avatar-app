@@ -88,10 +88,6 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = FastAPI()
 
-@app.on_event("startup")
-async def startup():
-    await telegram_app.initialize()
-
 from telegram.request import HTTPXRequest
 
 telegram_request = HTTPXRequest(
@@ -108,6 +104,10 @@ telegram_app = (
     .request(telegram_request)
     .build()
 )
+
+@app.on_event("startup")
+async def startup():
+    await telegram_app.initialize()
 
 async def start_command(
     update: Update,
