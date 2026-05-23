@@ -393,25 +393,24 @@ async def text_handler(
 
     text = update.message.text
 
+    # 1. Если бот ждёт текст для видео — запускаем генерацию видео
     if context.user_data.get("waiting_for_video_text"):
 
         context.user_data["waiting_for_video_text"] = False
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "🎬 Создать ещё",
-                callback_data="create_again"
-            )
-        ]
-    ]
+        context.user_data["text"] = text
 
-    await update.message.reply_text(
-        "Чтобы создать новое видео, нажми кнопку ниже 👇",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+        await update.message.reply_text(
+            "Текст получил ✅\n\n"
+            "Создаю видео... ⏳"
+        )
 
-    return
-    
+        asyncio.create_task(
+            generate_talking_video(update, context)
+        )
+
+        return
+
+    # 2. Если бот ждёт пользовательскую тему — сохраняем тему
     if context.user_data.get("waiting_for_custom_theme"):
 
         context.user_data["custom_theme"] = text
@@ -430,9 +429,40 @@ async def text_handler(
 
         return
 
-    asyncio.create_task(
-        generate_telegram_avatar(update, context)
+    # 3. Если фото ещё не было
+    if "photo_path" not in context.user_data:
+
+        await update.message.reply_text(
+            "Сначала отправь фотографию 📸"
+        )
+
+        return
+
+    # 4. Если стиль ещё не выбран
+    if "style" not in context.user_data:
+
+        await update.message.reply_text(
+            "Сначала выбери стиль"
+        )
+
+        return
+
+    # 5. Любой случайный текст НЕ должен запускать генерацию
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🎬 Создать ещё",
+                callback_data="create_again"
+            )
+        ]
+    ]
+
+    await update.message.reply_text(
+        "Чтобы создать новое видео, нажми кнопку ниже 👇",
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
+
+    return
 
 async def generate_telegram_avatar(
     update: Update,
