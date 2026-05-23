@@ -92,9 +92,22 @@ app = FastAPI()
 async def startup():
     await telegram_app.initialize()
 
-telegram_app = Application.builder().token(
-    TELEGRAM_BOT_TOKEN
-).build()
+from telegram.request import HTTPXRequest
+
+telegram_request = HTTPXRequest(
+    connection_pool_size=20,
+    connect_timeout=60,
+    read_timeout=60,
+    write_timeout=60,
+    pool_timeout=60
+)
+
+telegram_app = (
+    Application.builder()
+    .token(TELEGRAM_BOT_TOKEN)
+    .request(telegram_request)
+    .build()
+)
 
 async def start_command(
     update: Update,
