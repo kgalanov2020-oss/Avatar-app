@@ -127,7 +127,10 @@ async def photo_handler(
     photo = update.message.photo[-1]
     file = await context.bot.get_file(photo.file_id)
 
-    file_path = f"telegram_{update.message.chat_id}.jpg"
+    file_path = os.path.join(
+        UPLOAD_DIR,
+        f"telegram_{update.message.chat_id}.jpg"
+    )    
     await file.download_to_drive(file_path)
 
     context.user_data["photo_path"] = file_path
