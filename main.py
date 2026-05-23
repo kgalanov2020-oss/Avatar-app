@@ -160,15 +160,34 @@ async def start_command(
 ):
     context.user_data.clear()
 
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "✅ Я согласен",
+                callback_data="accept_terms"
+            )
+        ]
+    ]
+
     await update.message.reply_text(
-        "Привет 👋\n\n"
-        "Отправь фотографию, и я создам AI-аватар 🎭"
+        "Перед использованием сервиса нужно согласиться:\n\n"
+        "• с Пользовательским соглашением\n"
+        "• с Политикой конфиденциальности\n"
+        "• с обработкой персональных данных\n"
+        "• с правилами AI-генерации\n\n"
+        "Загружая фото, ты подтверждаешь, что имеешь право его использовать.",
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
 async def photo_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+if not context.user_data.get("accepted_terms"):
+    await update.message.reply_text(
+        "Сначала нужно принять условия через /start ✅"
+    )
+    return
     photo = update.message.photo[-1]
     file = await context.bot.get_file(photo.file_id)
 
@@ -205,6 +224,20 @@ async def style_callback(
         "Стиль выбран ✅\n\n"
         "Теперь выбери тему:",
         reply_markup=make_keyboard(TELEGRAM_THEMES, row_size=2)
+    )
+
+async def accept_terms_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+
+    context.user_data["accepted_terms"] = True
+
+    await query.edit_message_text(
+        "Спасибо ✅\n\n"
+        "Теперь отправь фотографию, и я создам AI-аватар 🎭"
     )
 
 async def theme_callback(
@@ -484,6 +517,10 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     CallbackQueryHandler(format_callback, pattern="^format_")
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(accept_terms_callback, pattern="^accept_terms$")
 )
 
 @app.on_event("startup")
