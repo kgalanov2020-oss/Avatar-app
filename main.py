@@ -396,9 +396,19 @@ async def text_handler(
     if context.user_data.get("waiting_for_video_text"):
 
         context.user_data["waiting_for_video_text"] = False
+keyboard = [
+    [
+        InlineKeyboardButton(
+            "🎬 Создать ещё",
+            callback_data="create_again"
+        )
+    ]
+]
+
         await update.message.reply_text(
-            "Чтобы создать новое видео, нажми /start или кнопку «🎬 Создать ещё»."
-        )    
+            "Чтобы создать новое видео, нажми кнопку ниже 👇",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
         return
 
     if context.user_data.get("waiting_for_custom_theme"):
