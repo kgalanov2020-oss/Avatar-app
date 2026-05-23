@@ -441,10 +441,12 @@ async def generate_talking_video(
             )
             return
 
-        await context.bot.send_video(
+        await context.bot.send_message(
             chat_id=chat_id,
-            video=did_data["video_url"],
-            caption="Видео готово ✅"
+            text=(
+                "Видео готово ✅\n\n"
+                f"{did_data['video_url']}"
+            )
         )
 
     except Exception as error:
