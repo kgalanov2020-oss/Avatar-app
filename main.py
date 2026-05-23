@@ -396,17 +396,9 @@ async def text_handler(
     if context.user_data.get("waiting_for_video_text"):
 
         context.user_data["waiting_for_video_text"] = False
-        context.user_data["text"] = text
-    
         await update.message.reply_text(
-            "Текст получил ✅\n\n"
-            "Создаю видео... ⏳"
-        )
-    
-        asyncio.create_task(
-            generate_talking_video(update, context)
-        )
-    
+            "Чтобы создать новое видео, нажми /start или кнопку «🎬 Создать ещё»."
+        )    
         return
 
     if context.user_data.get("waiting_for_custom_theme"):
@@ -584,6 +576,15 @@ async def generate_talking_video(
             "telegram_id",
             telegram_id
         ).execute()
+        keyboard = [
+            [
+                InlineKeyboardButton(
+                    "🎬 Создать ещё",
+                    callback_data="create_again"
+                )
+            ]
+        ]
+        
         await context.bot.send_video(
             chat_id=chat_id,
             video=did_data["video_url"],
@@ -592,9 +593,9 @@ async def generate_talking_video(
             read_timeout=120,
             write_timeout=120,
             connect_timeout=60,
-            pool_timeout=60
+            pool_timeout=60,
+            reply_markup=InlineKeyboardMarkup(keyboard)
         )
-
     except Exception as error:
         import traceback
         print("TELEGRAM VIDEO ERROR:")
@@ -651,6 +652,19 @@ async def format_callback(
         generate_telegram_avatar(query, context)
     )
 
+async def create_again_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+
+    context.user_data.clear()
+
+    await query.message.reply_text(
+        "Отправь новую фотографию, и я создам ещё один AI-аватар 🎭"
+    )
+    
 telegram_app.add_handler(
     CommandHandler("start", start_command)
 )
@@ -681,6 +695,10 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     CallbackQueryHandler(accept_terms_callback, pattern="^accept_terms$")
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(create_again_callback, pattern="^create_again$")
 )
 
 @app.on_event("startup")
