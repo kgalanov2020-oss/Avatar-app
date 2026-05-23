@@ -285,8 +285,15 @@ async def generate_telegram_avatar(
     context: ContextTypes.DEFAULT_TYPE
 ):
     try:
-        await update.message.reply_text(
-            "Генерация запущена. Обычно это занимает 1–3 минуты ⏳"
+        chat_id = (
+            update.message.chat_id
+            if update.message
+            else update.callback_query.message.chat_id
+        )
+        
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text="Генерация запущена. Обычно это занимает 1–3 минуты ⏳"
         )
 
         photo_path = context.user_data["photo_path"]
@@ -354,6 +361,24 @@ async def voice_callback(
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
+async def format_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+
+    context.user_data["format"] = query.data.replace("format_", "")
+
+    await query.edit_message_text(
+        "Формат выбран ✅\n\n"
+        "Создаю AI-аватар... ⏳"
+    )
+
+    asyncio.create_task(
+        generate_telegram_avatar(query, context)
+    )
+
 telegram_app.add_handler(
     CommandHandler("start", start_command)
 )
@@ -376,6 +401,10 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     CallbackQueryHandler(voice_callback, pattern="^voice_")
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(format_callback, pattern="^format_")
 )
 
 @app.on_event("startup")
