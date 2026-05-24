@@ -1051,6 +1051,28 @@ telegram_app.add_handler(
 async def startup():
     await telegram_app.initialize()
 
+@app.post("/telegram-webhook/")
+async def telegram_webhook(request: Request):
+    try:
+        data = await request.json()
+        print("TELEGRAM UPDATE:", data)
+
+        update = Update.de_json(
+            data,
+            telegram_app.bot
+        )
+
+        await telegram_app.process_update(update)
+
+        return {"ok": True}
+
+    except Exception as error:
+        import traceback
+        print("TELEGRAM WEBHOOK ERROR:")
+        print(traceback.format_exc())
+
+        return {"ok": False, "error": str(error)}
+
 @app.post("/yookassa-webhook/")
 async def yookassa_webhook(request: Request):
     data = await request.json()
