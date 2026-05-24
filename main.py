@@ -403,7 +403,8 @@ async def text_handler(
 ):
 
     text = update.message.text
-if context.user_data.get("waiting_for_payment_email"):
+
+    if context.user_data.get("waiting_for_payment_email"):
 
     email = text.strip()
 
