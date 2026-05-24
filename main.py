@@ -826,7 +826,6 @@ YOOKASSA_PACKAGES = {
     }
 }
 
-
 async def buy_yookassa_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -841,46 +840,66 @@ async def buy_yookassa_callback(
         await query.message.reply_text("Пакет не найден 😔")
         return
 
-    await query.message.reply_text(
-        f"Вы выбрали пакет {package['title']}:\n"
-        f"{package['credits']} кредитов за {package['amount']} ₽\n\n"
-        "Сейчас подключим создание платежной ссылки ЮKassa."
+    payment_id = str(uuid.uuid4())
+
+    payload = {
+        "amount": {
+            "value": package["amount"],
+            "currency": "RUB"
+        },
+        "capture": True,
+        "confirmation": {
+            "type": "redirect",
+            "return_url": "https://t.me/ai_avatar_video_bot"
+        },
+        "description": f"AI Avatar Video — {package['credits']} кредитов",
+        "metadata": {
+            "telegram_id": str(update.effective_user.id),
+            "credits": str(package["credits"]),
+            "package_id": package_id
+        }
+    }
+
+    response = requests.post(
+        "https://api.yookassa.ru/v3/payments",
+        auth=(
+            YOOKASSA_SHOP_ID,
+            YOOKASSA_SECRET_KEY
+        ),
+        json=payload,
+        headers={
+            "Idempotence-Key": payment_id
+        },
+        timeout=30
     )
 
-async def buy_command(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-    user = get_or_create_telegram_user(update)
-    credits = user.get("credits", 0)
+    data = response.json()
+
+    if response.status_code not in [200, 201]:
+        await query.message.reply_text(
+            "Ошибка создания платежа 😔\n\n" + str(data)
+        )
+        return
+
+    payment_url = data["confirmation"]["confirmation_url"]
 
     keyboard = [
         [
             InlineKeyboardButton(
-                "💳 Купить 5 видео — 249 ₽",
-                callback_data="buy_yookassa_5"
+                "💳 Оплатить",
+                url=payment_url
             )
-        ],
-        [
-            InlineKeyboardButton(
-                "💳 Купить 10 видео — 399 ₽",
-                callback_data="buy_yookassa_10"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "💳 Купить 30 видео — 899 ₽",
-                callback_data="buy_yookassa_30"
-            )
-        ],
+        ]
     ]
 
-    await update.message.reply_text(
-        f"Ваш баланс: {credits} кредитов 🎬\n\n"
-        "Выберите пакет пополнения:",
+    await query.message.reply_text(
+        f"Пакет: {package['title']}\n"
+        f"Кредитов: {package['credits']}\n"
+        f"Стоимость: {package['amount']} ₽\n\n"
+        "Нажмите кнопку ниже для оплаты:",
         reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-    
+    )    
+
 telegram_app.add_handler(
     CommandHandler("start", start_command)
 )
