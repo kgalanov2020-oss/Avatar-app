@@ -423,13 +423,13 @@ async def text_handler(
         await update.message.reply_text("Пакет не найден 😔")
         return
 
-    await create_yookassa_payment_message(
-        update,
-        context,
-        package_id,
-        package,
-        email
-    )
+        await create_yookassa_payment_message(
+            update,
+            context,
+            package_id,
+            package,
+            email
+        )
 
     return
 
@@ -497,10 +497,10 @@ async def text_handler(
         ]
     ]
 
-    await update.message.reply_text(
-        "Чтобы создать новое видео, нажми кнопку ниже 👇",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+        await update.message.reply_text(
+            "Чтобы создать новое видео, нажми кнопку ниже 👇",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
 
     return
 
