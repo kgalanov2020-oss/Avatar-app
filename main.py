@@ -808,6 +808,45 @@ async def successful_payment_callback(
         f"Ваш баланс: {new_credits} 🎬"
     )
 
+YOOKASSA_PACKAGES = {
+    "5": {
+        "credits": 5,
+        "amount": "249.00",
+        "title": "Starter"
+    },
+    "10": {
+        "credits": 10,
+        "amount": "399.00",
+        "title": "Popular"
+    },
+    "30": {
+        "credits": 30,
+        "amount": "899.00",
+        "title": "Pro"
+    }
+}
+
+
+async def buy_yookassa_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+
+    package_id = query.data.replace("buy_yookassa_", "")
+    package = YOOKASSA_PACKAGES.get(package_id)
+
+    if not package:
+        await query.message.reply_text("Пакет не найден 😔")
+        return
+
+    await query.message.reply_text(
+        f"Вы выбрали пакет {package['title']}:\n"
+        f"{package['credits']} кредитов за {package['amount']} ₽\n\n"
+        "Сейчас подключим создание платежной ссылки ЮKassa."
+    )
+
 async def buy_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -896,6 +935,10 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback)
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(buy_yookassa_callback, pattern="^buy_yookassa_")
 )
 
 @app.on_event("startup")
