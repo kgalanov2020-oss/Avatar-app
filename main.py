@@ -2643,7 +2643,7 @@ video {
             <input type="checkbox" id="agreeTerms" style="width:auto; margin-top:4px;">
     
             <span>
-                Я ознакомлен и согласен с
+                Я подтверждаю, что мне есть 18 лет, я ознакомлен и согласен с
                 <a href="/oferta" target="_blank">
                     Пользовательским соглашением
                 </a>
