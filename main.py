@@ -1051,28 +1051,42 @@ telegram_app.add_handler(
 async def startup():
     await telegram_app.initialize()
 
-@app.post("/telegram-webhook/")
-async def telegram_webhook(request: Request):
-    try:
-        data = await request.json()
-        print("TELEGRAM UPDATE:", data)
+@app.post("/yookassa-webhook/")
+async def yookassa_webhook(request: Request):
+    data = await request.json()
 
-        update = Update.de_json(
-            data,
-            telegram_app.bot
-        )
-
-        await telegram_app.process_update(update)
-
+    if data.get("event") != "payment.succeeded":
         return {"ok": True}
 
-    except Exception as error:
-        import traceback
+    payment = data.get("object", {})
+    metadata = payment.get("metadata", {})
 
-        print("TELEGRAM WEBHOOK ERROR:")
-        print(traceback.format_exc())
+    telegram_id = metadata.get("telegram_id")
+    credits_to_add = int(metadata.get("credits", 0))
 
-        return {"ok": False, "error": str(error)}
+    if not telegram_id or credits_to_add <= 0:
+        return {"ok": False, "error": "bad metadata"}
+
+    result = supabase.table("telegram_users").select("*").eq(
+        "telegram_id",
+        int(telegram_id)
+    ).execute()
+
+    if not result.data:
+        return {"ok": False, "error": "user not found"}
+
+    user = result.data[0]
+    old_credits = user.get("credits", 0)
+    new_credits = old_credits + credits_to_add
+
+    supabase.table("telegram_users").update({
+        "credits": new_credits
+    }).eq(
+        "telegram_id",
+        int(telegram_id)
+    ).execute()
+
+    return {"ok": True}
 
 @app.get("/files/{job_id}/{filename}")
 def get_file(job_id: str, filename: str):
