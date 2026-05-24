@@ -404,24 +404,25 @@ async def text_handler(
 
     text = update.message.text
 
+    # 1. Если бот ждёт email для оплаты ЮKassa
     if context.user_data.get("waiting_for_payment_email"):
 
-    email = text.strip()
+        email = text.strip()
 
-    if "@" not in email or "." not in email:
-        await update.message.reply_text(
-            "Похоже, это не email. Введите email для чека 📩"
-        )
-        return
+        if "@" not in email or "." not in email:
+            await update.message.reply_text(
+                "Похоже, это не email. Введите email для чека 📩"
+            )
+            return
 
-    context.user_data["waiting_for_payment_email"] = False
+        context.user_data["waiting_for_payment_email"] = False
 
-    package_id = context.user_data.get("payment_package_id")
-    package = YOOKASSA_PACKAGES.get(package_id)
+        package_id = context.user_data.get("payment_package_id")
+        package = YOOKASSA_PACKAGES.get(package_id)
 
-    if not package:
-        await update.message.reply_text("Пакет не найден 😔")
-        return
+        if not package:
+            await update.message.reply_text("Пакет не найден 😔")
+            return
 
         await create_yookassa_payment_message(
             update,
@@ -431,9 +432,9 @@ async def text_handler(
             email
         )
 
-    return
+        return
 
-    # 1. Если бот ждёт текст для видео — запускаем генерацию видео
+    # 2. Если бот ждёт текст для видео
     if context.user_data.get("waiting_for_video_text"):
 
         context.user_data["waiting_for_video_text"] = False
@@ -450,7 +451,7 @@ async def text_handler(
 
         return
 
-    # 2. Если бот ждёт пользовательскую тему — сохраняем тему
+    # 3. Если бот ждёт пользовательскую тему
     if context.user_data.get("waiting_for_custom_theme"):
 
         context.user_data["custom_theme"] = text
@@ -469,7 +470,7 @@ async def text_handler(
 
         return
 
-    # 3. Если фото ещё не было
+    # 4. Если фото ещё не было
     if "photo_path" not in context.user_data:
 
         await update.message.reply_text(
@@ -478,7 +479,7 @@ async def text_handler(
 
         return
 
-    # 4. Если стиль ещё не выбран
+    # 5. Если стиль ещё не выбран
     if "style" not in context.user_data:
 
         await update.message.reply_text(
@@ -487,7 +488,7 @@ async def text_handler(
 
         return
 
-    # 5. Любой случайный текст НЕ должен запускать генерацию
+    # 6. Любой случайный текст НЕ должен запускать генерацию
     keyboard = [
         [
             InlineKeyboardButton(
@@ -497,10 +498,10 @@ async def text_handler(
         ]
     ]
 
-        await update.message.reply_text(
-            "Чтобы создать новое видео, нажми кнопку ниже 👇",
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
+    await update.message.reply_text(
+        "Чтобы создать новое видео, нажми кнопку ниже 👇",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
     return
 
