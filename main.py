@@ -807,26 +807,49 @@ async def buy_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+    user = get_or_create_telegram_user(update)
+
+    credits = user.get("credits", 0)
+
     keyboard = [
+
         [
-            InlineKeyboardButton("3 видео — 75 ⭐", callback_data="buy_stars_3")
+            InlineKeyboardButton(
+                "⭐ 3 видео — 75 Stars",
+                callback_data="buy_stars_3"
+            )
         ],
+
         [
-            InlineKeyboardButton("10 видео — 199 ⭐", callback_data="buy_stars_10")
+            InlineKeyboardButton(
+                "⭐ 10 видео — 199 Stars",
+                callback_data="buy_stars_10"
+            )
         ],
+
         [
-            InlineKeyboardButton("30 видео — 499 ⭐", callback_data="buy_stars_30")
+            InlineKeyboardButton(
+                "⭐ 30 видео — 499 Stars",
+                callback_data="buy_stars_30"
+            )
         ],
+
         [
-            InlineKeyboardButton("💳 Оплата картой", callback_data="buy_yookassa")
+            InlineKeyboardButton(
+                "💳 Оплата картой (ЮKassa)",
+                callback_data="buy_yookassa"
+            )
         ],
     ]
 
     await update.message.reply_text(
-        "Выберите пакет кредитов:",
+        (
+            f"Ваш баланс: {credits} кредитов 🎬\n\n"
+            "Выберите пакет пополнения:"
+        ),
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
-
+    
 telegram_app.add_handler(
     CommandHandler("start", start_command)
 )
