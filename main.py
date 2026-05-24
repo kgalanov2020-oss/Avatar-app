@@ -711,7 +711,41 @@ async def create_again_callback(
     await query.message.reply_text(
         "Отправь новую фотографию, и я создам ещё один AI-аватар 🎭"
     )
-    
+
+async def balance_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    user = get_or_create_telegram_user(update)
+
+    await update.message.reply_text(
+        f"Ваш баланс: {user.get('credits', 0)} кредитов 🎬"
+    )
+
+async def buy_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    keyboard = [
+        [
+            InlineKeyboardButton("3 видео — 75 ⭐", callback_data="buy_stars_3")
+        ],
+        [
+            InlineKeyboardButton("10 видео — 199 ⭐", callback_data="buy_stars_10")
+        ],
+        [
+            InlineKeyboardButton("30 видео — 499 ⭐", callback_data="buy_stars_30")
+        ],
+        [
+            InlineKeyboardButton("💳 Оплата картой", callback_data="buy_yookassa")
+        ],
+    ]
+
+    await update.message.reply_text(
+        "Выберите пакет кредитов:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
 telegram_app.add_handler(
     CommandHandler("start", start_command)
 )
@@ -746,6 +780,14 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     CallbackQueryHandler(create_again_callback, pattern="^create_again$")
+)
+
+telegram_app.add_handler(
+    CommandHandler("balance", balance_command)
+)
+
+telegram_app.add_handler(
+    CommandHandler("buy", buy_command)
 )
 
 @app.on_event("startup")
