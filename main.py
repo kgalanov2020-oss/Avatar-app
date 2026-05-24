@@ -891,6 +891,24 @@ async def buy_yookassa_callback(
             "telegram_id": str(update.effective_user.id),
             "credits": str(package["credits"]),
             "package_id": package_id
+        },
+        "receipt": {
+            "customer": {
+                "email": "aiavatarvideo@mail.ru"
+            },
+            "items": [
+                {
+                    "description": f"AI Avatar Video — {package['credits']} кредитов",
+                    "quantity": "1.00",
+                    "amount": {
+                        "value": package["amount"],
+                        "currency": "RUB"
+                    },
+                    "vat_code": 1,
+                    "payment_subject": "service",
+                    "payment_mode": "full_payment"
+                }
+            ]
         }
     }
 
@@ -932,7 +950,7 @@ async def buy_yookassa_callback(
         f"Стоимость: {package['amount']} ₽\n\n"
         "Нажмите кнопку ниже для оплаты:",
         reply_markup=InlineKeyboardMarkup(keyboard)
-    )    
+    )
 
 telegram_app.add_handler(
     CommandHandler("start", start_command)
