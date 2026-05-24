@@ -352,11 +352,14 @@ async def accept_terms_callback(
         }
     )
 
+    updated_user = get_or_create_telegram_user(update)
+    credits = updated_user.get("credits", 0)
+
     context.user_data["accepted_terms"] = True
 
     await query.edit_message_text(
         "Спасибо ✅\n\n"
-        "Вам начислено 3 тестовых кредита 🎁\n\n"
+        f"Ваш баланс: {credits} кредитов 🎬\n\n"
         "Теперь отправь фотографию, и я создам AI-аватар 🎭"
     )
 
