@@ -874,83 +874,14 @@ async def buy_yookassa_callback(
         await query.message.reply_text("Пакет не найден 😔")
         return
 
-    payment_id = str(uuid.uuid4())
-
-    payload = {
-        "amount": {
-            "value": package["amount"],
-            "currency": "RUB"
-        },
-        "capture": True,
-        "confirmation": {
-            "type": "redirect",
-            "return_url": "https://t.me/ai_avatar_video_bot"
-        },
-        "description": f"AI Avatar Video — {package['credits']} кредитов",
-        "metadata": {
-            "telegram_id": str(update.effective_user.id),
-            "credits": str(package["credits"]),
-            "package_id": package_id
-        },
-        "receipt": {
-            "customer": {
-                "email": "aiavatarvideo@mail.ru"
-            },
-            "items": [
-                {
-                    "description": f"AI Avatar Video — {package['credits']} кредитов",
-                    "quantity": "1.00",
-                    "amount": {
-                        "value": package["amount"],
-                        "currency": "RUB"
-                    },
-                    "vat_code": 1,
-                    "payment_subject": "service",
-                    "payment_mode": "full_payment"
-                }
-            ]
-        }
-    }
-
-    response = requests.post(
-        "https://api.yookassa.ru/v3/payments",
-        auth=(
-            YOOKASSA_SHOP_ID,
-            YOOKASSA_SECRET_KEY
-        ),
-        json=payload,
-        headers={
-            "Idempotence-Key": payment_id
-        },
-        timeout=30
-    )
-
-    data = response.json()
-
-    if response.status_code not in [200, 201]:
-        await query.message.reply_text(
-            "Ошибка создания платежа 😔\n\n" + str(data)
-        )
-        return
-
-    payment_url = data["confirmation"]["confirmation_url"]
-
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "💳 Оплатить",
-                url=payment_url
-            )
-        ]
-    ]
+    context.user_data["waiting_for_payment_email"] = True
+    context.user_data["payment_package_id"] = package_id
 
     await query.message.reply_text(
-        f"Пакет: {package['title']}\n"
-        f"Кредитов: {package['credits']}\n"
-        f"Стоимость: {package['amount']} ₽\n\n"
-        "Нажмите кнопку ниже для оплаты:",
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        "Введите email для получения чека 📩"
     )
+
+    return
 
 telegram_app.add_handler(
     CommandHandler("start", start_command)
