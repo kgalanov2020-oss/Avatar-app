@@ -813,8 +813,8 @@ async def buy_command(
     keyboard = [
         [
             InlineKeyboardButton(
-                "💳 Купить 3 видео — 149 ₽",
-                callback_data="buy_yookassa_3"
+                "💳 Купить 5 видео — 249 ₽",
+                callback_data="buy_yookassa_5"
             )
         ],
         [
@@ -825,7 +825,7 @@ async def buy_command(
         ],
         [
             InlineKeyboardButton(
-                "💳 Купить 30 видео — 999 ₽",
+                "💳 Купить 30 видео — 899 ₽",
                 callback_data="buy_yookassa_30"
             )
         ],
