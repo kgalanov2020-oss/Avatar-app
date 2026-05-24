@@ -53,6 +53,8 @@ import time
 import json
 import asyncio
 from supabase import create_client
+from telegram import LabeledPrice
+from telegram.ext import PreCheckoutQueryHandler
 
 # =============================
 # CONFIG
@@ -725,6 +727,82 @@ async def balance_command(
         f"Ваш баланс: {user.get('credits', 0)} кредитов 🎬"
     )
 
+async def buy_stars_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+
+    package_id = query.data.replace("buy_", "")
+    package = CREDIT_PACKAGES.get(package_id)
+
+    if not package:
+        await query.message.reply_text("Пакет не найден 😔")
+        return
+
+    await context.bot.send_invoice(
+        chat_id=query.message.chat_id,
+        title=package["title"],
+        description=package["description"],
+        payload=package_id,
+        provider_token="",
+        currency="XTR",
+        prices=[
+            LabeledPrice(
+                label=package["title"],
+                amount=package["stars"]
+            )
+        ]
+    )
+
+async def precheckout_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.pre_checkout_query
+
+    if query.invoice_payload not in CREDIT_PACKAGES:
+        await query.answer(
+            ok=False,
+            error_message="Пакет не найден"
+        )
+        return
+
+    await query.answer(ok=True)
+
+async def successful_payment_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    payment = update.message.successful_payment
+    package_id = payment.invoice_payload
+    package = CREDIT_PACKAGES.get(package_id)
+
+    if not package:
+        await update.message.reply_text(
+            "Платёж получен, но пакет не найден. Напишите в поддержку."
+        )
+        return
+
+    user = get_or_create_telegram_user(update)
+
+    old_credits = user.get("credits", 0)
+    new_credits = old_credits + package["credits"]
+
+    update_telegram_user(
+        update.effective_user.id,
+        {
+            "credits": new_credits
+        }
+    )
+
+    await update.message.reply_text(
+        f"Оплата прошла успешно ✅\n\n"
+        f"Начислено кредитов: {package['credits']}\n"
+        f"Ваш баланс: {new_credits} 🎬"
+    )
+
 async def buy_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -791,6 +869,18 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     CommandHandler("buy", buy_command)
+)
+
+telegram_app.add_handler(
+    CallbackQueryHandler(buy_stars_callback, pattern="^buy_stars_")
+)
+
+telegram_app.add_handler(
+    PreCheckoutQueryHandler(precheckout_callback)
+)
+
+telegram_app.add_handler(
+    MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback)
 )
 
 @app.on_event("startup")
