@@ -277,7 +277,7 @@ async def start_command(
         "https://avatar-app-vcer.onrender.com/privacy\n\n"
     
         "Загружая фото, вы подтверждаете, что:\n"
-        "• что Вам исполнилось 18 лет\n"
+        "• Вам исполнилось 18 лет\n"
         "• Вы имеете право использовать загруженное изображение\n"
         "• не загружаете чужие фото без согласия\n"
         "• не создаёте незаконный или запрещенный контент\n\n"
@@ -630,14 +630,19 @@ async def generate_talking_video(
         await context.bot.send_video(
             chat_id=chat_id,
             video=did_data["video_url"],
-            caption=f"Видео готово ✅\n\nОсталось кредитов: {new_credits}",
             supports_streaming=True,
             read_timeout=120,
             write_timeout=120,
             connect_timeout=60,
-            pool_timeout=60,
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            pool_timeout=60
         )
+        
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"Видео готово ✅\n\nОсталось кредитов: {new_credits}",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )    
+    
     except Exception as error:
         import traceback
         print("TELEGRAM VIDEO ERROR:")
@@ -2643,7 +2648,7 @@ video {
             <input type="checkbox" id="agreeTerms" style="width:auto; margin-top:4px;">
     
             <span>
-                Я подтверждаю, что мне есть 18 лет, я ознакомлен и согласен с
+                Я подтверждаю, что мне исполнилось 18 лет, я ознакомлен и согласен с
                 <a href="/oferta" target="_blank">
                     Пользовательским соглашением
                 </a>
@@ -3378,7 +3383,7 @@ window.buyCredits = buyCredits;
     line-height:1.8;
 ">
 <div style="margin-top:14px; font-size:13px; color:#777;">
-    Используя сайт, вы соглашаетесь с обработкой персональных данных, условиями Пользовательского соглашения и Политики конфидециальности.
+    Используя сайт, вы подтверждаете, что Вам сиполнилось 18 лет, соглашаетесь с обработкой персональных данных, условиями Пользовательского соглашения и Политики конфидециальности.
 </div>
     <div style="margin-bottom:10px;">
         <a href="/oferta" target="_blank">
