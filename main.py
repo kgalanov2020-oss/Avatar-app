@@ -2511,6 +2511,36 @@ video {
 
     <h1>AI Avatar Video</h1>
 
+<div style="margin-top:20px;">
+    <a 
+        href="https://t.me/ai_avatar_video_bot"
+        target="_blank"
+        style="
+            display:inline-block;
+            background:#229ED9;
+            color:white;
+            padding:14px 22px;
+            border-radius:14px;
+            text-decoration:none;
+            font-weight:600;
+            font-size:16px;
+        "
+    >
+        🤖 Открыть Telegram-бота
+    </a>
+
+    <p style="margin-top:12px; opacity:0.8;">
+        Также вы можете пользоваться сервисом прямо в Telegram-боте:
+        <br>
+        <a 
+            href="https://t.me/ai_avatar_video_bot"
+            target="_blank"
+        >
+            @ai_avatar_video_bot
+        </a>
+    </p>
+</div>
+
 <p class="subtitle">
     Загрузи фото, напиши поздравление — получи говорящее видео с AI-аватаром.
 </p>
