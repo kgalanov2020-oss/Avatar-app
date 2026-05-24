@@ -1081,13 +1081,28 @@ async def yookassa_webhook(request: Request):
         return {"ok": True}
 
     payment = data.get("object", {})
+    payment_id = payment.get("id")
     metadata = payment.get("metadata", {})
 
     telegram_id = metadata.get("telegram_id")
     credits_to_add = int(metadata.get("credits", 0))
 
+    if not payment_id:
+        return {"ok": False, "error": "missing payment_id"}
+
     if not telegram_id or credits_to_add <= 0:
         return {"ok": False, "error": "bad metadata"}
+
+    existing = supabase.table("yookassa_payments").select("*").eq(
+        "payment_id",
+        payment_id
+    ).execute()
+
+    if existing.data:
+        return {
+            "ok": True,
+            "message": "already processed"
+        }
 
     result = supabase.table("telegram_users").select("*").eq(
         "telegram_id",
@@ -1108,7 +1123,20 @@ async def yookassa_webhook(request: Request):
         int(telegram_id)
     ).execute()
 
-    return {"ok": True}
+    supabase.table("yookassa_payments").insert({
+        "payment_id": payment_id,
+        "telegram_id": int(telegram_id),
+        "credits": credits_to_add,
+        "amount": payment.get("amount", {}).get("value"),
+        "status": payment.get("status")
+    }).execute()
+
+    return {
+        "ok": True,
+        "payment_id": payment_id,
+        "credits_added": credits_to_add,
+        "new_credits": new_credits
+    }
 
 @app.get("/files/{job_id}/{filename}")
 def get_file(job_id: str, filename: str):
