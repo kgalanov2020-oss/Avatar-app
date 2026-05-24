@@ -122,6 +122,11 @@ supabase_admin = create_client(
 
 YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID")
 YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY")
+YOOKASSA_PACKAGES = {
+    "starter": {"credits": 5, "amount": "249.00", "title": "Starter"},
+    "popular": {"credits": 10, "amount": "399.00", "title": "Popular"},
+    "pro": {"credits": 30, "amount": "899.00", "title": "Pro"},
+}
 
 Configuration.account_id = YOOKASSA_SHOP_ID
 Configuration.secret_key = YOOKASSA_SECRET_KEY
