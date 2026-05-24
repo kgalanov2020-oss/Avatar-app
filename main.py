@@ -826,6 +826,40 @@ YOOKASSA_PACKAGES = {
     }
 }
 
+async def buy_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    user = get_or_create_telegram_user(update)
+    credits = user.get("credits", 0)
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "💳 Купить 5 видео — 249 ₽",
+                callback_data="buy_yookassa_5"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "💳 Купить 10 видео — 399 ₽",
+                callback_data="buy_yookassa_10"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "💳 Купить 30 видео — 899 ₽",
+                callback_data="buy_yookassa_30"
+            )
+        ],
+    ]
+
+    await update.message.reply_text(
+        f"Ваш баланс: {credits} кредитов 🎬\n\n"
+        "Выберите пакет пополнения:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
 async def buy_yookassa_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -942,18 +976,6 @@ telegram_app.add_handler(
 
 telegram_app.add_handler(
     CommandHandler("buy", buy_command)
-)
-
-telegram_app.add_handler(
-    CallbackQueryHandler(buy_stars_callback, pattern="^buy_stars_")
-)
-
-telegram_app.add_handler(
-    PreCheckoutQueryHandler(precheckout_callback)
-)
-
-telegram_app.add_handler(
-    MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback)
 )
 
 telegram_app.add_handler(
