@@ -1229,7 +1229,7 @@ def public_file_url(job_id: str, filename: str) -> str:
 
 def prepare_input_image(input_path: str, output_path: str, max_size: int = 1024):
     image = ImageOps.exif_transpose(Image.open(input_path)).convert("RGB")
-    image.thumbnail((max_size, max_size))
+    image.thumbnail((768, 768))
     image.save(output_path, format="JPEG", quality=95, optimize=True)
 
 
@@ -1238,20 +1238,31 @@ def optimize_image_for_did(input_path: str, output_path: str):
     image.thumbnail((1024, 1024))
     image.save(output_path, format="JPEG", quality=94, optimize=True)
 
+def upload_image_to_comfy(image_path):
 
-def upload_image_to_comfy(image_path: str) -> str:
-    with open(image_path, "rb") as file:
+    with open(image_path, "rb") as image_file:
+
+        files = {
+            "image": image_file
+        }
+
         response = requests.post(
             f"{COMFY_URL}/upload/image",
-            files={"image": file},
+            files=files,
             timeout=120
         )
 
+    print("COMFY STATUS:", response.status_code)
+    print("COMFY RESPONSE:", response.text)
+
     if response.status_code != 200:
-        raise RuntimeError(response.text)
+        raise RuntimeError(
+            f"Comfy upload failed: {response.status_code} | {response.text}"
+        )
 
-    return response.json()["name"]
+    data = response.json()
 
+    return data["name"]
 
 def run_comfy_workflow(workflow: dict) -> dict:
     response = requests.post(
