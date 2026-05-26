@@ -1264,7 +1264,8 @@ def upload_image_to_comfy(image_path):
 
     return data["name"]
 
-def run_comfy_workflow(workflow: dict) -> dict:
+def run_comfy_workflow(workflow):
+
     response = requests.post(
         f"{COMFY_URL}/prompt",
         json={
@@ -1274,24 +1275,52 @@ def run_comfy_workflow(workflow: dict) -> dict:
         timeout=120
     )
 
+    print("COMFY PROMPT STATUS:", response.status_code)
+    print("COMFY PROMPT TEXT:", response.text[:1000])
+
     if response.status_code != 200:
-        raise RuntimeError(response.text)
+        raise RuntimeError(
+            f"Comfy prompt failed: {response.status_code} | {response.text[:1000]}"
+        )
 
-    prompt_id = response.json()["prompt_id"]
+    try:
+        prompt_data = response.json()
+    except Exception:
+        raise RuntimeError(
+            f"Comfy returned non-JSON response: {response.text[:1000]}"
+        )
 
-    for _ in range(180):
-        history = requests.get(
+    prompt_id = prompt_data.get("prompt_id")
+
+    if not prompt_id:
+        raise RuntimeError(
+            f"No prompt_id from Comfy: {prompt_data}"
+        )
+
+    for _ in range(120):
+
+        time.sleep(2)
+
+        history_response = requests.get(
             f"{COMFY_URL}/history/{prompt_id}",
             timeout=60
-        ).json()
+        )
 
-        if prompt_id in history:
-            return history[prompt_id]
+        print("COMFY HISTORY STATUS:", history_response.status_code)
+        print("COMFY HISTORY TEXT:", history_response.text[:500])
 
-        time.sleep(1)
+        if history_response.status_code != 200:
+            continue
 
-    raise TimeoutError("ComfyUI generation timeout")
+        try:
+            history_data = history_response.json()
+        except Exception:
+            continue
 
+        if prompt_id in history_data:
+            return history_data[prompt_id]
+
+    raise TimeoutError("Comfy workflow timed out")
 
 def download_first_comfy_image(history: dict, output_path: str):
     outputs = history.get("outputs", {})
