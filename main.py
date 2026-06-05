@@ -67,7 +67,7 @@ APP_BASE_URL = os.getenv(
 
 COMFY_URL = os.getenv(
     "COMFY_URL",
-    "https://rc7m4ppm0a2rzs-8188.proxy.runpod.net"
+    "https://hessio3unqpdv0-8188.proxy.runpod.net"
 )
 
 DID_API_KEY = os.getenv("DID_API_KEY")
