@@ -1355,19 +1355,19 @@ def generate_gemini_image(input_path: str, prompt: str, output_path: str):
 # =============================
 
 BASE_CARTOON_STYLE = (
-    "disney pixar style, cinematic lighting, "
-    "vibrant rich colors, volumetric lighting, "
-    "ultra detailed, fantasy atmosphere, "
-    "movie poster style, masterpiece, "
-    "sharp focus, depth of field, 8k"
+    "premium 3D animated portrait, strong facial likeness, "
+    "recognizable same person, expressive but not exaggerated, "
+    "soft cinematic lighting, detailed eyes, natural smile, "
+    "clean stylized skin, polished character design, "
+    "sharp focus, high quality"
 )
 
 BASE_REALISTIC_STYLE = (
-    "ultra realistic cinematic portrait, "
-    "professional movie lighting, "
-    "rich color grading, dramatic atmosphere, "
-    "highly detailed face, depth of field, "
-    "volumetric lighting, masterpiece, 8k"
+    "ultra realistic cinematic portrait, exact facial likeness, "
+    "professional movie lighting, rich color grading, "
+    "detailed natural skin texture, highly detailed eyes, "
+    "depth of field, balanced dramatic atmosphere, "
+    "premium editorial portrait, sharp focus"
 )
 
 
@@ -1683,13 +1683,17 @@ def get_theme_prompt(theme: str, custom_theme: str, mode: str) -> str:
     if theme == "custom" and custom_theme.strip():
         if mode == "cartoon":
             return (
-                f"high quality 3D cartoon avatar inspired by {custom_theme.strip()}, "
-                "preserve exact facial identity, same gender, same age, same face structure"
+                f"premium 3D animated avatar inspired by {custom_theme.strip()}, "
+                "apply the theme through outfit, background, and mood while "
+                "preserving exact facial identity, same gender, same age, "
+                "same face structure, same hairstyle, same hair color"
             )
 
         return (
             f"ultra realistic portrait inspired by {custom_theme.strip()}, "
-            "preserve exact facial identity, same gender, same age, same facial structure"
+            "apply the theme through outfit, background, and mood while "
+            "preserving exact facial identity, same gender, same age, "
+            "same facial structure, same hairstyle, same hair color"
         )
 
     if mode == "cartoon":
@@ -1707,26 +1711,37 @@ def build_gemini_avatar_prompt(
 
     if mode == "realistic":
         style_prompt = (
-            "Create an ultra realistic cinematic portrait from the reference "
-            "photo. Preserve the person's identity, face shape, gender, age, "
-            "eyes, nose, lips, hairstyle, and natural facial proportions. "
-            "Show the head fully visible and the upper body, centered, sharp, "
+            "Use the uploaded photo as the primary identity reference. Create "
+            "an ultra realistic cinematic portrait of the exact same person. "
+            "Preserve identity above all else: same face shape, gender, age, "
+            "skin tone, eye shape, eye color, nose, lips, jawline, eyebrows, "
+            "hairline, hairstyle, hair color, and natural facial proportions. "
+            "Keep the expression natural and flattering, with the head fully "
+            "visible, upper body visible, centered composition, sharp focus, "
             "natural skin texture, professional studio lighting. "
         )
     else:
         style_prompt = (
-            "Create a clean sharp 3D cartoon avatar from the reference photo. "
-            "Preserve the person's identity, face shape, gender, age, eyes, "
-            "nose, lips, hairstyle, and natural facial proportions. Show the "
-            "head fully visible and the upper body, centered, bright polished "
-            "cartoon style, crisp details. "
+            "Use the uploaded photo as the primary identity reference. Create "
+            "a premium 3D animated avatar of the exact same person, like a "
+            "high-end animated movie character with strong likeness. Preserve "
+            "identity above all else: same face shape, gender, age, skin tone, "
+            "eye shape, eye color, nose, lips, jawline, eyebrows, hairline, "
+            "hairstyle, hair color, and natural facial proportions. Keep the "
+            "cartoon stylization moderate: do not change the person into a "
+            "generic cute character, do not make the face younger, do not make "
+            "the eyes oversized, do not change the hairstyle. Show the head "
+            "fully visible and the upper body, centered composition, polished "
+            "3D character lighting, crisp details. "
         )
 
     return (
         style_prompt
         + theme_prompt
-        + ". Do not add text, logos, watermarks, nudity, erotic content, "
-        "violence, gore, or distorted anatomy."
+        + ". The final image must remain clearly recognizable as the same "
+        "person from the uploaded photo. Do not add text, logos, watermarks, "
+        "nudity, erotic content, violence, gore, distorted anatomy, extra "
+        "limbs, changed age, changed gender, changed hair, or changed face."
     )
 
 @app.post("/create-payment/")
