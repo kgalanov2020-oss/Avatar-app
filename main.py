@@ -1328,6 +1328,11 @@ def generate_gemini_image(input_path: str, prompt: str, output_path: str):
     print("GEMINI IMAGE RESPONSE:", response.text[:1000])
 
     if response.status_code != 200:
+        if response.status_code == 429:
+            raise RuntimeError(
+                "Gemini quota exceeded. Проверьте лимиты и billing в Google AI Studio."
+            )
+
         raise RuntimeError(
             f"Gemini image generation failed: {response.status_code} | "
             f"{response.text[:1000]}"
