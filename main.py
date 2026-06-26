@@ -152,7 +152,6 @@ telegram_app = (
 )
 
 TELEGRAM_THEMES = [
-    ("🧒 Детский безопасный", "theme_child_safe"),
     ("✨ Собственная тема", "theme_custom"),
     ("Обычный", "theme_default"),
     ("🚀 Космонавт", "theme_astronaut"),
@@ -175,6 +174,11 @@ TELEGRAM_THEMES = [
     ("🏺 Фараон", "theme_pharaoh"),
     ("⚔️ Рыцарь", "theme_knight"),
     ("🏎 Гонщик Formula 1", "theme_racer"),
+]
+
+TELEGRAM_CHILD_SAFE_OPTIONS = [
+    ("Да, это детское фото", "childsafe_yes"),
+    ("Нет", "childsafe_no"),
 ]
 
 TELEGRAM_VOICES = [
@@ -381,7 +385,6 @@ async def theme_callback(
 
     if query.data == "theme_custom":
         context.user_data["waiting_for_custom_theme"] = True
-        context.user_data["child_safe"] = False
         await query.edit_message_text(
             "Напиши свою тему текстом.\n\n"
             "Например: врач, футболист, принцесса, робот."
@@ -390,9 +393,31 @@ async def theme_callback(
 
     context.user_data["theme"] = query.data.replace("theme_", "")
     context.user_data["custom_theme"] = ""
-    context.user_data["child_safe"] = context.user_data["theme"] == "child_safe"
 
     await query.edit_message_text("Тема выбрана ✅")
+    await send_child_safe_keyboard(query)
+
+async def send_child_safe_keyboard(query):
+    await query.message.reply_text(
+        "На фото ребенок?",
+        reply_markup=make_keyboard(TELEGRAM_CHILD_SAFE_OPTIONS, row_size=2)
+    )
+
+async def child_safe_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+
+    context.user_data["child_safe"] = query.data == "childsafe_yes"
+
+    await query.edit_message_text(
+        "Детский безопасный режим включен ✅"
+        if context.user_data["child_safe"]
+        else "Обычный режим выбран ✅"
+    )
+
     await send_voice_keyboard(query, context)
 
 async def send_voice_keyboard(query, context):
@@ -465,11 +490,8 @@ async def text_handler(
         await update.message.reply_text("Своя тема сохранена ✅")
 
         await update.message.reply_text(
-            "Теперь выбери голос:",
-            reply_markup=make_keyboard(
-                TELEGRAM_VOICES,
-                row_size=2
-            )
+            "На фото ребенок?",
+            reply_markup=make_keyboard(TELEGRAM_CHILD_SAFE_OPTIONS, row_size=2)
         )
 
         return
@@ -1022,6 +1044,10 @@ telegram_app.add_handler(
 )
 
 telegram_app.add_handler(
+    CallbackQueryHandler(child_safe_callback, pattern="^childsafe_")
+)
+
+telegram_app.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler)
 )
 
@@ -1216,10 +1242,13 @@ BANNED_WORDS = [
     "gore", "blood", "murder", "dead body"
 ]
 
-CHILD_SAFE_THEME_PROMPT = (
-    "family-safe child portrait, fully clothed, wholesome, kind expression, "
-    "age-appropriate outfit, bright clean background, warm friendly lighting, "
-    "non-sexual, non-romantic, no adult styling"
+CHILD_SAFE_STYLE_GUIDANCE = (
+    "For child-safe mode, apply the selected theme only through "
+    "age-appropriate clothing, background, props, colors, and mood. Keep the "
+    "result fully clothed, wholesome, non-sexual, non-romantic, friendly, and "
+    "safe for children. Do not add family members or other people. Do not use "
+    "adult styling, revealing clothing, horror, gore, "
+    "weapons, dark intimidation, glamorized danger, or suggestive posing."
 )
 
 
@@ -1705,9 +1734,6 @@ def get_theme_prompt(
     if custom_theme and not is_prompt_safe(custom_theme):
         raise ValueError("Unsafe content is not allowed")
 
-    if child_safe or theme == "child_safe":
-        return CHILD_SAFE_THEME_PROMPT
-
     if theme == "custom" and custom_theme.strip():
         if mode == "cartoon":
             return (
@@ -1753,12 +1779,14 @@ def build_gemini_avatar_prompt(
 
     if child_safe:
         style_prompt += (
-            "This is child-safe family content. If the reference photo shows "
+            "This is child-safe portrait content. If the reference photo shows "
             "a child, create only a wholesome, age-appropriate, fully clothed "
-            "portrait. Keep the child looking the same age, with a natural "
+            "single-child portrait/avatar. Keep the child looking the same age, with a natural "
             "friendly expression. Avoid adult styling, romantic mood, revealing "
             "clothing, glamorization, horror, weapons, violence, dark themes, "
             "or anything suggestive. "
+            + CHILD_SAFE_STYLE_GUIDANCE
+            + " "
         )
 
     return (
@@ -2325,8 +2353,8 @@ def generate_avatar_from_path(
 
         safe_prompt = build_gemini_avatar_prompt(
             mode,
-            "child_safe",
-            "",
+            theme,
+            custom_theme,
             True
         )
         generate_gemini_image(input_path, safe_prompt, output_path)
@@ -3215,7 +3243,6 @@ video {
     <label>Тема</label>
 
 <select id="theme" onchange="toggleCustomTheme()">
-    <option value="child_safe">Детский безопасный</option>
     <option value="custom">Собственная тема</option>
     <option value="default">Обычный</option>
     <option value="astronaut">Космонавт</option>
@@ -3250,8 +3277,8 @@ video {
 <label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.5;">
     <input type="checkbox" id="childSafeMode" style="width:auto; margin-top:4px;">
     <span>
-        Детский безопасный режим: только спокойный, полностью одетый,
-        семейный портрет без взрослой стилизации.
+        Детский безопасный режим: спокойный, полностью одетый
+        портрет/аватар без взрослой стилизации.
     </span>
 </label>
 
@@ -3592,13 +3619,8 @@ function updateGenerationCost() {
 function toggleCustomTheme() {
     const theme = document.getElementById("theme").value;
     const customTheme = document.getElementById("customTheme");
-    const childSafeMode = document.getElementById("childSafeMode");
 
     customTheme.style.display = theme === "custom" ? "block" : "none";
-
-    if (theme === "child_safe") {
-        childSafeMode.checked = true;
-    }
 }
 
 function updateCharCount() {
@@ -3726,7 +3748,7 @@ async function generateVideo() {
         avatarForm.append("file", fileInput.files[0]);
         avatarForm.append("theme", theme);
         avatarForm.append("custom_theme", customTheme);
-        avatarForm.append("child_safe", childSafeMode || theme === "child_safe");
+        avatarForm.append("child_safe", childSafeMode);
 
         const avatarEndpoint =
             styleMode === "realistic"
