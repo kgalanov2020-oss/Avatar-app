@@ -5,7 +5,6 @@ requests
 pillow
 moviepy
 edge-tts
-replicate
 deep-translator
 imageio
 imageio-ffmpeg

@@ -52,6 +52,7 @@ import requests
 import time
 import json
 import asyncio
+import base64
 from supabase import create_client
 from telegram import LabeledPrice
 from telegram.ext import PreCheckoutQueryHandler
@@ -65,9 +66,10 @@ APP_BASE_URL = os.getenv(
     "https://avatar-app-vcer.onrender.com"
 )
 
-COMFY_URL = os.getenv(
-    "COMFY_URL",
-    "https://jtiyz6w08tludj-8188.proxy.runpod.net"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_IMAGE_MODEL = os.getenv(
+    "GEMINI_IMAGE_MODEL",
+    "gemini-3.1-flash-image"
 )
 
 DID_API_KEY = os.getenv("DID_API_KEY")
@@ -85,9 +87,6 @@ supabase = create_client(
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 UPLOAD_DIR = "uploads"
-
-CARTOON_WORKFLOW_PATH = "instantid_cartoon_workflow_api.json"
-REALISTIC_WORKFLOW_PATH = "instantid_workflow_api.json"
 
 CREDIT_PACKAGES = {
     "stars_3": {
@@ -1073,10 +1072,7 @@ async def telegram_webhook(request: Request):
 
         return {"ok": False, "error": str(error)}
 
-@app.post("/yookassa-webhook/")
-async def yookassa_webhook(request: Request):
-    data = await request.json()
-
+def process_telegram_yookassa_payment(data: dict):
     if data.get("event") != "payment.succeeded":
         return {"ok": True}
 
@@ -1238,117 +1234,115 @@ def optimize_image_for_did(input_path: str, output_path: str):
     image.thumbnail((1024, 1024))
     image.save(output_path, format="JPEG", quality=94, optimize=True)
 
-def upload_image_to_comfy(image_path):
+def find_base64_image(value):
+    if isinstance(value, dict):
+        for key in ("data", "bytesBase64Encoded", "b64_json"):
+            if isinstance(value.get(key), str):
+                return value[key]
 
-    with open(image_path, "rb") as image_file:
+        for child in value.values():
+            image_data = find_base64_image(child)
+            if image_data:
+                return image_data
 
-        files = {
-            "image": image_file
+    if isinstance(value, list):
+        for child in value:
+            image_data = find_base64_image(child)
+            if image_data:
+                return image_data
+
+    return None
+
+
+def generate_gemini_image(input_path: str, prompt: str, output_path: str):
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY is not set")
+
+    with open(input_path, "rb") as image_file:
+        input_image = base64.b64encode(image_file.read()).decode("utf-8")
+
+    interactions_payload = {
+        "model": GEMINI_IMAGE_MODEL,
+        "input": [
+            {
+                "type": "text",
+                "text": prompt
+            },
+            {
+                "type": "image",
+                "data": input_image,
+                "mime_type": "image/jpeg"
+            }
+        ],
+        "response_format": {
+            "type": "image",
+            "mime_type": "image/png",
+            "aspect_ratio": "1:1",
+            "image_size": "1K"
+        }
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY
+    }
+
+    response = requests.post(
+        "https://generativelanguage.googleapis.com/v1beta/interactions",
+        headers=headers,
+        json=interactions_payload,
+        timeout=180
+    )
+
+    if response.status_code in [400, 404]:
+        generate_content_payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt},
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": input_image
+                            }
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "responseModalities": ["TEXT", "IMAGE"]
+            }
         }
 
         response = requests.post(
-            f"{COMFY_URL}/upload/image",
-            files=files,
-            timeout=120
+            (
+                "https://generativelanguage.googleapis.com/v1beta/"
+                f"models/{GEMINI_IMAGE_MODEL}:generateContent"
+            ),
+            headers=headers,
+            json=generate_content_payload,
+            timeout=180
         )
 
-    print("COMFY STATUS:", response.status_code)
-    print("COMFY RESPONSE:", response.text)
+    print("GEMINI IMAGE STATUS:", response.status_code)
+    print("GEMINI IMAGE RESPONSE:", response.text[:1000])
 
     if response.status_code != 200:
         raise RuntimeError(
-            f"Comfy upload failed: {response.status_code} | {response.text}"
+            f"Gemini image generation failed: {response.status_code} | "
+            f"{response.text[:1000]}"
         )
 
     data = response.json()
+    image_data = find_base64_image(data)
 
-    return data["name"]
-
-def run_comfy_workflow(workflow):
-
-    response = requests.post(
-        f"{COMFY_URL}/prompt",
-        json={
-            "prompt": workflow,
-            "client_id": str(uuid.uuid4())
-        },
-        timeout=120
-    )
-
-    print("COMFY PROMPT STATUS:", response.status_code)
-    print("COMFY PROMPT TEXT:", response.text[:1000])
-
-    if response.status_code != 200:
+    if not image_data:
         raise RuntimeError(
-            f"Comfy prompt failed: {response.status_code} | {response.text[:1000]}"
+            f"No image data returned from Gemini: {json.dumps(data)[:1000]}"
         )
 
-    try:
-        prompt_data = response.json()
-    except Exception:
-        raise RuntimeError(
-            f"Comfy returned non-JSON response: {response.text[:1000]}"
-        )
-
-    prompt_id = prompt_data.get("prompt_id")
-
-    if not prompt_id:
-        raise RuntimeError(
-            f"No prompt_id from Comfy: {prompt_data}"
-        )
-
-    for _ in range(120):
-
-        time.sleep(2)
-
-        history_response = requests.get(
-            f"{COMFY_URL}/history/{prompt_id}",
-            timeout=60
-        )
-
-        print("COMFY HISTORY STATUS:", history_response.status_code)
-        print("COMFY HISTORY TEXT:", history_response.text[:500])
-
-        if history_response.status_code != 200:
-            continue
-
-        try:
-            history_data = history_response.json()
-        except Exception:
-            continue
-
-        if prompt_id in history_data:
-            return history_data[prompt_id]
-
-    raise TimeoutError("Comfy workflow timed out")
-
-def download_first_comfy_image(history: dict, output_path: str):
-    outputs = history.get("outputs", {})
-
-    for node_output in outputs.values():
-        if "images" not in node_output:
-            continue
-
-        image_data = node_output["images"][0]
-
-        image_url = (
-            f"{COMFY_URL}/view?"
-            f"filename={image_data['filename']}"
-            f"&subfolder={image_data.get('subfolder', '')}"
-            f"&type={image_data.get('type', 'output')}"
-        )
-
-        response = requests.get(image_url, timeout=120)
-
-        if response.status_code != 200:
-            raise RuntimeError("Failed to download avatar from ComfyUI")
-
-        with open(output_path, "wb") as file:
-            file.write(response.content)
-    
-        return
-
-    raise RuntimeError("No image output from ComfyUI")
+    with open(output_path, "wb") as file:
+        file.write(base64.b64decode(image_data))
 
 
 # =============================
@@ -1698,6 +1692,38 @@ def get_theme_prompt(theme: str, custom_theme: str, mode: str) -> str:
 
     return REALISTIC_THEMES.get(theme, REALISTIC_THEMES["default"])
 
+
+def build_gemini_avatar_prompt(
+    mode: str,
+    theme: str,
+    custom_theme: str
+) -> str:
+    theme_prompt = get_theme_prompt(theme, custom_theme, mode)
+
+    if mode == "realistic":
+        style_prompt = (
+            "Create an ultra realistic cinematic portrait from the reference "
+            "photo. Preserve the person's identity, face shape, gender, age, "
+            "eyes, nose, lips, hairstyle, and natural facial proportions. "
+            "Show the head fully visible and the upper body, centered, sharp, "
+            "natural skin texture, professional studio lighting. "
+        )
+    else:
+        style_prompt = (
+            "Create a clean sharp 3D cartoon avatar from the reference photo. "
+            "Preserve the person's identity, face shape, gender, age, eyes, "
+            "nose, lips, hairstyle, and natural facial proportions. Show the "
+            "head fully visible and the upper body, centered, bright polished "
+            "cartoon style, crisp details. "
+        )
+
+    return (
+        style_prompt
+        + theme_prompt
+        + ". Do not add text, logos, watermarks, nudity, erotic content, "
+        "violence, gore, or distorted anatomy."
+    )
+
 @app.post("/create-payment/")
 def create_payment(data: dict):
 
@@ -1764,6 +1790,13 @@ async def yookassa_webhook(request: Request):
     payment_id = payment_object.get("id")
 
     metadata = payment_object.get("metadata", {})
+
+    if metadata.get("telegram_id"):
+        return process_telegram_yookassa_payment(body)
+
+    if not metadata.get("user_id"):
+        print("INVALID PAYMENT METADATA")
+        return {"error": "invalid payment metadata"}
 
     user_id = metadata.get("user_id")
     credits = int(metadata.get("credits", 0))
@@ -2237,63 +2270,8 @@ def generate_avatar_from_path(
     did_output_path = os.path.join(job_dir, "did_avatar.jpg")
     
     prepare_input_image(source_path, input_path)
-    comfy_image = upload_image_to_comfy(input_path)
-    
-    workflow_path = (
-        REALISTIC_WORKFLOW_PATH
-        if mode == "realistic"
-        else CARTOON_WORKFLOW_PATH
-    )
-    
-    with open(workflow_path, "r", encoding="utf-8") as file:
-        workflow = json.load(file)
-    
-    workflow["13"]["inputs"]["image"] = comfy_image
-    
-    theme_prompt = get_theme_prompt(theme, custom_theme, mode)
-    
-    if mode == "realistic":
-        workflow["2"]["inputs"]["text"] = (
-            "professional portrait photo of the exact same person, "
-            "preserve facial identity, same gender, same age, "
-            "same eyes, same nose, same lips, same hairstyle, "
-            "upper body visible, head fully visible, centered portrait, "    
-             "sharp focus, natural skin, clean studio lighting, "
-            + theme_prompt
-        )
-
-        workflow["3"]["inputs"]["text"] = (
-            "nsfw, nude, naked, porn, erotic, "
-            + NEGATIVE_FRAMING
-        )
-
-        if "20" in workflow:
-            workflow["20"]["inputs"]["weight"] = 0.75
-            workflow["20"]["inputs"]["start_at"] = 0
-            workflow["20"]["inputs"]["end_at"] = 1
-        
-        workflow["5"]["inputs"]["steps"] = 20
-        workflow["5"]["inputs"]["cfg"] = 5.0    
-        
-    else:
-        workflow["2"]["inputs"]["text"] = (
-            "clean sharp 3D cartoon avatar of the exact same person, "
-            "preserve facial identity, same gender, same age, "
-            "same face shape, same eyes, same nose, same lips, "
-            "head fully visible, upper body visible, centered portrait, "
-            "bright cartoon style, crisp details, no blur, "
-            + theme_prompt
-        )
-        
-        workflow["3"]["inputs"]["text"] = (
-            "nsfw, nude, naked, porn, erotic, realistic photo, horror, creepy, "
-            + NEGATIVE_FRAMING
-        )
-    
-    workflow["5"]["inputs"]["seed"] = int(time.time())
-    
-    history = run_comfy_workflow(workflow)
-    download_first_comfy_image(history, output_path)
+    prompt = build_gemini_avatar_prompt(mode, theme, custom_theme)
+    generate_gemini_image(input_path, prompt, output_path)
     optimize_image_for_did(output_path, did_output_path)
     
     return {
