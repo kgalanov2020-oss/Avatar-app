@@ -2316,7 +2316,21 @@ def generate_avatar_from_path(
     
     prepare_input_image(source_path, input_path)
     prompt = build_gemini_avatar_prompt(mode, theme, custom_theme, child_safe)
-    generate_gemini_image(input_path, prompt, output_path)
+
+    try:
+        generate_gemini_image(input_path, prompt, output_path)
+    except RuntimeError as error:
+        if child_safe or "safety-фильтру" not in str(error):
+            raise
+
+        safe_prompt = build_gemini_avatar_prompt(
+            mode,
+            "child_safe",
+            "",
+            True
+        )
+        generate_gemini_image(input_path, safe_prompt, output_path)
+
     optimize_image_for_did(output_path, did_output_path)
     
     return {
