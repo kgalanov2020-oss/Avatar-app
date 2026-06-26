@@ -152,6 +152,7 @@ telegram_app = (
 )
 
 TELEGRAM_THEMES = [
+    ("🧒 Детский безопасный", "theme_child_safe"),
     ("✨ Собственная тема", "theme_custom"),
     ("Обычный", "theme_default"),
     ("🚀 Космонавт", "theme_astronaut"),
@@ -285,6 +286,8 @@ async def start_command(
         "Загружая фото, вы подтверждаете, что:\n"
         "• Вам исполнилось 18 лет\n"
         "• Вы имеете право использовать загруженное изображение\n"
+        "• если на фото ребенок, вы являетесь родителем/законным представителем "
+        "или имеете согласие на использование изображения\n"
         "• не загружаете чужие фото без согласия\n"
         "• не создаёте незаконный или запрещенный контент\n\n"
     
@@ -378,6 +381,7 @@ async def theme_callback(
 
     if query.data == "theme_custom":
         context.user_data["waiting_for_custom_theme"] = True
+        context.user_data["child_safe"] = False
         await query.edit_message_text(
             "Напиши свою тему текстом.\n\n"
             "Например: врач, футболист, принцесса, робот."
@@ -386,6 +390,7 @@ async def theme_callback(
 
     context.user_data["theme"] = query.data.replace("theme_", "")
     context.user_data["custom_theme"] = ""
+    context.user_data["child_safe"] = context.user_data["theme"] == "child_safe"
 
     await query.edit_message_text("Тема выбрана ✅")
     await send_voice_keyboard(query, context)
@@ -525,13 +530,15 @@ async def generate_telegram_avatar(
 
         theme = context.user_data.get("theme", "default")
         custom_theme = context.user_data.get("custom_theme", "")
+        child_safe = context.user_data.get("child_safe", False)
         
         result = await asyncio.to_thread(
             generate_avatar_from_path,
             photo_path,
             style,
             theme,
-            custom_theme
+            custom_theme,
+            child_safe
         )
         
         if result.get("error"):
@@ -1202,11 +1209,18 @@ def head_file(job_id: str, filename: str):
 BANNED_WORDS = [
     "nude", "naked", "porn", "sex", "xxx", "nsfw",
     "boobs", "breasts", "nipples", "lingerie", "erotic",
-    "fetish", "bdsm", "onlyfans", "child", "kid", "teen sex",
+    "fetish", "bdsm", "onlyfans", "teen sex", "child sex",
+    "kid sex", "sexual child", "sexual kid", "minor sex",
     "incest", "isis", "terrorist", "terrorism", "nazi",
     "hitler", "extremist", "execution", "beheading",
     "gore", "blood", "murder", "dead body"
 ]
+
+CHILD_SAFE_THEME_PROMPT = (
+    "family-safe child portrait, fully clothed, wholesome, kind expression, "
+    "age-appropriate outfit, bright clean background, warm friendly lighting, "
+    "non-sexual, non-romantic, no adult styling"
+)
 
 
 def is_prompt_safe(text: str) -> bool:
@@ -1342,6 +1356,12 @@ def generate_gemini_image(input_path: str, prompt: str, output_path: str):
     image_data = find_base64_image(data)
 
     if not image_data:
+        if "IMAGE_SAFETY" in json.dumps(data):
+            raise RuntimeError(
+                "Gemini заблокировал изображение по safety-фильтру. "
+                "Для детских фото используйте детский безопасный режим и спокойную тему."
+            )
+
         raise RuntimeError(
             f"No image data returned from Gemini: {json.dumps(data)[:1000]}"
         )
@@ -1355,19 +1375,19 @@ def generate_gemini_image(input_path: str, prompt: str, output_path: str):
 # =============================
 
 BASE_CARTOON_STYLE = (
-    "premium 3D animated portrait, strong facial likeness, "
-    "recognizable same person, expressive but not exaggerated, "
-    "soft cinematic lighting, detailed eyes, natural smile, "
-    "clean stylized skin, polished character design, "
-    "sharp focus, high quality"
+    "disney pixar style, cinematic lighting, "
+    "vibrant rich colors, volumetric lighting, "
+    "ultra detailed, fantasy atmosphere, "
+    "movie poster style, masterpiece, "
+    "sharp focus, depth of field, 8k"
 )
 
 BASE_REALISTIC_STYLE = (
-    "ultra realistic cinematic portrait, exact facial likeness, "
-    "professional movie lighting, rich color grading, "
-    "detailed natural skin texture, highly detailed eyes, "
-    "depth of field, balanced dramatic atmosphere, "
-    "premium editorial portrait, sharp focus"
+    "ultra realistic cinematic portrait, "
+    "professional movie lighting, "
+    "rich color grading, dramatic atmosphere, "
+    "highly detailed face, depth of field, "
+    "volumetric lighting, masterpiece, 8k"
 )
 
 
@@ -1676,24 +1696,28 @@ REALISTIC_NEGATIVE = (
     "text, watermark, overprocessed skin"
 )
 
-def get_theme_prompt(theme: str, custom_theme: str, mode: str) -> str:
+def get_theme_prompt(
+    theme: str,
+    custom_theme: str,
+    mode: str,
+    child_safe: bool = False
+) -> str:
     if custom_theme and not is_prompt_safe(custom_theme):
         raise ValueError("Unsafe content is not allowed")
+
+    if child_safe or theme == "child_safe":
+        return CHILD_SAFE_THEME_PROMPT
 
     if theme == "custom" and custom_theme.strip():
         if mode == "cartoon":
             return (
-                f"premium 3D animated avatar inspired by {custom_theme.strip()}, "
-                "apply the theme through outfit, background, and mood while "
-                "preserving exact facial identity, same gender, same age, "
-                "same face structure, same hairstyle, same hair color"
+                f"high quality 3D cartoon avatar inspired by {custom_theme.strip()}, "
+                "preserve exact facial identity, same gender, same age, same face structure"
             )
 
         return (
             f"ultra realistic portrait inspired by {custom_theme.strip()}, "
-            "apply the theme through outfit, background, and mood while "
-            "preserving exact facial identity, same gender, same age, "
-            "same facial structure, same hairstyle, same hair color"
+            "preserve exact facial identity, same gender, same age, same facial structure"
         )
 
     if mode == "cartoon":
@@ -1705,43 +1729,43 @@ def get_theme_prompt(theme: str, custom_theme: str, mode: str) -> str:
 def build_gemini_avatar_prompt(
     mode: str,
     theme: str,
-    custom_theme: str
+    custom_theme: str,
+    child_safe: bool = False
 ) -> str:
-    theme_prompt = get_theme_prompt(theme, custom_theme, mode)
+    theme_prompt = get_theme_prompt(theme, custom_theme, mode, child_safe)
 
     if mode == "realistic":
         style_prompt = (
-            "Use the uploaded photo as the primary identity reference. Create "
-            "an ultra realistic cinematic portrait of the exact same person. "
-            "Preserve identity above all else: same face shape, gender, age, "
-            "skin tone, eye shape, eye color, nose, lips, jawline, eyebrows, "
-            "hairline, hairstyle, hair color, and natural facial proportions. "
-            "Keep the expression natural and flattering, with the head fully "
-            "visible, upper body visible, centered composition, sharp focus, "
+            "Create an ultra realistic cinematic portrait from the reference "
+            "photo. Preserve the person's identity, face shape, gender, age, "
+            "eyes, nose, lips, hairstyle, and natural facial proportions. "
+            "Show the head fully visible and the upper body, centered, sharp, "
             "natural skin texture, professional studio lighting. "
         )
     else:
         style_prompt = (
-            "Use the uploaded photo as the primary identity reference. Create "
-            "a premium 3D animated avatar of the exact same person, like a "
-            "high-end animated movie character with strong likeness. Preserve "
-            "identity above all else: same face shape, gender, age, skin tone, "
-            "eye shape, eye color, nose, lips, jawline, eyebrows, hairline, "
-            "hairstyle, hair color, and natural facial proportions. Keep the "
-            "cartoon stylization moderate: do not change the person into a "
-            "generic cute character, do not make the face younger, do not make "
-            "the eyes oversized, do not change the hairstyle. Show the head "
-            "fully visible and the upper body, centered composition, polished "
-            "3D character lighting, crisp details. "
+            "Create a clean sharp 3D cartoon avatar from the reference photo. "
+            "Preserve the person's identity, face shape, gender, age, eyes, "
+            "nose, lips, hairstyle, and natural facial proportions. Show the "
+            "head fully visible and the upper body, centered, bright polished "
+            "cartoon style, crisp details. "
+        )
+
+    if child_safe:
+        style_prompt += (
+            "This is child-safe family content. If the reference photo shows "
+            "a child, create only a wholesome, age-appropriate, fully clothed "
+            "portrait. Keep the child looking the same age, with a natural "
+            "friendly expression. Avoid adult styling, romantic mood, revealing "
+            "clothing, glamorization, horror, weapons, violence, dark themes, "
+            "or anything suggestive. "
         )
 
     return (
         style_prompt
         + theme_prompt
-        + ". The final image must remain clearly recognizable as the same "
-        "person from the uploaded photo. Do not add text, logos, watermarks, "
-        "nudity, erotic content, violence, gore, distorted anatomy, extra "
-        "limbs, changed age, changed gender, changed hair, or changed face."
+        + ". Do not add text, logos, watermarks, nudity, erotic content, "
+        "violence, gore, or distorted anatomy."
     )
 
 @app.post("/create-payment/")
@@ -2279,7 +2303,8 @@ def generate_avatar_from_path(
     source_path: str,
     mode: str = "cartoon",
     theme: str = "default",
-    custom_theme: str = ""
+    custom_theme: str = "",
+    child_safe: bool = False
 ):
     job_id = str(uuid.uuid4())
     job_dir = os.path.join(UPLOAD_DIR, job_id)
@@ -2290,7 +2315,7 @@ def generate_avatar_from_path(
     did_output_path = os.path.join(job_dir, "did_avatar.jpg")
     
     prepare_input_image(source_path, input_path)
-    prompt = build_gemini_avatar_prompt(mode, theme, custom_theme)
+    prompt = build_gemini_avatar_prompt(mode, theme, custom_theme, child_safe)
     generate_gemini_image(input_path, prompt, output_path)
     optimize_image_for_did(output_path, did_output_path)
     
@@ -2306,7 +2331,8 @@ def generate_avatar_from_path(
 async def create_3d_avatar(
     file: UploadFile = File(...),
     theme: str = Form("default"),
-    custom_theme: str = Form("")
+    custom_theme: str = Form(""),
+    child_safe: bool = Form(False)
 ):
     try:
         temp_path = os.path.join(UPLOAD_DIR, f"temp_{uuid.uuid4()}.jpg")
@@ -2318,7 +2344,8 @@ async def create_3d_avatar(
             temp_path,
             mode="cartoon",
             theme=theme,
-            custom_theme=custom_theme
+            custom_theme=custom_theme,
+            child_safe=child_safe
         )
 
     except Exception as error:
@@ -2332,7 +2359,8 @@ async def create_3d_avatar(
 async def create_realistic_avatar(
     file: UploadFile = File(...),
     theme: str = Form("default"),
-    custom_theme: str = Form("")
+    custom_theme: str = Form(""),
+    child_safe: bool = Form(False)
 ):
     try:
         temp_path = os.path.join(UPLOAD_DIR, f"temp_{uuid.uuid4()}.jpg")
@@ -2344,7 +2372,8 @@ async def create_realistic_avatar(
             temp_path,
             mode="realistic",
             theme=theme,
-            custom_theme=custom_theme
+            custom_theme=custom_theme,
+            child_safe=child_safe
         )
 
     except Exception as error:
@@ -3105,7 +3134,10 @@ video {
             <input type="checkbox" id="agreeTerms" style="width:auto; margin-top:4px;">
     
             <span>
-                Я подтверждаю, что мне исполнилось 18 лет, я ознакомлен и согласен с
+                Я подтверждаю, что мне исполнилось 18 лет, я имею право использовать
+                загруженные изображения, а если на фото ребенок, являюсь родителем /
+                законным представителем или имею согласие на использование изображения.
+                Я ознакомлен и согласен с
                 <a href="/oferta" target="_blank">
                     Пользовательским соглашением
                 </a>
@@ -3169,6 +3201,7 @@ video {
     <label>Тема</label>
 
 <select id="theme" onchange="toggleCustomTheme()">
+    <option value="child_safe">Детский безопасный</option>
     <option value="custom">Собственная тема</option>
     <option value="default">Обычный</option>
     <option value="astronaut">Космонавт</option>
@@ -3199,6 +3232,14 @@ video {
     placeholder="Например: врач, футболист, принцесса, робот..." 
     style="display:none;"
 >
+
+<label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.5;">
+    <input type="checkbox" id="childSafeMode" style="width:auto; margin-top:4px;">
+    <span>
+        Детский безопасный режим: только спокойный, полностью одетый,
+        семейный портрет без взрослой стилизации.
+    </span>
+</label>
 
     <label>Голос</label>
 <select id="voice">
@@ -3537,8 +3578,13 @@ function updateGenerationCost() {
 function toggleCustomTheme() {
     const theme = document.getElementById("theme").value;
     const customTheme = document.getElementById("customTheme");
+    const childSafeMode = document.getElementById("childSafeMode");
 
     customTheme.style.display = theme === "custom" ? "block" : "none";
+
+    if (theme === "child_safe") {
+        childSafeMode.checked = true;
+    }
 }
 
 function updateCharCount() {
@@ -3624,6 +3670,7 @@ async function generateVideo() {
     const format = document.getElementById("format").value;
     const styleMode = document.getElementById("styleMode").value;
     const theme = document.getElementById("theme").value;
+    const childSafeMode = document.getElementById("childSafeMode").checked;
     const status = document.getElementById("status");
     const video = document.getElementById("video");
     const avatarPreview = document.getElementById("avatarPreview");
@@ -3665,6 +3712,7 @@ async function generateVideo() {
         avatarForm.append("file", fileInput.files[0]);
         avatarForm.append("theme", theme);
         avatarForm.append("custom_theme", customTheme);
+        avatarForm.append("child_safe", childSafeMode || theme === "child_safe");
 
         const avatarEndpoint =
             styleMode === "realistic"
