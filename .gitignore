@@ -1,4 +1,6 @@
 .env
+n8n.local.env
+n8n_*.local.json
 uploads/
 __pycache__/
 *.py[cod]
