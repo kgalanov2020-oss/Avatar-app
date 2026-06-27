@@ -3580,23 +3580,6 @@ video {
         🤖 Открыть Telegram-бота
     </a>
 
-    <a
-        href="/content-maker"
-        style="
-            display:inline-block;
-            background:#111;
-            color:white;
-            padding:14px 22px;
-            border-radius:14px;
-            text-decoration:none;
-            font-weight:600;
-            font-size:16px;
-            margin-left:8px;
-        "
-    >
-        Content Maker
-    </a>
-
     <p style="margin-top:12px; opacity:0.8;">
         Также вы можете пользоваться сервисом прямо в Telegram-боте:
         <br>
