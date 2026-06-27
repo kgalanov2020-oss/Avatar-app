@@ -1,0 +1,132 @@
+{
+  "name": "Avatar-app Content Maker",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "avatar-app-content-maker",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7f5df6f8-ae77-4cd7-86c8-99a391a26465",
+      "name": "Content Request Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "avatar-app-content-maker"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://avatar-app-vcer.onrender.com/generate-social-content/",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "project_name",
+              "value": "={{ $json.body.project_name || 'Avatar-app' }}"
+            },
+            {
+              "name": "product",
+              "value": "={{ $json.body.product || 'AI-сервис, который создает аватар по фото и talking video' }}"
+            },
+            {
+              "name": "audience",
+              "value": "={{ $json.body.audience || 'люди, которым нужны поздравления и короткие AI-видео' }}"
+            },
+            {
+              "name": "goal",
+              "value": "={{ $json.body.goal || 'получить регистрации и первые покупки' }}"
+            },
+            {
+              "name": "offer",
+              "value": "={{ $json.body.offer || '3 генерации бесплатно' }}"
+            },
+            {
+              "name": "platforms",
+              "value": "={{ $json.body.platforms || 'Instagram, TikTok, Threads' }}"
+            },
+            {
+              "name": "tone",
+              "value": "={{ $json.body.tone || 'живой, простой, продающий без давления' }}"
+            },
+            {
+              "name": "language",
+              "value": "={{ $json.body.language || 'русский' }}"
+            },
+            {
+              "name": "post_count",
+              "value": "={{ $json.body.post_count || 9 }}"
+            },
+            {
+              "name": "child_safe",
+              "value": "={{ $json.body.child_safe || false }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "819b7f9e-345b-4b5b-9b4f-62f7642c56a0",
+      "name": "Generate Content Pack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d4f52c5f-4fac-4de0-8337-7402960f2457",
+      "name": "Return Content Pack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        520,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Content Request Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate Content Pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Content Pack": {
+      "main": [
+        [
+          {
+            "node": "Return Content Pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-06-27T00:00:00.000Z",
+  "versionId": "avatar-app-content-maker-v1"
+}

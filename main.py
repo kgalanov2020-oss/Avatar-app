@@ -71,6 +71,10 @@ GEMINI_IMAGE_MODEL = os.getenv(
     "GEMINI_IMAGE_MODEL",
     "gemini-3.1-flash-image"
 )
+GEMINI_TEXT_MODEL = os.getenv(
+    "GEMINI_TEXT_MODEL",
+    "gemini-2.5-flash"
+)
 
 DID_API_KEY = os.getenv("DID_API_KEY")
 
@@ -1399,6 +1403,172 @@ def generate_gemini_image(input_path: str, prompt: str, output_path: str):
         file.write(base64.b64decode(image_data))
 
 
+def extract_gemini_text(data: dict) -> str:
+    texts = []
+
+    for candidate in data.get("candidates", []):
+        content = candidate.get("content", {})
+
+        for part in content.get("parts", []):
+            text = part.get("text")
+
+            if text:
+                texts.append(text)
+
+    return "\n".join(texts).strip()
+
+
+def extract_json_object(text: str) -> dict:
+    cleaned = text.strip()
+
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`").strip()
+
+        if cleaned.lower().startswith("json"):
+            cleaned = cleaned[4:].strip()
+
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+
+    if start == -1 or end == -1 or end <= start:
+        raise ValueError("Gemini did not return a JSON object")
+
+    return json.loads(cleaned[start:end + 1])
+
+
+def generate_gemini_text(prompt: str) -> str:
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY is not set")
+
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY
+    }
+
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.75,
+            "topP": 0.9,
+            "responseMimeType": "application/json"
+        }
+    }
+
+    response = requests.post(
+        (
+            "https://generativelanguage.googleapis.com/v1beta/"
+            f"models/{GEMINI_TEXT_MODEL}:generateContent"
+        ),
+        headers=headers,
+        json=payload,
+        timeout=90
+    )
+
+    print("GEMINI TEXT STATUS:", response.status_code)
+    print("GEMINI TEXT RESPONSE:", response.text[:1000])
+
+    if response.status_code != 200:
+        if response.status_code == 429:
+            raise RuntimeError(
+                "Gemini quota exceeded. Проверьте лимиты и billing в Google AI Studio."
+            )
+
+        raise RuntimeError(
+            f"Gemini text generation failed: {response.status_code} | "
+            f"{response.text[:1000]}"
+        )
+
+    text = extract_gemini_text(response.json())
+
+    if not text:
+        raise RuntimeError("No text returned from Gemini")
+
+    return text
+
+
+def build_content_maker_prompt(
+    project_name: str,
+    product: str,
+    audience: str,
+    goal: str,
+    offer: str,
+    platforms: str,
+    tone: str,
+    language: str,
+    post_count: int,
+    child_safe: bool
+) -> str:
+    safe_note = ""
+
+    if child_safe:
+        safe_note = (
+            "Контент должен быть child-safe: без сексуализации, без взрослой "
+            "стилизации детей, без жестокости, без хоррора, без опасных "
+            "челленджей и без манипуляций с несовершеннолетними. "
+        )
+
+    return f"""
+Ты профессиональный контент-мейкер для коротких видео и соцсетей.
+Сделай контент-пак для проекта "{project_name}".
+
+Продукт: {product}
+Целевая аудитория: {audience}
+Цель публикаций: {goal}
+Оффер или акция: {offer}
+Площадки: {platforms}
+Тон: {tone}
+Язык ответа: {language}
+Количество идей: {post_count}
+{safe_note}
+
+Контекст продукта: сервис делает AI-аватар по фото и talking video через
+Telegram-бота и сайт. Основные площадки: Instagram Reels, TikTok, Threads.
+
+Верни строго JSON без markdown:
+{{
+  "strategy": "краткая стратегия на 2-4 предложения",
+  "bio": {{
+    "instagram": "короткое био профиля",
+    "tiktok": "короткое био профиля",
+    "threads": "короткое био профиля"
+  }},
+  "content_pillars": ["3-5 рубрик"],
+  "posts": [
+    {{
+      "platform": "Instagram/TikTok/Threads",
+      "format": "reels/post/thread",
+      "hook": "сильный первый кадр или первая строка",
+      "script": "сценарий для talking avatar до 250 символов",
+      "caption": "готовая подпись",
+      "visual": "что показать в кадре",
+      "cta": "призыв к действию",
+      "hashtags": ["5-10 хэштегов"]
+    }}
+  ],
+  "weekly_plan": [
+    {{
+      "day": "Понедельник",
+      "platform": "площадка",
+      "topic": "тема",
+      "action": "что опубликовать"
+    }}
+  ],
+  "n8n_steps": [
+    "пошаговая схема автоматизации: триггер, генерация текста, генерация видео, публикация/черновик"
+  ]
+}}
+
+В posts должно быть ровно {post_count} элементов. Scripts должны быть короткими,
+подходящими для лимита speaking video в 250 символов.
+"""
+
+
 # =============================
 # PROMPTS
 # =============================
@@ -1796,6 +1966,65 @@ def build_gemini_avatar_prompt(
         "violence, gore, or distorted anatomy."
     )
 
+
+@app.post("/generate-social-content/")
+async def generate_social_content(
+    project_name: str = Form("Avatar-app"),
+    product: str = Form(
+        "AI-сервис, который создает аватар по фото и talking video"
+    ),
+    audience: str = Form("люди, которым нужны поздравления и короткие AI-видео"),
+    goal: str = Form("получить регистрации и первые покупки"),
+    offer: str = Form("3 генерации бесплатно"),
+    platforms: str = Form("Instagram, TikTok, Threads"),
+    tone: str = Form("живой, простой, продающий без давления"),
+    language: str = Form("русский"),
+    post_count: int = Form(9),
+    child_safe: bool = Form(False)
+):
+    fields_to_check = [
+        project_name,
+        product,
+        audience,
+        goal,
+        offer,
+        platforms,
+        tone,
+        language
+    ]
+
+    if any(not is_prompt_safe(field) for field in fields_to_check):
+        return {"error": "Unsafe content is not allowed"}
+
+    post_count = max(3, min(post_count, 15))
+
+    try:
+        prompt = build_content_maker_prompt(
+            project_name=project_name.strip()[:80],
+            product=product.strip()[:500],
+            audience=audience.strip()[:500],
+            goal=goal.strip()[:300],
+            offer=offer.strip()[:300],
+            platforms=platforms.strip()[:120],
+            tone=tone.strip()[:160],
+            language=language.strip()[:60],
+            post_count=post_count,
+            child_safe=child_safe
+        )
+
+        text = generate_gemini_text(prompt)
+        content = extract_json_object(text)
+
+        return {
+            "project_name": project_name,
+            "platforms": platforms,
+            "content": content
+        }
+
+    except Exception as error:
+        return {"error": str(error)}
+
+
 @app.post("/create-payment/")
 def create_payment(data: dict):
 
@@ -1938,6 +2167,330 @@ async def yookassa_webhook(request: Request):
 @app.get("/")
 def root():
     return {"status": "AI Avatar Video server is running"}
+
+@app.get("/content-maker", response_class=HTMLResponse)
+def content_maker_page():
+    return """
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avatar-app Content Maker</title>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    background: #f4f6f8;
+    color: #111;
+    padding: 18px;
+}
+.wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 18px;
+}
+.panel {
+    background: white;
+    border: 1px solid #e4e7eb;
+    border-radius: 8px;
+    padding: 22px;
+}
+h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    letter-spacing: 0;
+}
+h2 {
+    margin: 0 0 14px;
+    font-size: 20px;
+    letter-spacing: 0;
+}
+.muted {
+    color: #667085;
+    line-height: 1.45;
+    margin: 0 0 18px;
+}
+label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 7px;
+    font-weight: 700;
+    font-size: 14px;
+}
+input, textarea, select, button {
+    width: 100%;
+    border: 1px solid #cfd6dd;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 15px;
+    background: white;
+}
+textarea {
+    min-height: 82px;
+    resize: vertical;
+}
+button {
+    margin-top: 18px;
+    border: none;
+    background: #111827;
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+}
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+.check {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+.check input {
+    width: auto;
+    margin-top: 2px;
+}
+.top-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.top-actions a {
+    color: #111827;
+    font-weight: 700;
+}
+.status {
+    margin-top: 14px;
+    font-weight: 700;
+}
+.section {
+    border-top: 1px solid #e4e7eb;
+    padding-top: 16px;
+    margin-top: 16px;
+}
+.post {
+    border: 1px solid #e4e7eb;
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 12px;
+    background: #fbfcfd;
+}
+.post-title {
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+.field {
+    margin-top: 7px;
+    line-height: 1.45;
+}
+.field b {
+    color: #344054;
+}
+.tags {
+    color: #475467;
+}
+pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #111827;
+    color: #f9fafb;
+    border-radius: 8px;
+    padding: 14px;
+    max-height: 420px;
+    overflow: auto;
+}
+@media (max-width: 860px) {
+    body { padding: 10px; }
+    .wrap { grid-template-columns: 1fr; }
+    h1 { font-size: 27px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="panel">
+        <div class="top-actions">
+            <a href="/app">AI Avatar Video</a>
+            <a href="https://t.me/ai_avatar_video_bot" target="_blank">Telegram</a>
+        </div>
+
+        <h1>Content Maker</h1>
+        <p class="muted">
+            Генератор идей, сценариев, подписей, хэштегов и недельного плана
+            для Instagram, TikTok и Threads.
+        </p>
+
+        <label>Проект</label>
+        <input id="projectName" value="Avatar-app">
+
+        <label>Что продаём</label>
+        <textarea id="product">AI-сервис, который создает аватар по фото и talking video для поздравлений, рекламы и коротких роликов.</textarea>
+
+        <label>Аудитория</label>
+        <textarea id="audience">Люди, которым нужны поздравления, персональные AI-видео, необычный контент для друзей, семьи и соцсетей.</textarea>
+
+        <label>Цель</label>
+        <input id="goal" value="получить регистрации и первые покупки">
+
+        <label>Оффер</label>
+        <input id="offer" value="3 генерации бесплатно">
+
+        <label>Площадки</label>
+        <input id="platforms" value="Instagram, TikTok, Threads">
+
+        <label>Тон</label>
+        <select id="tone">
+            <option>живой, простой, продающий без давления</option>
+            <option>экспертный и спокойный</option>
+            <option>юмористический</option>
+            <option>премиальный</option>
+            <option>семейный и тёплый</option>
+        </select>
+
+        <label>Количество идей</label>
+        <select id="postCount">
+            <option value="9">9</option>
+            <option value="6">6</option>
+            <option value="12">12</option>
+            <option value="15">15</option>
+        </select>
+
+        <label class="check">
+            <input type="checkbox" id="childSafe">
+            <span>Детский безопасный режим для контента и сценариев</span>
+        </label>
+
+        <button id="generateBtn" onclick="generateContent()">Сгенерировать контент</button>
+        <div id="status" class="status"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Готовый контент-пак</h2>
+        <div id="result" class="muted">
+            Заполните форму и нажмите кнопку генерации.
+        </div>
+    </div>
+</div>
+
+<script>
+function value(id) {
+    return document.getElementById(id).value.trim();
+}
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function text(value) {
+    if (Array.isArray(value)) {
+        return escapeHtml(value.join(", "));
+    }
+
+    return escapeHtml(value || "");
+}
+
+function renderContent(data) {
+    const content = data.content || {};
+    const posts = content.posts || [];
+    const weeklyPlan = content.weekly_plan || [];
+    const pillars = content.content_pillars || [];
+    const bio = content.bio || {};
+    let html = "";
+
+    html += "<div class='field'><b>Стратегия:</b> " + text(content.strategy) + "</div>";
+
+    html += "<div class='section'><h2>Bio</h2>";
+    html += "<div class='field'><b>Instagram:</b> " + text(bio.instagram) + "</div>";
+    html += "<div class='field'><b>TikTok:</b> " + text(bio.tiktok) + "</div>";
+    html += "<div class='field'><b>Threads:</b> " + text(bio.threads) + "</div></div>";
+
+    html += "<div class='section'><h2>Рубрики</h2>";
+    html += "<div class='field'>" + text(pillars) + "</div></div>";
+
+    html += "<div class='section'><h2>Посты и сценарии</h2>";
+    posts.forEach((post, index) => {
+        html += "<div class='post'>";
+        html += "<div class='post-title'>" + (index + 1) + ". " + text(post.platform) + " — " + text(post.format) + "</div>";
+        html += "<div class='field'><b>Hook:</b> " + text(post.hook) + "</div>";
+        html += "<div class='field'><b>Сценарий:</b> " + text(post.script) + "</div>";
+        html += "<div class='field'><b>Caption:</b> " + text(post.caption) + "</div>";
+        html += "<div class='field'><b>Визуал:</b> " + text(post.visual) + "</div>";
+        html += "<div class='field'><b>CTA:</b> " + text(post.cta) + "</div>";
+        html += "<div class='field tags'><b>Хэштеги:</b> " + text(post.hashtags) + "</div>";
+        html += "</div>";
+    });
+    html += "</div>";
+
+    html += "<div class='section'><h2>Недельный план</h2>";
+    weeklyPlan.forEach((item) => {
+        html += "<div class='field'><b>" + text(item.day) + ":</b> " + text(item.platform) + " — " + text(item.topic) + ". " + text(item.action) + "</div>";
+    });
+    html += "</div>";
+
+    html += "<div class='section'><h2>n8n схема</h2>";
+    html += "<div class='field'>" + text(content.n8n_steps) + "</div></div>";
+
+    html += "<div class='section'><h2>JSON для n8n</h2><pre>" +
+        escapeHtml(JSON.stringify(data, null, 2)) + "</pre></div>";
+
+    document.getElementById("result").innerHTML = html;
+}
+
+async function generateContent() {
+    const btn = document.getElementById("generateBtn");
+    const status = document.getElementById("status");
+    const form = new FormData();
+
+    form.append("project_name", value("projectName"));
+    form.append("product", value("product"));
+    form.append("audience", value("audience"));
+    form.append("goal", value("goal"));
+    form.append("offer", value("offer"));
+    form.append("platforms", value("platforms"));
+    form.append("tone", value("tone"));
+    form.append("language", "русский");
+    form.append("post_count", value("postCount"));
+    form.append("child_safe", document.getElementById("childSafe").checked);
+
+    btn.disabled = true;
+    status.innerText = "Генерируем...";
+
+    try {
+        const response = await fetch("/generate-social-content/", {
+            method: "POST",
+            body: form
+        });
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        renderContent(data);
+        status.innerText = "Готово";
+    } catch (error) {
+        status.innerText = error.message;
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
+</body>
+</html>
+"""
 
 @app.get("/oferta", response_class=HTMLResponse)
 async def oferta():
@@ -3025,6 +3578,23 @@ video {
         "
     >
         🤖 Открыть Telegram-бота
+    </a>
+
+    <a
+        href="/content-maker"
+        style="
+            display:inline-block;
+            background:#111;
+            color:white;
+            padding:14px 22px;
+            border-radius:14px;
+            text-decoration:none;
+            font-weight:600;
+            font-size:16px;
+            margin-left:8px;
+        "
+    >
+        Content Maker
     </a>
 
     <p style="margin-top:12px; opacity:0.8;">
