@@ -1,0 +1,102 @@
+[
+  {
+    "title": "Мужчина",
+    "file": "01-muzhchina.png",
+    "url": "/avatars/01-muzhchina.png"
+  },
+  {
+    "title": "Женщина",
+    "file": "02-zhenshchina.png",
+    "url": "/avatars/02-zhenshchina.png"
+  },
+  {
+    "title": "Мальчик",
+    "file": "03-malchik.png",
+    "url": "/avatars/03-malchik.png"
+  },
+  {
+    "title": "Девочка",
+    "file": "04-devochka.png",
+    "url": "/avatars/04-devochka.png"
+  },
+  {
+    "title": "Дедушка",
+    "file": "05-dedushka.png",
+    "url": "/avatars/05-dedushka.png"
+  },
+  {
+    "title": "Бабушка",
+    "file": "06-babushka.png",
+    "url": "/avatars/06-babushka.png"
+  },
+  {
+    "title": "Дядя",
+    "file": "07-dyadya.png",
+    "url": "/avatars/07-dyadya.png"
+  },
+  {
+    "title": "Тетя",
+    "file": "08-tetya.png",
+    "url": "/avatars/08-tetya.png"
+  },
+  {
+    "title": "Мальчик подросток",
+    "file": "09-malchik-podrostok.png",
+    "url": "/avatars/09-malchik-podrostok.png"
+  },
+  {
+    "title": "Девочка подросток",
+    "file": "10-devochka-podrostok.png",
+    "url": "/avatars/10-devochka-podrostok.png"
+  },
+  {
+    "title": "Бизнесмен",
+    "file": "11-biznesmen.png",
+    "url": "/avatars/11-biznesmen.png"
+  },
+  {
+    "title": "Ведущая",
+    "file": "12-vedushchaya.png",
+    "url": "/avatars/12-vedushchaya.png"
+  },
+  {
+    "title": "Врач",
+    "file": "13-vrach.png",
+    "url": "/avatars/13-vrach.png"
+  },
+  {
+    "title": "Учительница",
+    "file": "14-uchitelnitsa.png",
+    "url": "/avatars/14-uchitelnitsa.png"
+  },
+  {
+    "title": "Тренер",
+    "file": "15-trener.png",
+    "url": "/avatars/15-trener.png"
+  },
+  {
+    "title": "Музыкантка",
+    "file": "16-muzykantka.png",
+    "url": "/avatars/16-muzykantka.png"
+  },
+  {
+    "title": "Блогер",
+    "file": "17-bloger.png",
+    "url": "/avatars/17-bloger.png"
+  },
+  {
+    "title": "Менеджер",
+    "file": "18-menedzher.png",
+    "url": "/avatars/18-menedzher.png"
+  },
+  {
+    "title": "Новогодний ведущий",
+    "file": "19-novogodniy-vedushchiy.png",
+    "url": "/avatars/19-novogodniy-vedushchiy.png"
+  },
+  {
+    "title": "Новогодняя ведущая",
+    "file": "20-novogodnyaya-vedushchaya.png",
+    "url": "/avatars/20-novogodnyaya-vedushchaya.png"
+  }
+]

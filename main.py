@@ -91,6 +91,8 @@ supabase = create_client(
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 UPLOAD_DIR = "uploads"
+STATIC_DIR = "static"
+AVATAR_DIR = os.path.join(STATIC_DIR, "avatars")
 
 CREDIT_PACKAGES = {
     "stars_3": {
@@ -135,8 +137,10 @@ Configuration.account_id = YOOKASSA_SHOP_ID
 Configuration.secret_key = YOOKASSA_SECRET_KEY
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(AVATAR_DIR, exist_ok=True)
 
 app = FastAPI()
+app.mount("/avatars", StaticFiles(directory=AVATAR_DIR), name="avatars")
 
 from telegram.request import HTTPXRequest
 
