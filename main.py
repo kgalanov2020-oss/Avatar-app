@@ -26,7 +26,7 @@ from moviepy import (
     ColorClip
 )
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFilter
 from deep_translator import GoogleTranslator
 
 from telegram import (
@@ -3206,6 +3206,111 @@ def did_video_direct(
     return {
         "error": "D-ID timeout",
         "talk_id": talk_id
+    }
+
+@app.post("/create-static-avatar-video/")
+def create_static_avatar_video(
+    avatar_url: str = Form(...),
+    audio_url: str = Form(...),
+    job_id: str = Form("")
+):
+    import subprocess
+    import imageio_ffmpeg
+
+    ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+
+    if not job_id:
+        job_id = str(uuid.uuid4())
+
+    job_dir = os.path.join(UPLOAD_DIR, job_id)
+    os.makedirs(job_dir, exist_ok=True)
+
+    avatar_path = os.path.join(job_dir, "static_avatar.png")
+    audio_path = os.path.join(job_dir, "static_audio.mp3")
+    poster_path = os.path.join(job_dir, "static_poster.jpg")
+    output_path = os.path.join(job_dir, "static_vertical.mp4")
+
+    avatar_response = requests.get(avatar_url, timeout=90)
+
+    if avatar_response.status_code != 200:
+        return {
+            "error": "Failed to download avatar",
+            "details": avatar_response.text[:500]
+        }
+
+    audio_response = requests.get(audio_url, timeout=90)
+
+    if audio_response.status_code != 200:
+        return {
+            "error": "Failed to download audio",
+            "details": audio_response.text[:500]
+        }
+
+    with open(avatar_path, "wb") as file:
+        file.write(avatar_response.content)
+
+    with open(audio_path, "wb") as file:
+        file.write(audio_response.content)
+
+    avatar = ImageOps.exif_transpose(Image.open(avatar_path)).convert("RGB")
+
+    background = avatar.copy()
+    background.thumbnail((1080, 1920))
+    background = ImageOps.fit(
+        background,
+        (1080, 1920),
+        method=Image.Resampling.LANCZOS,
+        centering=(0.5, 0.5)
+    )
+    background = background.filter(ImageFilter.GaussianBlur(28))
+
+    dark_overlay = Image.new("RGB", (1080, 1920), (20, 20, 24))
+    canvas = Image.blend(background, dark_overlay, 0.34)
+
+    portrait = ImageOps.fit(
+        avatar,
+        (920, 920),
+        method=Image.Resampling.LANCZOS,
+        centering=(0.5, 0.35)
+    )
+
+    canvas.paste(portrait, (80, 430))
+    canvas.save(poster_path, format="JPEG", quality=94, optimize=True)
+
+    command = [
+        ffmpeg_path,
+        "-y",
+        "-loop", "1",
+        "-i", poster_path,
+        "-i", audio_path,
+        "-vf", "format=yuv420p",
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-tune", "stillimage",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        "-shortest",
+        "-movflags", "+faststart",
+        output_path
+    ]
+
+    result = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    if result.returncode != 0:
+        return {
+            "error": "ffmpeg static avatar video failed",
+            "details": result.stderr[-1000:]
+        }
+
+    return {
+        "job_id": job_id,
+        "video_url": public_file_url(job_id, "static_vertical.mp4"),
+        "vertical_video_url": public_file_url(job_id, "static_vertical.mp4")
     }
 
 @app.post("/make-square/")
