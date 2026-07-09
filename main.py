@@ -3208,6 +3208,91 @@ def did_video_direct(
         "talk_id": talk_id
     }
 
+@app.post("/did-video-start/")
+def did_video_start(
+    avatar_url: str = Form(...),
+    audio_url: str = Form(...)
+):
+    if not DID_API_KEY:
+        return {"error": "DID_API_KEY is not set"}
+
+    headers = {
+        "Authorization": f"Basic {DID_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "source_url": avatar_url,
+        "script": {
+            "type": "audio",
+            "audio_url": audio_url
+        },
+        "config": {
+            "fluent": True,
+            "pad_audio": 0.0,
+            "stitch": True
+        }
+    }
+
+    create_response = requests.post(
+        "https://api.d-id.com/talks",
+        headers=headers,
+        json=payload,
+        timeout=60
+    )
+
+    if create_response.status_code not in [200, 201]:
+        return {
+            "error": "D-ID create failed",
+            "status_code": create_response.status_code,
+            "details": create_response.text[:1000]
+        }
+
+    data = create_response.json()
+    talk_id = data.get("id")
+
+    if not talk_id:
+        return {
+            "error": "No talk_id from D-ID",
+            "details": data
+        }
+
+    return {
+        "talk_id": talk_id,
+        "status": data.get("status", "created")
+    }
+
+@app.get("/did-video-status/{talk_id}")
+def did_video_status(talk_id: str):
+    if not DID_API_KEY:
+        return {"error": "DID_API_KEY is not set"}
+
+    headers = {
+        "Authorization": f"Basic {DID_API_KEY}"
+    }
+
+    status_response = requests.get(
+        f"https://api.d-id.com/talks/{talk_id}",
+        headers=headers,
+        timeout=60
+    )
+
+    if status_response.status_code != 200:
+        return {
+            "error": "D-ID status failed",
+            "status_code": status_response.status_code,
+            "details": status_response.text[:1000]
+        }
+
+    data = status_response.json()
+
+    return {
+        "talk_id": talk_id,
+        "status": data.get("status"),
+        "video_url": data.get("result_url"),
+        "details": data
+    }
+
 @app.post("/create-static-avatar-video/")
 def create_static_avatar_video(
     avatar_url: str = Form(...),
