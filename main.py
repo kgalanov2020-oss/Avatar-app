@@ -3549,10 +3549,7 @@ body {
     margin: 0;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-    background:
-        radial-gradient(circle at top left, #ffe8f0, transparent 35%),
-        radial-gradient(circle at bottom right, #dff3ff, transparent 35%),
-        #f5f6fa;
+    background: #f3f3f1;
     color: #111;
     padding: 18px;
 }
@@ -3561,11 +3558,11 @@ body {
     width: 100%;
     max-width: 760px;
     margin: 18px auto;
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(12px);
-    border-radius: 28px;
+    background: #fff;
+    border: 1px solid #deded9;
+    border-radius: 8px;
     padding: 28px;
-    box-shadow: 0 18px 50px rgba(0,0,0,0.10);
+    box-shadow: none;
 }
 
 .badge {
@@ -3582,7 +3579,7 @@ body {
 h1 {
     font-size: 44px;
     margin: 0;
-    letter-spacing: -1px;
+    letter-spacing: 0;
 }
 
 .subtitle {
@@ -3746,6 +3743,89 @@ video {
     font-weight: 800;
 }
 
+.pricing-section {
+    margin-top: 20px;
+}
+
+.pricing-title {
+    font-size: clamp(36px, 7vw, 68px);
+    line-height: 0.95;
+    margin: 0;
+    max-width: 650px;
+    text-transform: uppercase;
+}
+
+.pricing-subtitle {
+    color: #666;
+    font-size: 14px;
+    margin: 12px 0 0;
+}
+
+.pricing-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 28px;
+}
+
+.pricing-option {
+    background: #f3f3f1;
+    border: 1px solid #deded9;
+    border-radius: 6px;
+    cursor: pointer;
+    min-height: 170px;
+    padding: 18px;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.pricing-option:hover {
+    border-color: #111;
+    transform: translateY(-2px);
+}
+
+.pricing-option-popular {
+    background: #1d1c1a;
+    color: white;
+}
+
+.pricing-option h3 {
+    font-size: 16px;
+    margin: 0;
+}
+
+.pricing-price {
+    font-size: 34px;
+    font-weight: 900;
+    margin-top: 30px;
+}
+
+.pricing-credit {
+    color: #666;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.pricing-option-popular .pricing-credit {
+    color: rgba(255, 255, 255, 0.68);
+}
+
+.pricing-badge {
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 999px;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    padding: 5px 9px;
+}
+
+.pricing-note {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 20px 0 0;
+}
+
 @media (max-width: 640px) {
     body {
         padding: 10px;
@@ -3771,6 +3851,14 @@ video {
 
     .actions.show {
         grid-template-columns: 1fr;
+    }
+
+    .pricing-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pricing-option {
+        min-height: 140px;
     }
 }
 </style>
@@ -3822,122 +3910,33 @@ video {
     Загрузи фото, напиши поздравление — получи говорящее видео с AI-аватаром.
 </p>
 
-<div class="card" style="margin-top:20px;">
+<div class="card pricing-section">
+    <h2 class="pricing-title">3 генерации бесплатно</h2>
+    <p class="pricing-subtitle">Без оплаты при регистрации. Если захотите продолжить — выберите пакет.</p>
 
-    <h2 style="margin-top:0;">
-        3 генерации бесплатно, далее на выбор
-    </h2>
-
-    <div style="
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-        gap:16px;
-        margin-top:20px;
-    ">
-
-        <div onclick="buyCredits(5, 249)" style="
-            padding:24px;
-            border-radius:24px;
-            background:#f5f5f5;
-            cursor:pointer;
-            transition:0.2s;
-        ">
-            <h3 style="margin-top:0;">Starter</h3>
-
-            <div style="
-                font-size:36px;
-                font-weight:800;
-                margin-top:10px;
-            ">
-                249 ₽
-            </div>
-
-            <div style="
-                margin-top:12px;
-                color:#666;
-            ">
-                5 кредитов
-            </div>
+    <div class="pricing-grid">
+        <div class="pricing-option" onclick="buyCredits(5, 249)">
+            <h3>Starter</h3>
+            <div class="pricing-price">249 ₽</div>
+            <div class="pricing-credit">5 генераций</div>
         </div>
 
-        <div onclick="buyCredits(10, 399)" style="
-            padding:24px;
-            border-radius:24px;
-            background:#111;
-            color:white;
-            cursor:pointer;
-            transition:0.2s;
-            transform:scale(1.03);
-        ">
-            <div style="
-                display:inline-block;
-                padding:6px 12px;
-                border-radius:999px;
-                background:white;
-                color:#111;
-                font-size:12px;
-                font-weight:700;
-                margin-bottom:14px;
-            ">
-                Популярный
-            </div>
-
-            <h3 style="margin-top:0;">Popular</h3>
-
-            <div style="
-                font-size:36px;
-                font-weight:800;
-                margin-top:10px;
-            ">
-                399 ₽
-            </div>
-
-            <div style="
-                margin-top:12px;
-                opacity:0.8;
-            ">
-                10 кредитов
-            </div>
+        <div class="pricing-option pricing-option-popular" onclick="buyCredits(10, 399)">
+            <div class="pricing-badge">Популярный</div>
+            <h3>Popular</h3>
+            <div class="pricing-price">399 ₽</div>
+            <div class="pricing-credit">10 генераций</div>
         </div>
 
-        <div onclick="buyCredits(30, 899)" style="
-            padding:24px;
-            border-radius:24px;
-            background:#f5f5f5;
-            cursor:pointer;
-            transition:0.2s;
-        ">
-            <h3 style="margin-top:0;">Pro</h3>
-
-            <div style="
-                font-size:36px;
-                font-weight:800;
-                margin-top:10px;
-            ">
-                899 ₽
-            </div>
-
-            <div style="
-                margin-top:12px;
-                color:#666;
-            ">
-                30 кредитов
-            </div>
+        <div class="pricing-option" onclick="buyCredits(30, 899)">
+            <h3>Pro</h3>
+            <div class="pricing-price">899 ₽</div>
+            <div class="pricing-credit">30 генераций</div>
         </div>
-
     </div>
 
-    <p style="
-        margin-top:24px;
-        color:#666;
-        line-height:1.7;
-        font-size:15px;
-    ">
-        Кредиты используются для генерации AI-видео и AI-аватаров.<br>
-        1 генерация = 1 кредит.<br><br>
-
-        После успешной оплаты кредиты автоматически начисляются
-        на аккаунт пользователя.
+    <p class="pricing-note">
+        Одна генерация использует один кредит. После оплаты кредиты автоматически начисляются на аккаунт.
     </p>
 
 </div>
