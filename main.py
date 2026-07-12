@@ -2324,6 +2324,7 @@ pre {
         <div class="top-actions">
             <a href="/app">AI Avatar Video</a>
             <a href="https://t.me/ai_avatar_video_bot" target="_blank">Telegram</a>
+            <a href="https://virtualphotostudio.ru/start?utm_source=avatar_app&utm_medium=product_crosslink&utm_campaign=ecosystem" target="_blank">AI-фотостудия</a>
         </div>
 
         <h1>Content Maker</h1>
@@ -3720,6 +3721,31 @@ video {
     text-align: center;
 }
 
+.studio-bridge {
+    margin: 20px 0 22px;
+    padding: 18px;
+    border: 1px solid #dedede;
+    border-radius: 18px;
+    background: #f7f7f7;
+}
+
+.studio-bridge strong {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 7px;
+}
+
+.studio-bridge p {
+    color: #555;
+    line-height: 1.45;
+    margin: 0 0 12px;
+}
+
+.studio-bridge a {
+    color: #111;
+    font-weight: 800;
+}
+
 @media (max-width: 640px) {
     body {
         padding: 10px;
@@ -3755,6 +3781,12 @@ video {
     <div class="badge">AI Greeting Video</div>
 
     <h1>AI Avatar Video</h1>
+
+<div class="studio-bridge">
+    <strong>Сначала нужен профессиональный портрет?</strong>
+    <p>Создайте серию AI-фото по обычным селфи, затем вернитесь сюда и оживите выбранный кадр.</p>
+    <a href="https://virtualphotostudio.ru/start?utm_source=avatar_app&utm_medium=product_crosslink&utm_campaign=ecosystem" target="_blank" rel="noreferrer">Перейти в Virtual AI Photo Studio →</a>
+</div>
 
 <div style="margin-top:20px;">
     <a 
@@ -4697,6 +4729,12 @@ window.buyCredits = buyCredits;
 
     <div>
         AI Avatar Video — сервис генерации AI-видео и AI-аватаров
+    </div>
+
+    <div>
+        <a href="https://virtualphotostudio.ru/start?utm_source=avatar_app&utm_medium=product_crosslink&utm_campaign=ecosystem" target="_blank" rel="noreferrer">
+            Создать исходный портрет в Virtual AI Photo Studio
+        </a>
     </div>
 </footer>
 </body>
