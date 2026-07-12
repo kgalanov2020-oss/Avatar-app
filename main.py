@@ -2189,7 +2189,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
     background: #f4f6f8;
     color: #111;
-    padding: 18px;
+    padding: 0;
 }
 .wrap {
     max-width: 1100px;
@@ -3718,12 +3718,50 @@ video {
     text-align: center;
 }
 
+.app-shell {
+    background: transparent;
+    border: 0;
+    margin: 0 auto;
+    max-width: 1180px;
+    padding: 0 34px 56px;
+}
+
+.app-nav {
+    align-items: center;
+    border-bottom: 1px solid #d9d9d4;
+    display: flex;
+    justify-content: space-between;
+    margin: 0 -34px 54px;
+    min-height: 88px;
+    padding: 0 34px;
+}
+
+.app-brand {
+    color: #1d1c1a;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.app-nav-links { display: flex; gap: 24px; }
+.app-nav-links a { color: #66645f; font-size: 14px; font-weight: 800; text-decoration: none; }
+.app-eyebrow { color: #8d7f70; font-size: 13px; font-weight: 900; letter-spacing: 0.14em; margin: 0 0 16px; text-transform: uppercase; }
+.app-shell > h1 { font-size: clamp(54px, 9vw, 112px); line-height: 0.9; max-width: 1050px; text-transform: uppercase; }
+.app-shell > .subtitle { font-size: clamp(20px, 2.5vw, 30px); line-height: 1.35; max-width: 880px; }
+
 .studio-bridge {
-    margin: 20px 0 22px;
-    padding: 18px;
-    border: 1px solid #dedede;
-    border-radius: 18px;
-    background: #f7f7f7;
+    align-items: end;
+    background: #1d1c1a;
+    border: 0;
+    border-radius: 6px;
+    color: white;
+    display: grid;
+    gap: 32px;
+    grid-template-columns: 1fr auto;
+    margin: 42px 0 18px;
+    padding: 28px;
 }
 
 .studio-bridge strong {
@@ -3733,22 +3771,31 @@ video {
 }
 
 .studio-bridge p {
-    color: #555;
+    color: rgba(255, 255, 255, 0.68);
     line-height: 1.45;
     margin: 0 0 12px;
 }
 
 .studio-bridge a {
-    color: #111;
+    color: white;
     font-weight: 800;
 }
 
+.telegram-row { align-items: center; border-bottom: 1px solid #d9d9d4; display: flex; gap: 18px; justify-content: space-between; margin-bottom: 50px; padding: 18px 0 30px; }
+.telegram-button { background: #8d7f70; border-radius: 999px; color: white; display: inline-block; font-size: 14px; font-weight: 900; padding: 13px 20px; text-decoration: none; }
+.telegram-copy { color: #66645f; font-size: 14px; margin: 0; }
+.telegram-copy a { color: #1d1c1a; font-weight: 800; }
+
 .pricing-section {
+    background: transparent;
+    border: 0;
     margin-top: 20px;
+    max-width: none;
+    padding: 48px 0;
 }
 
 .pricing-title {
-    font-size: clamp(36px, 7vw, 68px);
+    font-size: clamp(44px, 7vw, 84px);
     line-height: 0.95;
     margin: 0;
     max-width: 650px;
@@ -3832,9 +3879,9 @@ video {
     }
 
     .card {
-        padding: 22px;
-        border-radius: 24px;
-        margin: 8px auto;
+        padding: 18px;
+        border-radius: 8px;
+        margin: 0 auto;
     }
 
     h1 {
@@ -3860,57 +3907,46 @@ video {
     .pricing-option {
         min-height: 140px;
     }
+
+    .app-shell { padding: 0 18px 42px; }
+    .app-nav { align-items: flex-start; flex-direction: column; gap: 12px; margin: 0 -18px 38px; padding: 20px 18px; }
+    .app-nav-links { flex-wrap: wrap; gap: 12px 18px; }
+    .app-shell > h1 { font-size: clamp(48px, 16vw, 72px); }
+    .studio-bridge { align-items: start; grid-template-columns: 1fr; }
+    .telegram-row { align-items: flex-start; flex-direction: column; }
 }
 </style>
 </head>
 
 <body>
-<div class="card">
-    <div class="badge">AI Greeting Video</div>
+<div class="card app-shell">
+    <header class="app-nav">
+        <a class="app-brand" href="https://virtualphotostudio.ru/">Virtual AI Photo Studio</a>
+        <nav class="app-nav-links" aria-label="Навигация">
+            <a href="#pricing">Тарифы</a>
+            <a href="https://t.me/ai_avatar_video_bot" target="_blank">Telegram</a>
+            <a href="https://virtualphotostudio.ru/">Фотостудия</a>
+        </nav>
+    </header>
 
-    <h1>AI Avatar Video</h1>
+    <p class="app-eyebrow">AI-видео по одной фотографии</p>
+    <h1>Видео-аватар из вашего фото</h1>
+    <p class="subtitle">Загрузите портрет, напишите поздравление или обращение — получите готовое говорящее видео.</p>
 
 <div class="studio-bridge">
-    <strong>Сначала нужен профессиональный портрет?</strong>
-    <p>Создайте серию AI-фото по обычным селфи, затем вернитесь сюда и оживите выбранный кадр.</p>
-    <a href="https://virtualphotostudio.ru/start?utm_source=avatar_app&utm_medium=product_crosslink&utm_campaign=ecosystem" target="_blank" rel="noreferrer">Перейти в Virtual AI Photo Studio →</a>
+    <div>
+        <strong>Сначала нужен профессиональный портрет?</strong>
+        <p>Создайте серию AI-фото по обычным селфи, затем вернитесь сюда и оживите выбранный кадр.</p>
+    </div>
+    <a href="https://virtualphotostudio.ru/start?utm_source=avatar_app&utm_medium=product_crosslink&utm_campaign=ecosystem" target="_blank" rel="noreferrer">Перейти в фотостудию →</a>
 </div>
 
-<div style="margin-top:20px;">
-    <a 
-        href="https://t.me/ai_avatar_video_bot"
-        target="_blank"
-        style="
-            display:inline-block;
-            background:#229ED9;
-            color:white;
-            padding:14px 22px;
-            border-radius:14px;
-            text-decoration:none;
-            font-weight:600;
-            font-size:16px;
-        "
-    >
-        🤖 Открыть Telegram-бота
-    </a>
-
-    <p style="margin-top:12px; opacity:0.8;">
-        Также вы можете пользоваться сервисом прямо в Telegram-боте:
-        <br>
-        <a 
-            href="https://t.me/ai_avatar_video_bot"
-            target="_blank"
-        >
-            @ai_avatar_video_bot
-        </a>
-    </p>
+<div class="telegram-row">
+    <p class="telegram-copy">Работает и в Telegram: <a href="https://t.me/ai_avatar_video_bot" target="_blank">@ai_avatar_video_bot</a></p>
+    <a class="telegram-button" href="https://t.me/ai_avatar_video_bot" target="_blank">Открыть Telegram-бота</a>
 </div>
 
-<p class="subtitle">
-    Загрузи фото, напиши поздравление — получи говорящее видео с AI-аватаром.
-</p>
-
-<div class="card pricing-section">
+<div class="card pricing-section" id="pricing">
     <h2 class="pricing-title">3 генерации бесплатно</h2>
     <p class="pricing-subtitle">Без оплаты при регистрации. Если захотите продолжить — выберите пакет.</p>
 
