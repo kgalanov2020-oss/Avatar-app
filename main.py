@@ -142,6 +142,19 @@ os.makedirs(AVATAR_DIR, exist_ok=True)
 app = FastAPI()
 app.mount("/avatars", StaticFiles(directory=AVATAR_DIR), name="avatars")
 
+AVATAR_FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><linearGradient id="g" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse"><stop stop-color="#2f80ed"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+<rect width="64" height="64" rx="16" fill="url(#g)"/>
+<circle cx="32" cy="25" r="10" fill="white"/>
+<path d="M15 52c2-10 8-15 17-15s15 5 17 15" fill="white"/>
+<path d="M38 21l8 5-8 5z" fill="#2f80ed"/>
+</svg>"""
+
+
+@app.get("/favicon.svg", include_in_schema=False)
+def favicon():
+    return Response(content=AVATAR_FAVICON, media_type="image/svg+xml")
+
 from telegram.request import HTTPXRequest
 
 telegram_request = HTTPXRequest(
@@ -2181,6 +2194,7 @@ def content_maker_page():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Avatar-app Content Maker</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
 * { box-sizing: border-box; }
 body {
@@ -2504,6 +2518,7 @@ async def oferta():
     <head>
         <meta charset="UTF-8">
         <title>Пользовательское соглашение</title>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <style>
             body{max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.7;color:#111;}
             h1,h2{margin-top:34px;}
@@ -2709,6 +2724,7 @@ async def privacy():
     <head>
         <meta charset="UTF-8">
         <title>Политика конфиденциальности</title>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <style>
             body{max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.7;color:#111;}
             h1,h2{margin-top:34px;}
@@ -3539,6 +3555,7 @@ def app_page():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Avatar Video</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
 <style>
 * {
