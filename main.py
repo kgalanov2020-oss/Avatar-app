@@ -3805,19 +3805,20 @@ video {
 
 .translator-promo {
     align-items: center;
-    background: linear-gradient(135deg, #edf5ff 0%, #f7efff 100%);
-    border: 1px solid #dce4f3;
-    border-radius: 8px;
+    background: transparent;
+    border-bottom: 1px solid #d9d9d4;
+    border-top: 1px solid #d9d9d4;
+    border-radius: 0;
     display: grid;
     gap: 28px;
     grid-template-columns: minmax(0, 1fr) auto;
     margin: 18px 0 46px;
-    padding: 28px;
+    padding: 36px 0;
 }
-.translator-promo h2 { font-size: clamp(28px, 4vw, 46px); line-height: 1.04; margin: 0 0 12px; }
+.translator-promo h2 { font-size: clamp(28px, 3.4vw, 40px); letter-spacing: -0.035em; line-height: 1.06; margin: 0 0 12px; max-width: 820px; }
 .translator-promo p { color: #66645f; line-height: 1.5; margin: 0; }
-.translator-promo a { background: #2f80ed; border-radius: 999px; color: white; font-size: 14px; font-weight: 900; padding: 14px 20px; text-decoration: none; white-space: nowrap; }
-.translator-promo a:hover { background: #246fce; }
+.translator-promo a { background: #8d7f70; border-radius: 999px; color: white; font-size: 14px; font-weight: 900; padding: 14px 20px; text-decoration: none; white-space: nowrap; }
+.translator-promo a:hover { background: #6f6459; }
 
 .pricing-section {
     background: transparent;
