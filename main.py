@@ -3786,6 +3786,22 @@ video {
 .telegram-copy { color: #66645f; font-size: 14px; margin: 0; }
 .telegram-copy a { color: #1d1c1a; font-weight: 800; }
 
+.translator-promo {
+    align-items: center;
+    background: linear-gradient(135deg, #edf5ff 0%, #f7efff 100%);
+    border: 1px solid #dce4f3;
+    border-radius: 8px;
+    display: grid;
+    gap: 28px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin: 18px 0 46px;
+    padding: 28px;
+}
+.translator-promo h2 { font-size: clamp(28px, 4vw, 46px); line-height: 1.04; margin: 0 0 12px; }
+.translator-promo p { color: #66645f; line-height: 1.5; margin: 0; }
+.translator-promo a { background: #2f80ed; border-radius: 999px; color: white; font-size: 14px; font-weight: 900; padding: 14px 20px; text-decoration: none; white-space: nowrap; }
+.translator-promo a:hover { background: #246fce; }
+
 .pricing-section {
     background: transparent;
     border: 0;
@@ -3914,6 +3930,7 @@ video {
     .app-shell > h1 { font-size: clamp(48px, 16vw, 72px); }
     .studio-bridge { align-items: start; grid-template-columns: 1fr; }
     .telegram-row { align-items: flex-start; flex-direction: column; }
+    .translator-promo { align-items: start; grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -3945,6 +3962,14 @@ video {
     <p class="telegram-copy">Работает и в Telegram: <a href="https://t.me/ai_avatar_video_bot" target="_blank">@ai_avatar_video_bot</a></p>
     <a class="telegram-button" href="https://t.me/ai_avatar_video_bot" target="_blank">Открыть Telegram-бота</a>
 </div>
+
+<section class="translator-promo" aria-labelledby="translator-title">
+    <div>
+        <h2 id="translator-title">Для пользователей нашего сервиса — бесплатный AI‑переводчик</h2>
+        <p>Работает быстро в любой стране — через веб‑интерфейс и как бот в Telegram. Переводит текст, голосовые сообщения и текст на изображениях.</p>
+    </div>
+    <a href="https://t.me/voxa_translate_bot?start=avatar_app" target="_blank" rel="noreferrer">Открыть в Telegram ↗</a>
+</section>
 
 <div class="card pricing-section" id="pricing">
     <h2 class="pricing-title">3 генерации бесплатно</h2>
